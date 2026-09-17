@@ -57,7 +57,7 @@ export function loadSampleEvent(): ParsedEvent {
   return {
     externalId: raw.externalId,
     name: raw.name,
-    date: new Date(raw.date),
+    date: new Date(`${raw.date}T12:00:00-07:00`),
     source: raw.source ?? "sample-fixture",
     fights: raw.fights.map((fight) => ({
       fighter1Name: fight.fighter1.name,
