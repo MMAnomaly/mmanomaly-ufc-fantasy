@@ -1,0 +1,83 @@
+{
+  "name": "MMAnomaly Demo Card (scoring fixture)",
+  "date": "2026-09-13",
+  "externalId": "mmanomaly-demo-fixture-2026-09-13",
+  "source": "sample-fixture",
+  "fights": [
+    {
+      "fighter1": {
+        "name": "Joshua Van",
+        "knockdowns": 1,
+        "strikes": 84,
+        "sigStrikes": 52,
+        "takedowns": 0,
+        "reversals": 0,
+        "controlTime": "0:18",
+        "winner": true
+      },
+      "fighter2": {
+        "name": "Alexandre Pantoja",
+        "knockdowns": 0,
+        "strikes": 61,
+        "sigStrikes": 40,
+        "takedowns": 2,
+        "reversals": 0,
+        "controlTime": "2:40",
+        "winner": false
+      },
+      "method": "KO/TKO",
+      "round": 2,
+      "time": "3:12"
+    },
+    {
+      "fighter1": {
+        "name": "Islam Makhachev",
+        "knockdowns": 0,
+        "strikes": 42,
+        "sigStrikes": 18,
+        "takedowns": 4,
+        "reversals": 0,
+        "controlTime": "8:20",
+        "winner": true
+      },
+      "fighter2": {
+        "name": "Arman Tsarukyan",
+        "knockdowns": 0,
+        "strikes": 33,
+        "sigStrikes": 21,
+        "takedowns": 0,
+        "reversals": 1,
+        "controlTime": "0:45",
+        "winner": false
+      },
+      "method": "U-DEC",
+      "round": 5,
+      "time": "5:00"
+    },
+    {
+      "fighter1": {
+        "name": "Zhang Weili",
+        "knockdowns": 1,
+        "strikes": 22,
+        "sigStrikes": 18,
+        "takedowns": 0,
+        "reversals": 0,
+        "controlTime": "0:04",
+        "winner": true
+      },
+      "fighter2": {
+        "name": "Tatiana Suarez",
+        "knockdowns": 0,
+        "strikes": 6,
+        "sigStrikes": 4,
+        "takedowns": 0,
+        "reversals": 0,
+        "controlTime": "0:00",
+        "winner": false
+      },
+      "method": "KO/TKO",
+      "round": 1,
+      "time": "0:47"
+    }
+  ]
+}

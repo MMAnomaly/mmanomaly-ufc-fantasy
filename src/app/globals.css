@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+:root {
+  --background: #070709;
+  --foreground: #f4f1ea;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-ink: #070709;
+  --color-panel: #121217;
+  --color-raised: #1b1b22;
+  --color-line: #2c2c36;
+  --color-blood: #e11d2e;
+  --color-blood-dim: #8a1420;
+  --color-amber: #f5b942;
+  --color-mist: #9b9ba8;
+  --color-paper: #f4f1ea;
+  --font-sans: var(--font-barlow);
+  --font-display: var(--font-oswald);
+}
+
+html {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(1200px 500px at 10% -10%, rgba(225, 29, 46, 0.16), transparent 50%),
+    radial-gradient(900px 400px at 100% 0%, rgba(245, 185, 66, 0.08), transparent 45%),
+    var(--background);
+  font-family: var(--font-barlow), "Segoe UI", sans-serif;
+  color: var(--foreground);
+}
+
+::selection {
+  background: #e11d2e;
+  color: #fff;
+}
+
+input,
+select,
+textarea {
+  color-scheme: dark;
+}
