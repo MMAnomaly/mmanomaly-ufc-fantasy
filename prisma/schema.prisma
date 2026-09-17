@@ -1,14 +1,14 @@
-// MMAnomaly v1 — Prisma schema is written for PostgreSQL types/relations.
-// Local demo uses SQLite via DATABASE_URL="file:./dev.db".
-// To switch: set provider = "postgresql" and point DATABASE_URL at Postgres.
+// PostgreSQL for local Docker and Vercel/Neon. SQLite is not viable on serverless.
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
