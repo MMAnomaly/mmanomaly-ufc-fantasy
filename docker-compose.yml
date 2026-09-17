@@ -1,0 +1,14 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: mmanomaly
+      POSTGRES_PASSWORD: mmanomaly
+      POSTGRES_DB: mmanomaly
+    ports:
+      - "5432:5432"
+    volumes:
+      - mmanomaly_pg:/var/lib/postgresql/data
+
+volumes:
+  mmanomaly_pg:

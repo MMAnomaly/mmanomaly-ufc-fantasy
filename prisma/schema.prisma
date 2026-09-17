@@ -1,0 +1,217 @@
+// MMAnomaly v1 — Prisma schema is written for PostgreSQL types/relations.
+// Local demo uses SQLite via DATABASE_URL="file:./dev.db".
+// To switch: set provider = "postgresql" and point DATABASE_URL at Postgres.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  displayName  String
+  createdAt    DateTime @default(now())
+
+  leaguesCreated League[]      @relation("LeagueCommissioner")
+  memberships    Membership[]
+  invitesCreated Invite[]
+}
+
+model League {
+  id               String    @id @default(cuid())
+  name             String
+  commissionerId   String
+  maxTeams         Int       @default(8)
+  pickClockSeconds Int       @default(90)
+  /// SETUP | DRAFTING | PAUSED | IN_SEASON
+  status           String    @default("SETUP")
+  currentPickIndex Int       @default(0)
+  pickDeadline     DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  commissioner User         @relation("LeagueCommissioner", fields: [commissionerId], references: [id])
+  memberships  Membership[]
+  invites      Invite[]
+  picks        DraftPick[]
+}
+
+model Membership {
+  id            String   @id @default(cuid())
+  leagueId      String
+  userId        String
+  teamName      String
+  draftPosition Int      @default(0)
+  createdAt     DateTime @default(now())
+
+  league  League       @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roster  RosterSlot[]
+  picks   DraftPick[]
+
+  @@unique([leagueId, userId])
+  @@index([leagueId, draftPosition])
+}
+
+model Invite {
+  id          String   @id @default(cuid())
+  leagueId    String
+  token       String   @unique
+  createdById String
+  revoked     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  league    League @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  createdBy User   @relation(fields: [createdById], references: [id])
+
+  @@index([leagueId])
+}
+
+model Fighter {
+  id                 String    @id
+  name               String
+  classKey           String
+  slotKey            String
+  sex                String
+  weightClass        String
+  record             String?
+  rankingJson        String?
+  lastFightDate      DateTime?
+  lastFightClass     String?
+  lastFightNote      String?
+  upcomingFightClass String?
+  nextBoutJson       String?
+  tapologyUrl        String?
+  wikipediaUrl       String?
+  active             Boolean   @default(true)
+  activityNotes      String?
+
+  rosterSlots RosterSlot[]
+  picks       DraftPick[]
+  scores      FantasyScore[]
+  statLines   FightStatLine[]
+
+  @@index([classKey])
+  @@index([name])
+}
+
+model RosterSlot {
+  id           String   @id @default(cuid())
+  membershipId String
+  slot         String
+  fighterId    String
+  pickNumber   Int
+  createdAt    DateTime @default(now())
+
+  membership Membership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+  fighter    Fighter    @relation(fields: [fighterId], references: [id])
+
+  @@unique([membershipId, slot])
+}
+
+model DraftPick {
+  id           String   @id @default(cuid())
+  leagueId     String
+  pickNumber   Int
+  membershipId String
+  fighterId    String
+  slot         String
+  autoPick     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  league     League     @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  membership Membership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+  fighter    Fighter    @relation(fields: [fighterId], references: [id])
+
+  @@unique([leagueId, pickNumber])
+  @@unique([leagueId, fighterId])
+}
+
+model UfcEvent {
+  id         String   @id @default(cuid())
+  externalId String   @unique
+  name       String
+  date       DateTime
+  url        String?
+  source     String   @default("ufcstats")
+  ingestedAt DateTime @default(now())
+
+  fights  Fight[]
+  scores  FantasyScore[]
+  jobs    ScoringJob[]
+}
+
+model Fight {
+  id              String  @id @default(cuid())
+  eventId         String
+  boutOrder       Int     @default(0)
+  weightClass     String?
+  method          String?
+  round           Int?
+  time            String?
+  winnerName      String?
+  fighter1Name    String
+  fighter2Name    String
+  fighter1Id      String?
+  fighter2Id      String?
+  ufcStatsUrl     String?
+
+  event     UfcEvent        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  statLines FightStatLine[]
+}
+
+model FightStatLine {
+  id                  String  @id @default(cuid())
+  fightId             String
+  fighterId           String?
+  fighterName         String
+  isWinner            Boolean @default(false)
+  knockdowns          Int     @default(0)
+  strikes             Int     @default(0)
+  sigStrikes          Int     @default(0)
+  takedowns           Int     @default(0)
+  reversals           Int     @default(0)
+  controlTimeSeconds  Int     @default(0)
+  result              String
+  method              String?
+  round               Int?
+  timeSecondsInRound  Int?
+  finish              Boolean @default(false)
+  rawJson             String?
+
+  fight   Fight    @relation(fields: [fightId], references: [id], onDelete: Cascade)
+  fighter Fighter? @relation(fields: [fighterId], references: [id])
+
+  @@unique([fightId, fighterName])
+}
+
+model FantasyScore {
+  id         String @id @default(cuid())
+  eventId    String
+  fighterId  String
+  points     Float
+  breakdown  String
+
+  event   UfcEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  fighter Fighter  @relation(fields: [fighterId], references: [id])
+
+  @@unique([eventId, fighterId])
+}
+
+model ScoringJob {
+  id         String    @id @default(cuid())
+  eventId    String?
+  status     String
+  source     String
+  log        String?
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+
+  event UfcEvent? @relation(fields: [eventId], references: [id])
+}
