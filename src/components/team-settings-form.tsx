@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useRef, useState } from "react";
+import { changePasswordAction } from "@/app/actions/auth";
 import { updateTeamAvatarAction, updateTeamNameAction, type TeamSettingsState } from "@/app/actions/team";
 import { TeamAvatar } from "./team-avatar";
 import { Field, PrimaryButton } from "./ui";
@@ -28,6 +29,45 @@ async function squareAvatarFile(file: File): Promise<File> {
   } finally {
     bitmap.close();
   }
+}
+
+export function ChangePasswordForm() {
+  const [state, action, pending] = useActionState(changePasswordAction, null as TeamSettingsState);
+  return (
+    <form action={action} className="grid gap-4 sm:grid-cols-3" key={state?.message ?? "password"}>
+      <Field
+        autoComplete="current-password"
+        label="Current password"
+        name="currentPassword"
+        required
+        type="password"
+      />
+      <Field
+        autoComplete="new-password"
+        label="New password"
+        maxLength={128}
+        minLength={8}
+        name="newPassword"
+        placeholder="At least 8 characters"
+        required
+        type="password"
+      />
+      <Field
+        autoComplete="new-password"
+        label="Confirm new password"
+        maxLength={128}
+        minLength={8}
+        name="confirmPassword"
+        required
+        type="password"
+      />
+      <div className="sm:col-span-3 space-y-3">
+        {state?.error ? <p className="text-sm text-blood">{state.error}</p> : null}
+        {state?.message ? <p className="text-sm text-amber">{state.message}</p> : null}
+        <PrimaryButton disabled={pending}>Update password</PrimaryButton>
+      </div>
+    </form>
+  );
 }
 
 export function TeamNameForm({ leagueId, teamName }: { leagueId: string; teamName: string }) {

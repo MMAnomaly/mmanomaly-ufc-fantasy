@@ -58,7 +58,7 @@ export default async function LeagueLobbyPage({
               <div>
                 <div className="font-medium">{mine.teamName}</div>
                 <Link className="text-sm text-amber" href={`/leagues/${leagueId}/settings`}>
-                  Team settings →
+                  Account & team →
                 </Link>
               </div>
             </div>

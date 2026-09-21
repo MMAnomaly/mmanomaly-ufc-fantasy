@@ -2,7 +2,8 @@
 
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { createSession, clearSession, hashPassword, verifyPassword } from "@/lib/auth";
+import { createSession, clearSession, hashPassword, requireUser, verifyPassword } from "@/lib/auth";
+import { validatePasswordChange } from "@/lib/password";
 import { prisma } from "@/lib/prisma";
 import { disambiguateTeamName, isTeamNameConflict, isTeamNameTaken, TEAM_NAME_TAKEN } from "@/lib/team-membership";
 
@@ -116,6 +117,30 @@ export async function loginAction(_prev: unknown, formData: FormData) {
   }
 
   redirect(safeNext(parsed.data.next) || "/");
+}
+
+export async function changePasswordAction(_prev: unknown, formData: FormData) {
+  const session = await requireUser();
+  const parsed = validatePasswordChange({
+    currentPassword: String(formData.get("currentPassword") ?? ""),
+    newPassword: String(formData.get("newPassword") ?? ""),
+    confirmPassword: String(formData.get("confirmPassword") ?? ""),
+  });
+  if (!parsed.ok) return { error: parsed.error };
+
+  const user = await prisma.user.findUnique({ where: { id: session.id } });
+  if (!user || !(await verifyPassword(parsed.currentPassword, user.passwordHash))) {
+    return { error: "Current password is incorrect." };
+  }
+  if (parsed.newPassword === parsed.currentPassword) {
+    return { error: "New password must be different from the current password." };
+  }
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { passwordHash: await hashPassword(parsed.newPassword) },
+  });
+  return { message: "Password updated." };
 }
 
 export async function logoutAction() {

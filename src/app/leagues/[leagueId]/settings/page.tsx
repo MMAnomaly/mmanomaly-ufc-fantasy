@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { TeamAvatarForm, TeamNameForm } from "@/components/team-settings-form";
+import { ChangePasswordForm, TeamAvatarForm, TeamNameForm } from "@/components/team-settings-form";
 import { requireUser } from "@/lib/auth";
 import { avatarUploadMode } from "@/lib/avatar-store";
 import { prisma } from "@/lib/prisma";
@@ -19,8 +19,10 @@ export default async function TeamSettingsPage({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="font-display text-3xl tracking-wide">Team settings</h2>
-        <p className="mt-1 text-sm text-mist">Only you can change this team’s name and picture.</p>
+        <h2 className="font-display text-3xl tracking-wide">Account & team</h2>
+        <p className="mt-1 text-sm text-mist">
+          Team name and picture are for this league. Password is your login for every league.
+        </p>
       </div>
       <div className="grid gap-6 lg:grid-cols-2">
       <section className="rounded-md border border-line bg-panel p-5">
@@ -43,6 +45,13 @@ export default async function TeamSettingsPage({
         </div>
       </section>
       </div>
+      <section className="rounded-md border border-line bg-panel p-5">
+        <h2 className="font-display text-2xl tracking-wide">Password</h2>
+        <p className="mt-1 text-sm text-mist">At least 8 characters, same as registration. You stay logged in.</p>
+        <div className="mt-4">
+          <ChangePasswordForm />
+        </div>
+      </section>
     </div>
   );
 }

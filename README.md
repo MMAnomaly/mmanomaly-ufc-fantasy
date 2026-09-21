@@ -111,7 +111,7 @@ Hobby cron jobs run at most once per day (this weekly job is within that limit) 
 4. **Admin**: randomize snake order, then Up/Down to pin last season’s winner at 1. Start the draft when at least 2 teams have joined.
 5. **Draft**: on your turn pick **one fighter** into **any open slot**. Flex can be any class. No fighter may be drafted twice. When the server clock hits 0:00, the best eligible fighter is autodrafted (see below). Commissioner can pause, resume, reorder the snake, or force auto-pick.
 6. **Standings** show season totals, last-event delta, and roster breakdown (zeros until a scoring job runs).
-7. **Team settings** (`/leagues/[id]/settings`, or the Team tab) let a member rename their own team and set a display picture. Commissioners do not edit other teams. The name is trimmed, 2–32 characters, and unique in the league ignoring case. The picture is optional: JPEG, PNG, or WebP up to 2MB, shown in a circle (initials if unset).
+7. **Account & team** (`/leagues/[id]/settings`, or the Settings tab) lets a member rename their own team, set a display picture, and change their password. Commissioners do not edit other teams. The name is trimmed, 2–32 characters, and unique in the league ignoring case. The picture is optional: JPEG, PNG, or WebP up to 2MB, shown in a circle (initials if unset). Password change asks for the current password and a confirmation; the new password must be at least 8 characters, the same rule as registration. There is no email reset in v1. The password is the account login, shared across leagues.
 
 ## Team pictures
 

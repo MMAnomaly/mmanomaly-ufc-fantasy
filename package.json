@@ -7,7 +7,7 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "tsx --test src/lib/scoring.test.ts src/lib/draft.test.ts src/lib/autodraft.test.ts src/lib/team-profile.test.ts",
+    "test": "tsx --test src/lib/scoring.test.ts src/lib/draft.test.ts src/lib/autodraft.test.ts src/lib/team-profile.test.ts src/lib/password.test.ts",
     "postinstall": "prisma generate",
     "setup": "prisma generate && prisma migrate deploy && prisma db seed",
     "db:migrate": "prisma migrate deploy",

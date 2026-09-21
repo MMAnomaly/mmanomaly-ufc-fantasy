@@ -39,7 +39,7 @@ export default async function RosterPage({
             <p className="text-[11px] uppercase tracking-[0.22em] text-mist">Roster</p>
             <h2 className="font-display text-3xl tracking-wide">{membership.teamName}</h2>
             <Link className="text-sm text-amber" href={`/leagues/${leagueId}/settings`}>
-              Team settings
+              Account & team
             </Link>
           </div>
         </div>
