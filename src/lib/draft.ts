@@ -3,8 +3,19 @@ import { ALL_SLOTS, fighterFitsSlot, ROSTER_SIZE, type RosterSlotKey } from "./s
 export const MIN_TEAMS = 4;
 export const MAX_TEAMS = 12;
 export const DEFAULT_TEAMS = 8;
-export const DEFAULT_PICK_CLOCK = 90;
+/** Default on-the-clock window. Leagues may override between 15 and 300 seconds. */
+export const DEFAULT_PICK_CLOCK = 120;
 export const MIN_START_TEAMS = 2;
+
+/** True when the server clock has reached the stored deadline (client clocks are display-only). */
+export function isPickExpired(deadline: Date | null | undefined, now: Date): boolean {
+  if (!deadline) return false;
+  return now.getTime() >= deadline.getTime();
+}
+
+export function deadlineFrom(now: Date, pickClockSeconds: number): Date {
+  return new Date(now.getTime() + pickClockSeconds * 1000);
+}
 
 /** 0-based overall pick index → 1-based snake draft position. */
 export function snakeDraftPosition(pickIndex: number, teamCount: number): number {

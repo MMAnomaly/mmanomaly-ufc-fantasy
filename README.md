@@ -43,7 +43,7 @@ First-time alternative (no migration history): `npx prisma db push && npm run db
 | `DIRECT_URL` | Unpooled URL for `prisma migrate deploy`. Local Docker: same as `DATABASE_URL` |
 | `AUTH_SECRET` | JWT signing key (required, ≥16 chars). Generate: `openssl rand -base64 32` |
 | `APP_URL` | Public origin (invite/script URLs). Local: `http://localhost:3000` |
-| `CRON_SECRET` | Bearer token for `/api/jobs/sunday-score`. Generate: `openssl rand -base64 32` |
+| `CRON_SECRET` | Bearer token for `/api/jobs/sunday-score` and `/api/jobs/draft-tick`. Generate: `openssl rand -base64 32` |
 | `SEED_DEMO` | If `true`, seed also creates demo users/league |
 
 Do not commit real secrets. Copy `.env.example` and generate values locally / in the Vercel dashboard.
@@ -104,11 +104,36 @@ Hobby cron jobs run at most once per day (this weekly job is within that limit) 
 ## How to run a league
 
 1. **Register** at `/register` (commissioner does not need an invite).
-2. **Create a league** at `/leagues/new` (4–12 teams, default 8; pick clock default 90s).
+2. **Create a league** at `/leagues/new` (4–12 teams, default 8; pick clock default 120s / 2:00).
 3. Copy the **invite link** from the lobby or Admin. Invitees hit `/join/[token]`, then register with email + password (or log in) and join. Unique email per league membership is enforced via unique user email + one membership per user/league.
 4. **Admin**: randomize snake order, then Up/Down to pin last season’s winner at 1. Start the draft when at least 2 teams have joined.
-5. **Draft**: on your turn pick **one fighter** into **any open slot**. Flex can be any class. No fighter may be drafted twice. Timer expiry auto-picks a random eligible fighter. Commissioner can pause, resume, or force auto-pick.
+5. **Draft**: on your turn pick **one fighter** into **any open slot**. Flex can be any class. No fighter may be drafted twice. When the server clock hits 0:00, the best eligible fighter is autodrafted (see below). Commissioner can pause, resume, reorder the snake, or force auto-pick.
 6. **Standings** show season totals, last-event delta, and roster breakdown (zeros until a scoring job runs).
+
+## Pick clock and autodraft
+
+Each live pick stores `League.pickDeadline` (server-authoritative). `pickClockSeconds` is how long that window lasts; new leagues default to **120 seconds (2:00)**. Commissioners can still set 15–300s before or during the draft. Pause clears the deadline; resume and each committed pick start a fresh clock. The draft room countdown is display-only (`mm:ss`).
+
+When `now >= pickDeadline` and the league is still `DRAFTING` on that pick, the server autodrafts inside a transaction (`SELECT … FOR UPDATE` on the league row) and advances the snake. The same check runs when any client loads draft state (`GET /api/leagues/:id/draft`, including the room’s ~2s poll) and when `GET` or `POST /api/jobs/draft-tick` runs with `Authorization: Bearer $CRON_SECRET`.
+
+Autopick ranking uses data already on `Fighter` (no invented rank column):
+
+1. Tapology division rank in `rankingJson.rank`: champion `"C"` first, then 1, 2, 3…. Null or missing ranks are last. A rank of 2 in one division is treated as better than a rank of 5 in another, because that is the only quality signal in the seed.
+2. More recent `lastFightDate` (nulls last).
+3. Name A→Z, then fighter id.
+
+Only `active` fighters who are not already drafted are eligible. The best of those who fit an **open** slot is taken. If that fighter’s weight class is still open, they fill that slot. Flex is used only when the best remaining fighter does not match an open dedicated slot. The history row is stored with `autoPick` and shown with an **Auto** badge.
+
+**Unattended drafts.** An open draft room keeps the clock honest because loading state performs the autopick. If everyone leaves, nothing advances until the next page load or a call to `/api/jobs/draft-tick`. That route is safe to cron. It is **not** on the default `vercel.json` schedule: Hobby cron is once per day, and a daily tick would only complete a single expired pick. On a plan that allows it, add:
+
+```json
+{ "path": "/api/jobs/draft-tick", "schedule": "* * * * *" }
+```
+
+```bash
+curl -X POST "$APP_URL/api/jobs/draft-tick" \
+  -H "Authorization: Bearer $CRON_SECRET"
+```
 
 ## Scoring
 
@@ -161,7 +186,7 @@ Optional demo accounts (`SEED_DEMO=true` in `.env` before `npm run db:seed`):
 npm test
 ```
 
-Covers snake order (13 slots × N teams) and the DK Classic formula (SS = strike + additional, R1 quick-win, decision vs finish, loser move points).
+Covers snake order (13 slots × N teams), the 2:00 autodraft (expiry, open slots, uniqueness, ranking, and a manual-vs-autopick race), and the DK Classic formula (SS = strike + additional, R1 quick-win, decision vs finish, loser move points).
 
 ## Out of scope for v1
 

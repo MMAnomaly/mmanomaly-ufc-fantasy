@@ -28,10 +28,12 @@ model League {
   name             String
   commissionerId   String
   maxTeams         Int       @default(8)
-  pickClockSeconds Int       @default(90)
+  /// Length of each pick. New leagues default to 120 seconds (2:00). The live instant is pickDeadline.
+  pickClockSeconds Int       @default(120)
   /// SETUP | DRAFTING | PAUSED | IN_SEASON
   status           String    @default("SETUP")
   currentPickIndex Int       @default(0)
+  /// Server-authoritative expiry for the current pick. Null when the draft is not live.
   pickDeadline     DateTime?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt

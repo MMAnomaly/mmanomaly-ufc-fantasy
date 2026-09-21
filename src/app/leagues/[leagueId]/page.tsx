@@ -59,7 +59,8 @@ export default async function LeagueLobbyPage({
         </section>
         <section className="rounded-md border border-line bg-panel p-5 text-sm text-mist">
           Draft is snake order, 13 rounds. On your turn pick any open slot — more like fantasy football than a forced
-          queue. Fighters are unique league-wide.
+          queue. Fighters are unique league-wide. The clock defaults to 2:00; at 0:00 the best eligible fighter is
+          autodrafted.
           <div className="mt-4">
             <Link className="text-amber" href={`/leagues/${leagueId}/draft`}>
               Open draft room →
