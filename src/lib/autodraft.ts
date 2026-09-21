@@ -83,8 +83,10 @@ export function compareBestAvailable(a: PickFighter, b: PickFighter): number {
     if (bRank === UNRANKED) return -1;
     return aRank - bRank;
   }
-  const timeDiff = fightTime(b.lastFightDate) - fightTime(a.lastFightDate);
-  if (timeDiff !== 0) return timeDiff;
+  const aTime = fightTime(a.lastFightDate);
+  const bTime = fightTime(b.lastFightDate);
+  // Subtracting two missing dates is NaN, which would scramble the sort.
+  if (aTime !== bTime) return aTime > bTime ? -1 : 1;
   const name = a.name.localeCompare(b.name, "en");
   if (name !== 0) return name;
   return a.id.localeCompare(b.id, "en");

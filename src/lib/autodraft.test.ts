@@ -86,6 +86,18 @@ describe("best available ranking", () => {
     assert.deepEqual(choice, { fighterId: "fly-champ", slot: "FLEX_1" });
   });
 
+  it("breaks a rank tie alphabetically when neither fighter has a fight date", () => {
+    const choice = chooseAutoPick({
+      fighters: [
+        fighter({ id: "z", name: "Zed Champ", slotKey: "MEN_HEAVYWEIGHT", rankingJson: rank("C") }),
+        fighter({ id: "a", name: "Amy Champ", slotKey: "MEN_FLYWEIGHT", rankingJson: rank("C") }),
+      ],
+      takenIds: [],
+      openSlots: ["FLEX_1"],
+    });
+    assert.equal(choice?.fighterId, "a");
+  });
+
   it("uses a more recent fight, then name, when ranks tie", () => {
     const tied = [
       fighter({
