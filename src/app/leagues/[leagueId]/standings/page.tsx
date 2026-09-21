@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { TeamAvatar } from "@/components/team-avatar";
 import { requireUser } from "@/lib/auth";
 import { getStandings } from "@/lib/standings";
 import { SLOT_SHORT, type RosterSlotKey } from "@/lib/slots";
@@ -38,8 +39,13 @@ export default async function StandingsPage({
               <tr className="border-t border-line/70" key={row.membershipId}>
                 <td className="py-3 font-display text-lg text-amber">{row.rank}</td>
                 <td>
-                  <div className="font-medium">{row.teamName}</div>
-                  <div className="text-xs text-mist">{row.displayName}</div>
+                  <div className="flex items-center gap-3">
+                    <TeamAvatar avatarUrl={row.avatarUrl} name={row.teamName} />
+                    <div>
+                      <div className="font-medium">{row.teamName}</div>
+                      <div className="text-xs text-mist">{row.displayName}</div>
+                    </div>
+                  </div>
                 </td>
                 <td className="text-right tabular-nums text-mist">{row.lastEvent.toFixed(1)}</td>
                 <td className="text-right font-display text-xl tabular-nums">{row.total.toFixed(1)}</td>
@@ -51,8 +57,11 @@ export default async function StandingsPage({
 
       {data.rows.map((row) => (
         <section className="rounded-md border border-line bg-panel p-5" key={`${row.membershipId}-roster`}>
-          <h3 className="font-display text-xl tracking-wide">
-            {row.teamName} <span className="text-mist">roster breakdown</span>
+          <h3 className="flex items-center gap-3 font-display text-xl tracking-wide">
+            <TeamAvatar avatarUrl={row.avatarUrl} name={row.teamName} />
+            <span>
+              {row.teamName} <span className="text-mist">roster breakdown</span>
+            </span>
           </h3>
           {row.roster.length === 0 ? (
             <p className="mt-2 text-sm text-mist">No fighters drafted yet.</p>

@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createSession, clearSession, hashPassword, verifyPassword } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { disambiguateTeamName, isTeamNameConflict, isTeamNameTaken, TEAM_NAME_TAKEN } from "@/lib/team-membership";
 
 const credentials = z.object({
   email: z.string().email(),
@@ -38,6 +39,9 @@ export async function registerAction(_prev: unknown, formData: FormData) {
     if (invite.league.memberships.length >= invite.league.maxTeams) {
       return { error: "This league is full." };
     }
+    if (teamName?.trim() && (await isTeamNameTaken(invite.leagueId, teamName.trim()))) {
+      return { error: TEAM_NAME_TAKEN };
+    }
   }
 
   const user = await prisma.user.create({
@@ -49,14 +53,24 @@ export async function registerAction(_prev: unknown, formData: FormData) {
   });
 
   if (invite) {
-    await prisma.membership.create({
-      data: {
-        leagueId: invite.leagueId,
-        userId: user.id,
-        teamName: teamName?.trim() || `${user.displayName}'s squad`,
-        draftPosition: invite.league.memberships.length + 1,
-      },
-    });
+    const explicit = teamName?.trim();
+    const finalName = explicit
+      ? explicit
+      : await disambiguateTeamName(invite.leagueId, `${user.displayName}'s squad`);
+    try {
+      await prisma.membership.create({
+        data: {
+          leagueId: invite.leagueId,
+          userId: user.id,
+          teamName: finalName,
+          draftPosition: invite.league.memberships.length + 1,
+        },
+      });
+    } catch (error) {
+      if (!isTeamNameConflict(error)) throw error;
+      await createSession({ id: user.id, email: user.email, displayName: user.displayName });
+      redirect(`/join/${invite.token}`);
+    }
   }
 
   await createSession({ id: user.id, email: user.email, displayName: user.displayName });
@@ -83,14 +97,19 @@ export async function loginAction(_prev: unknown, formData: FormData) {
     if (invite && !invite.revoked && invite.league.status === "SETUP") {
       const already = invite.league.memberships.some((m) => m.userId === user.id);
       if (!already && invite.league.memberships.length < invite.league.maxTeams) {
-        await prisma.membership.create({
-          data: {
-            leagueId: invite.leagueId,
-            userId: user.id,
-            teamName: `${user.displayName}'s squad`,
-            draftPosition: invite.league.memberships.length + 1,
-          },
-        });
+        try {
+          await prisma.membership.create({
+            data: {
+              leagueId: invite.leagueId,
+              userId: user.id,
+              teamName: await disambiguateTeamName(invite.leagueId, `${user.displayName}'s squad`),
+              draftPosition: invite.league.memberships.length + 1,
+            },
+          });
+        } catch (error) {
+          if (!isTeamNameConflict(error)) throw error;
+          redirect(`/join/${parsed.data.inviteToken}`);
+        }
       }
       redirect(`/leagues/${invite.leagueId}`);
     }

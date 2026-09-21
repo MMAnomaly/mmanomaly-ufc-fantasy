@@ -15,6 +15,7 @@ import {
   shuffle,
 } from "@/lib/draft";
 import { prisma } from "@/lib/prisma";
+import { disambiguateTeamName, isTeamNameConflict, isTeamNameTaken, TEAM_NAME_TAKEN } from "@/lib/team-membership";
 
 const createSchema = z.object({
   name: z.string().min(3).max(60),
@@ -66,14 +67,26 @@ export async function joinLeagueAction(token: string, teamName: string) {
   if (invite.league.memberships.length >= invite.league.maxTeams) {
     return { error: "This league is full." };
   }
-  await prisma.membership.create({
-    data: {
-      leagueId: invite.leagueId,
-      userId: user.id,
-      teamName: teamName.trim() || `${user.displayName}'s squad`,
-      draftPosition: invite.league.memberships.length + 1,
-    },
-  });
+  const trimmedName = teamName.trim();
+  const finalName = trimmedName
+    ? trimmedName
+    : await disambiguateTeamName(invite.leagueId, `${user.displayName}'s squad`);
+  if (trimmedName && (await isTeamNameTaken(invite.leagueId, trimmedName))) {
+    return { error: TEAM_NAME_TAKEN };
+  }
+  try {
+    await prisma.membership.create({
+      data: {
+        leagueId: invite.leagueId,
+        userId: user.id,
+        teamName: finalName,
+        draftPosition: invite.league.memberships.length + 1,
+      },
+    });
+  } catch (error) {
+    if (isTeamNameConflict(error)) return { error: TEAM_NAME_TAKEN };
+    throw error;
+  }
   revalidatePath(`/leagues/${invite.leagueId}`);
   redirect(`/leagues/${invite.leagueId}`);
 }

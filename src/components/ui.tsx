@@ -22,6 +22,8 @@ export function Field({
   defaultValue,
   min,
   max,
+  minLength,
+  maxLength,
   placeholder,
 }: {
   label: string;
@@ -31,6 +33,8 @@ export function Field({
   defaultValue?: string | number;
   min?: number;
   max?: number;
+  minLength?: number;
+  maxLength?: number;
   placeholder?: string;
 }) {
   return (
@@ -44,6 +48,8 @@ export function Field({
         defaultValue={defaultValue}
         min={min}
         max={max}
+        minLength={minLength}
+        maxLength={maxLength}
         placeholder={placeholder}
       />
     </label>

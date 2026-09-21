@@ -12,6 +12,7 @@ const TABS = [
   { href: "/roster", label: "My Team" },
   { href: "/standings", label: "Standings" },
   { href: "/scoring", label: "Scoring" },
+  { href: "/settings", label: "Settings" },
 ];
 
 export default async function LeagueLayout({
@@ -28,10 +29,12 @@ export default async function LeagueLayout({
     include: { memberships: { where: { userId: user.id } } },
   });
   if (!league) notFound();
-  const isMember = league.memberships.length > 0 || league.commissionerId === user.id;
+  const hasMembership = league.memberships.length > 0;
+  const isMember = hasMembership || league.commissionerId === user.id;
   if (!isMember) notFound();
   const isCommissioner = league.commissionerId === user.id;
   const base = `/leagues/${leagueId}`;
+  const tabs = hasMembership ? TABS : TABS.filter((tab) => tab.href !== "/settings");
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -46,7 +49,7 @@ export default async function LeagueLayout({
             </div>
           </div>
           <nav className="flex flex-wrap gap-1 text-sm">
-            {TABS.map((tab) => (
+            {tabs.map((tab) => (
               <Link
                 className="rounded-sm px-3 py-1.5 text-mist hover:bg-raised hover:text-paper"
                 href={`${base}${tab.href}`}

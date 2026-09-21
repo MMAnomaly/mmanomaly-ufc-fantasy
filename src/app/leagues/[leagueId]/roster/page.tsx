@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
+import { TeamAvatar } from "@/components/team-avatar";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ALL_SLOTS, SLOT_LABELS, type RosterSlotKey } from "@/lib/slots";
@@ -30,10 +32,16 @@ export default async function RosterPage({
 
   return (
     <div className="rounded-md border border-line bg-panel p-5">
-      <div className="mb-4 flex items-end justify-between">
-        <div>
-          <p className="text-[11px] uppercase tracking-[0.22em] text-mist">Roster</p>
-          <h2 className="font-display text-3xl tracking-wide">{membership.teamName}</h2>
+      <div className="mb-4 flex items-end justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <TeamAvatar avatarUrl={membership.avatarUrl} name={membership.teamName} size="lg" />
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.22em] text-mist">Roster</p>
+            <h2 className="font-display text-3xl tracking-wide">{membership.teamName}</h2>
+            <Link className="text-sm text-amber" href={`/leagues/${leagueId}/settings`}>
+              Team settings
+            </Link>
+          </div>
         </div>
         <p className="text-sm text-mist">{membership.roster.length}/13 filled</p>
       </div>

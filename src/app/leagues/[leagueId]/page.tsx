@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { InviteLink } from "@/components/invite-link";
+import { TeamAvatar } from "@/components/team-avatar";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -21,6 +22,7 @@ export default async function LeagueLobbyPage({
   if (!league) notFound();
   const isCommissioner = league.commissionerId === user.id;
   const invite = league.invites[0];
+  const mine = league.memberships.find((m) => m.userId === user.id);
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
@@ -31,12 +33,15 @@ export default async function LeagueLobbyPage({
         </p>
         <ol className="mt-4 divide-y divide-line">
           {league.memberships.map((m) => (
-            <li className="flex items-center justify-between py-3" key={m.id}>
-              <div>
-                <div className="font-medium">{m.teamName}</div>
-                <div className="text-xs text-mist">
-                  {m.user.displayName}
-                  {m.userId === league.commissionerId ? " · commissioner" : ""}
+            <li className="flex items-center justify-between gap-3 py-3" key={m.id}>
+              <div className="flex min-w-0 items-center gap-3">
+                <TeamAvatar avatarUrl={m.avatarUrl} name={m.teamName} />
+                <div className="min-w-0">
+                  <div className="truncate font-medium">{m.teamName}</div>
+                  <div className="text-xs text-mist">
+                    {m.user.displayName}
+                    {m.userId === league.commissionerId ? " · commissioner" : ""}
+                  </div>
                 </div>
               </div>
               <span className="font-display text-amber">#{m.draftPosition || "—"}</span>
@@ -45,6 +50,20 @@ export default async function LeagueLobbyPage({
         </ol>
       </section>
       <aside className="space-y-4">
+        {mine ? (
+          <section className="rounded-md border border-line bg-panel p-5">
+            <h2 className="font-display text-xl tracking-wide">Your team</h2>
+            <div className="mt-3 flex items-center gap-3">
+              <TeamAvatar avatarUrl={mine.avatarUrl} name={mine.teamName} size="lg" />
+              <div>
+                <div className="font-medium">{mine.teamName}</div>
+                <Link className="text-sm text-amber" href={`/leagues/${leagueId}/settings`}>
+                  Team settings →
+                </Link>
+              </div>
+            </div>
+          </section>
+        ) : null}
         <section className="rounded-md border border-line bg-panel p-5">
           <h2 className="font-display text-xl tracking-wide">Invite</h2>
           {isCommissioner && invite ? (

@@ -49,6 +49,8 @@ model Membership {
   leagueId      String
   userId        String
   teamName      String
+  /// Public picture for this team. Null shows initials. Blob URL, local upload path, or an https URL.
+  avatarUrl     String?
   draftPosition Int      @default(0)
   createdAt     DateTime @default(now())
 

@@ -357,6 +357,7 @@ export async function serializeDraftState(leagueId: string, userId: string) {
         id: m.id,
         userId: m.userId,
         teamName: m.teamName,
+        avatarUrl: m.avatarUrl,
         displayName: m.user.displayName,
         draftPosition: m.draftPosition,
         filled: m.roster.length,
@@ -377,6 +378,7 @@ export async function serializeDraftState(leagueId: string, userId: string) {
           membershipId: clock.id,
           userId: clock.userId,
           teamName: clock.teamName,
+          avatarUrl: league.memberships.find((m) => m.id === clock.id)?.avatarUrl ?? null,
           displayName: league.memberships.find((m) => m.id === clock.id)?.user.displayName ?? "",
           draftPosition: clock.draftPosition,
           openSlots: clockOpen,
@@ -387,6 +389,7 @@ export async function serializeDraftState(leagueId: string, userId: string) {
       ? {
           id: myMembership.id,
           teamName: myMembership.teamName,
+          avatarUrl: myMembership.avatarUrl,
           openSlots: myOpen,
         }
       : null,
@@ -395,6 +398,7 @@ export async function serializeDraftState(leagueId: string, userId: string) {
       slot: p.slot,
       autoPick: p.autoPick,
       teamName: p.membership.teamName,
+      avatarUrl: p.membership.avatarUrl,
       displayName: p.membership.user.displayName,
       fighter: {
         id: p.fighter.id,
