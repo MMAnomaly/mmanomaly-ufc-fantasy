@@ -105,7 +105,22 @@ async function seedFighters() {
     }
   }
 
+  if (seen.size === 0) {
+    throw new Error("Fighter export contained no fighters; leaving existing active flags unchanged.");
+  }
+
+  // Drop stale rows out of the draft pool without deleting picks or scores.
+  // Ids come from the Tapology slug, so a URL change inserts a new row and this
+  // marks the previous id inactive.
+  const deactivated = await prisma.fighter.updateMany({
+    where: { active: true, id: { notIn: [...seen] } },
+    data: { active: false },
+  });
+
   console.log(`Seeded ${count} fighters`);
+  if (deactivated.count > 0) {
+    console.log(`Marked ${deactivated.count} fighters inactive (absent from export)`);
+  }
   for (const [k, v] of Object.entries(classCounts)) {
     console.log(`  ${k}: ${v}`);
   }

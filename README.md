@@ -25,7 +25,7 @@ cp .env.example .env
 
 docker compose up -d
 npm install
-npm run setup      # prisma generate + migrate deploy + seed ~685 fighters
+npm run setup      # prisma generate + migrate deploy + seed 640 fighters
 npm run dev
 ```
 
@@ -75,7 +75,7 @@ Do not commit real secrets. Copy `.env.example` and generate values locally / in
 
    If you skip the migration folder, `npx prisma db push` then `npx prisma db seed` also creates the schema.
 
-   Seed loads `data/fighters_by_class.json` (~685 fighters). Optional `SEED_DEMO=true` is for local demos, not production.
+   Seed loads `data/fighters_by_class.json` (640 fighters). Optional `SEED_DEMO=true` is for local demos, not production.
 
 6. Confirm **Settings → Cron Jobs** shows `GET /api/jobs/sunday-score` on `0 22 * * 0`. Cron runs on production deployments only.
 
@@ -132,7 +132,7 @@ Jobs store raw fight stat lines plus computed fantasy points per fighter per eve
 
 ## Fighter seed
 
-`data/fighters_by_class.json` is an Active Fighter Repository export (~685 fighters, 11 classes). `prisma/seed.ts` maps `class_key` → roster slots:
+`data/fighters_by_class.json` is an Active Fighter Repository export (640 fighters, 11 classes; snapshot `2026-09-21T09:38:06-07:00`). `prisma/seed.ts` upserts each fighter and maps `class_key` → roster slots. Fighters already stored but missing from the file are marked `active: false` so they leave the draft pool; picks and scores stay attached to the old row.
 
 | `class_key` | Roster slot |
 | --- | --- |
@@ -146,7 +146,7 @@ Jobs store raw fight stat lines plus computed fantasy points per fighter per eve
 | `mens_heavyweight` | Men’s Heavyweight |
 | `womens_strawweight` | Women’s Strawweight |
 | `womens_flyweight` | Women’s Flyweight |
-| `womens_bantamweight` | Women’s Bantamweight (27 listed; under 30 is expected) |
+| `womens_bantamweight` | Women’s Bantamweight (25 listed; under 30 is expected) |
 
 Each fighter is stored once (`id` from Tapology slug). Women’s Bantamweight is thinner than the ≥30 guideline on purpose.
 
