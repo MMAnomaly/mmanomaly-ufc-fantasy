@@ -46,3 +46,6 @@ prisma/dev.db
 prisma/dev.db-journal
 *.db
 *.db-journal
+
+# Local team avatars when BLOB_READ_WRITE_TOKEN is unset (dev only).
+/public/uploads

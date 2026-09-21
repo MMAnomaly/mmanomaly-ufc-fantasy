@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Footer, SiteHeader } from "@/components/site-chrome";
+import { TeamAvatar } from "@/components/team-avatar";
 import { StatusPill } from "@/components/ui";
 
 export default async function HomePage() {
@@ -68,9 +69,12 @@ export default async function HomePage() {
                       className="flex items-center justify-between rounded-md border border-line bg-panel px-4 py-4 hover:border-amber"
                       href={`/leagues/${m.leagueId}`}
                     >
-                      <div>
-                        <div className="font-display text-xl tracking-wide">{m.league.name}</div>
-                        <div className="text-xs text-mist">{m.teamName}</div>
+                      <div className="flex min-w-0 items-center gap-3">
+                        <TeamAvatar avatarUrl={m.avatarUrl} name={m.teamName} />
+                        <div className="min-w-0">
+                          <div className="truncate font-display text-xl tracking-wide">{m.league.name}</div>
+                          <div className="truncate text-xs text-mist">{m.teamName}</div>
+                        </div>
                       </div>
                       <StatusPill status={m.league.status} />
                     </Link>

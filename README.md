@@ -44,6 +44,7 @@ First-time alternative (no migration history): `npx prisma db push && npm run db
 | `AUTH_SECRET` | JWT signing key (required, ≥16 chars). Generate: `openssl rand -base64 32` |
 | `APP_URL` | Public origin (invite/script URLs). Local: `http://localhost:3000` |
 | `CRON_SECRET` | Bearer token for `/api/jobs/sunday-score` and `/api/jobs/draft-tick`. Generate: `openssl rand -base64 32` |
+| `BLOB_READ_WRITE_TOKEN` | Optional. Stores uploaded team pictures in Vercel Blob. Without it, local dev writes `public/uploads/avatars` (gitignored). On Vercel without it, members paste a public image URL |
 | `SEED_DEMO` | If `true`, seed also creates demo users/league |
 
 Do not commit real secrets. Copy `.env.example` and generate values locally / in the Vercel dashboard.
@@ -61,6 +62,7 @@ Do not commit real secrets. Copy `.env.example` and generate values locally / in
    | `DATABASE_URL` | Pooled URL. Vercel Postgres: `POSTGRES_PRISMA_URL` or `POSTGRES_URL`. Neon: the pooled (`-pooler`) URL |
    | `DIRECT_URL` | Direct / non-pooling URL. Vercel Postgres: `POSTGRES_URL_NON_POOLING`. Neon: the non-pooler URL. Same as `DATABASE_URL` if the host has no pooler |
    | `APP_URL` | `https://your-project.vercel.app` (or your custom domain) |
+   | `BLOB_READ_WRITE_TOKEN` | Optional. Vercel project → Storage → Blob → copy the read/write token. Enables team picture uploads in production |
 
 4. **Deploy**. The Next.js build does not apply migrations or seed data.
 5. **First deploy / empty database — run once** (and again after new migrations):
@@ -109,6 +111,21 @@ Hobby cron jobs run at most once per day (this weekly job is within that limit) 
 4. **Admin**: randomize snake order, then Up/Down to pin last season’s winner at 1. Start the draft when at least 2 teams have joined.
 5. **Draft**: on your turn pick **one fighter** into **any open slot**. Flex can be any class. No fighter may be drafted twice. When the server clock hits 0:00, the best eligible fighter is autodrafted (see below). Commissioner can pause, resume, reorder the snake, or force auto-pick.
 6. **Standings** show season totals, last-event delta, and roster breakdown (zeros until a scoring job runs).
+7. **Account & team** (`/leagues/[id]/settings`, or the Settings tab) lets a member rename their own team, set a display picture, and change their password. Commissioners do not edit other teams. The name is trimmed, 2–32 characters, and unique in the league ignoring case. The picture is optional: JPEG, PNG, or WebP up to 2MB, shown in a circle (initials if unset). Password change asks for the current password and a confirmation; the new password must be at least 8 characters, the same rule as registration. There is no email reset in v1. The password is the account login, shared across leagues.
+
+## Team pictures
+
+Pictures are stored on `Membership.avatarUrl` (team-scoped, not the user account) so each league can have its own mark.
+
+| Where it runs | How an upload is stored |
+| --- | --- |
+| `BLOB_READ_WRITE_TOKEN` is set | [Vercel Blob](https://vercel.com/docs/vercel-blob), public URL. This is the production path. No other new service. |
+| Local dev, token unset | `public/uploads/avatars/` (gitignored). The dev server serves that folder. |
+| Vercel without the token | Uploads are turned off. Paste an `http` or `https` image URL instead. |
+
+The browser squares the file to 256×256 JPEG before upload when it can. The server still checks type (JPEG/PNG/WebP magic bytes) and the 2MB cap. `data:` URLs are rejected so Postgres does not hold image bytes. Replacing or removing a picture deletes the previous Blob or local file when this app stored it. Pasted URLs are stored as text and left on their host.
+
+Server Action request bodies are raised to 3MB (`experimental.serverActions.bodySizeLimit`). The framework default is 1MB, which is too small for a 2MB image plus multipart overhead.
 
 ## Pick clock and autodraft
 

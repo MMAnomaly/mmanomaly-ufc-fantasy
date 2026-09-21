@@ -20,7 +20,13 @@ import { InviteLink } from "./invite-link";
 import { DraftOrderEditor } from "./draft-order";
 
 type Invite = { id: string; token: string; revoked: boolean; createdAt: string };
-type Team = { id: string; teamName: string; displayName: string; draftPosition: number };
+type Team = {
+  id: string;
+  teamName: string;
+  avatarUrl?: string | null;
+  displayName: string;
+  draftPosition: number;
+};
 
 export function AdminPanel({
   leagueId,

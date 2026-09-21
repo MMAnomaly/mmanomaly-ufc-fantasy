@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { forceAutoPickAction, makePickAction } from "@/app/actions/draft";
 import { CLASS_LABELS, SLOT_LABELS, SLOT_SHORT, type ClassKey, type RosterSlotKey } from "@/lib/slots";
+import { TeamAvatar } from "./team-avatar";
 
 type Fighter = {
   id: string;
@@ -29,6 +30,7 @@ type DraftState = {
     id: string;
     userId: string;
     teamName: string;
+    avatarUrl?: string | null;
     displayName: string;
     draftPosition: number;
     filled: number;
@@ -38,17 +40,19 @@ type DraftState = {
     membershipId: string;
     userId: string;
     teamName: string;
+    avatarUrl?: string | null;
     displayName: string;
     draftPosition: number;
     openSlots: string[];
     isYou: boolean;
   } | null;
-  myTeam: { id: string; teamName: string; openSlots: string[] } | null;
+  myTeam: { id: string; teamName: string; avatarUrl?: string | null; openSlots: string[] } | null;
   picks: {
     pickNumber: number;
     slot: string;
     autoPick: boolean;
     teamName: string;
+    avatarUrl?: string | null;
     displayName: string;
     fighter: Fighter;
   }[];
@@ -159,15 +163,24 @@ export function DraftRoom({ leagueId, initial }: { leagueId: string; initial: Dr
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <p className="text-[11px] uppercase tracking-[0.22em] text-mist">On the clock</p>
-              <h1 className="font-display text-3xl tracking-wide text-paper">
-                {state.league.status === "IN_SEASON"
-                  ? "Draft complete"
-                  : state.league.status === "PAUSED"
-                    ? "Draft paused"
-                    : state.onTheClock
-                      ? `${state.onTheClock.teamName}`
-                      : "Waiting"}
-              </h1>
+              <div className="flex items-center gap-3">
+                {state.onTheClock && state.league.status === "DRAFTING" ? (
+                  <TeamAvatar
+                    avatarUrl={state.onTheClock.avatarUrl}
+                    name={state.onTheClock.teamName}
+                    size="lg"
+                  />
+                ) : null}
+                <h1 className="font-display text-3xl tracking-wide text-paper">
+                  {state.league.status === "IN_SEASON"
+                    ? "Draft complete"
+                    : state.league.status === "PAUSED"
+                      ? "Draft paused"
+                      : state.onTheClock
+                        ? `${state.onTheClock.teamName}`
+                        : "Waiting"}
+                </h1>
+              </div>
               {state.onTheClock && state.league.status === "DRAFTING" && (
                 <p className="text-sm text-mist">
                   Pick {state.league.currentPickIndex + 1} of {state.league.totalPicks}
@@ -290,9 +303,10 @@ export function DraftRoom({ leagueId, initial }: { leagueId: string; initial: Dr
                 }`}
                 key={t.id}
               >
-                <span>
-                  <span className="mr-2 font-display text-amber">{t.draftPosition}</span>
-                  {t.teamName}
+                <span className="flex min-w-0 items-center gap-2">
+                  <span className="font-display text-amber">{t.draftPosition}</span>
+                  <TeamAvatar avatarUrl={t.avatarUrl} name={t.teamName} size="sm" />
+                  <span className="truncate">{t.teamName}</span>
                 </span>
                 <span className="text-xs">{t.filled}/13</span>
               </li>
@@ -309,13 +323,16 @@ export function DraftRoom({ leagueId, initial }: { leagueId: string; initial: Dr
                   <span className="font-medium">{p.fighter.name}</span>
                   <span className="text-xs text-amber">#{p.pickNumber}</span>
                 </div>
-                <div className="text-xs text-mist">
-                  {p.teamName} · {SLOT_LABELS[p.slot as RosterSlotKey] ?? p.slot}
-                  {p.autoPick ? (
-                    <span className="ml-1.5 rounded-sm bg-amber/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-amber">
-                      Auto
-                    </span>
-                  ) : null}
+                <div className="flex items-center gap-2 text-xs text-mist">
+                  <TeamAvatar avatarUrl={p.avatarUrl} name={p.teamName} size="sm" />
+                  <span>
+                    {p.teamName} · {SLOT_LABELS[p.slot as RosterSlotKey] ?? p.slot}
+                    {p.autoPick ? (
+                      <span className="ml-1.5 rounded-sm bg-amber/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-amber">
+                        Auto
+                      </span>
+                    ) : null}
+                  </span>
                 </div>
               </li>
             ))}

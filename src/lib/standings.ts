@@ -56,6 +56,7 @@ export async function getStandings(leagueId: string) {
     return {
       membershipId: m.id,
       teamName: m.teamName,
+      avatarUrl: m.avatarUrl,
       displayName: m.user.displayName,
       draftPosition: m.draftPosition,
       total,

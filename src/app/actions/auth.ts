@@ -2,8 +2,10 @@
 
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { createSession, clearSession, hashPassword, verifyPassword } from "@/lib/auth";
+import { createSession, clearSession, hashPassword, requireUser, verifyPassword } from "@/lib/auth";
+import { validatePasswordChange } from "@/lib/password";
 import { prisma } from "@/lib/prisma";
+import { disambiguateTeamName, isTeamNameConflict, isTeamNameTaken, TEAM_NAME_TAKEN } from "@/lib/team-membership";
 
 const credentials = z.object({
   email: z.string().email(),
@@ -38,6 +40,9 @@ export async function registerAction(_prev: unknown, formData: FormData) {
     if (invite.league.memberships.length >= invite.league.maxTeams) {
       return { error: "This league is full." };
     }
+    if (teamName?.trim() && (await isTeamNameTaken(invite.leagueId, teamName.trim()))) {
+      return { error: TEAM_NAME_TAKEN };
+    }
   }
 
   const user = await prisma.user.create({
@@ -49,14 +54,24 @@ export async function registerAction(_prev: unknown, formData: FormData) {
   });
 
   if (invite) {
-    await prisma.membership.create({
-      data: {
-        leagueId: invite.leagueId,
-        userId: user.id,
-        teamName: teamName?.trim() || `${user.displayName}'s squad`,
-        draftPosition: invite.league.memberships.length + 1,
-      },
-    });
+    const explicit = teamName?.trim();
+    const finalName = explicit
+      ? explicit
+      : await disambiguateTeamName(invite.leagueId, `${user.displayName}'s squad`);
+    try {
+      await prisma.membership.create({
+        data: {
+          leagueId: invite.leagueId,
+          userId: user.id,
+          teamName: finalName,
+          draftPosition: invite.league.memberships.length + 1,
+        },
+      });
+    } catch (error) {
+      if (!isTeamNameConflict(error)) throw error;
+      await createSession({ id: user.id, email: user.email, displayName: user.displayName });
+      redirect(`/join/${invite.token}`);
+    }
   }
 
   await createSession({ id: user.id, email: user.email, displayName: user.displayName });
@@ -83,20 +98,49 @@ export async function loginAction(_prev: unknown, formData: FormData) {
     if (invite && !invite.revoked && invite.league.status === "SETUP") {
       const already = invite.league.memberships.some((m) => m.userId === user.id);
       if (!already && invite.league.memberships.length < invite.league.maxTeams) {
-        await prisma.membership.create({
-          data: {
-            leagueId: invite.leagueId,
-            userId: user.id,
-            teamName: `${user.displayName}'s squad`,
-            draftPosition: invite.league.memberships.length + 1,
-          },
-        });
+        try {
+          await prisma.membership.create({
+            data: {
+              leagueId: invite.leagueId,
+              userId: user.id,
+              teamName: await disambiguateTeamName(invite.leagueId, `${user.displayName}'s squad`),
+              draftPosition: invite.league.memberships.length + 1,
+            },
+          });
+        } catch (error) {
+          if (!isTeamNameConflict(error)) throw error;
+          redirect(`/join/${parsed.data.inviteToken}`);
+        }
       }
       redirect(`/leagues/${invite.leagueId}`);
     }
   }
 
   redirect(safeNext(parsed.data.next) || "/");
+}
+
+export async function changePasswordAction(_prev: unknown, formData: FormData) {
+  const session = await requireUser();
+  const parsed = validatePasswordChange({
+    currentPassword: String(formData.get("currentPassword") ?? ""),
+    newPassword: String(formData.get("newPassword") ?? ""),
+    confirmPassword: String(formData.get("confirmPassword") ?? ""),
+  });
+  if (!parsed.ok) return { error: parsed.error };
+
+  const user = await prisma.user.findUnique({ where: { id: session.id } });
+  if (!user || !(await verifyPassword(parsed.currentPassword, user.passwordHash))) {
+    return { error: "Current password is incorrect." };
+  }
+  if (parsed.newPassword === parsed.currentPassword) {
+    return { error: "New password must be different from the current password." };
+  }
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { passwordHash: await hashPassword(parsed.newPassword) },
+  });
+  return { message: "Password updated." };
 }
 
 export async function logoutAction() {

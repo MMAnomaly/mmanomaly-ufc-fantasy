@@ -35,6 +35,7 @@ export default async function AdminPage({
       teams={full.memberships.map((m) => ({
         id: m.id,
         teamName: m.teamName,
+        avatarUrl: m.avatarUrl,
         displayName: m.user.displayName,
         draftPosition: m.draftPosition,
       }))}

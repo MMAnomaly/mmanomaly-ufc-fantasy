@@ -22,7 +22,10 @@ export function Field({
   defaultValue,
   min,
   max,
+  minLength,
+  maxLength,
   placeholder,
+  autoComplete,
 }: {
   label: string;
   name: string;
@@ -31,7 +34,10 @@ export function Field({
   defaultValue?: string | number;
   min?: number;
   max?: number;
+  minLength?: number;
+  maxLength?: number;
   placeholder?: string;
+  autoComplete?: string;
 }) {
   return (
     <label className="block space-y-1.5">
@@ -44,7 +50,10 @@ export function Field({
         defaultValue={defaultValue}
         min={min}
         max={max}
+        minLength={minLength}
+        maxLength={maxLength}
         placeholder={placeholder}
+        autoComplete={autoComplete}
       />
     </label>
   );
