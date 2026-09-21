@@ -1,14 +1,19 @@
 import type { ReactNode } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { logoutAction } from "@/app/actions/auth";
 
 export function BrandMark({ compact = false }: { compact?: boolean }) {
   return (
     <Link href="/" className="flex items-center gap-3 group">
-      <span className="relative grid h-9 w-9 place-items-center">
-        <span className="absolute inset-0 rotate-45 rounded-[4px] border border-blood/80 bg-blood/20" />
-        <span className="relative font-display text-sm tracking-widest text-amber">MA</span>
-      </span>
+      <Image
+        alt="MMAnomaly"
+        className="h-10 w-10 rounded-full object-cover"
+        height={40}
+        priority
+        src="/mmanomaly-logo.png"
+        width={40}
+      />
       <span className="leading-none">
         <span className="block font-display text-xl tracking-[0.18em] text-paper group-hover:text-amber">
           MMAnomaly
