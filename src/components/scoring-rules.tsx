@@ -85,7 +85,9 @@ export function ScoringRules() {
           ))}
         </ul>
         <p className="mt-3 text-xs text-mist">
-          Flex can be any weight class. Every fighter is unique in the league — no duplicate IDs.
+          Flex can be any weight class. Every fighter is unique in the league — no duplicate IDs. The pick clock
+          defaults to 2:00. At 0:00 the server autodrafts the best eligible fighter into an open slot and marks the
+          pick Auto.
         </p>
       </section>
     </div>

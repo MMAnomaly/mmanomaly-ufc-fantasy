@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/auth";
-import { DraftError, makeManualPick, maybeAutoPick } from "@/lib/draft-engine";
+import { DraftError, forceCurrentPick, makeManualPick } from "@/lib/draft-engine";
 import { prisma } from "@/lib/prisma";
 
 export async function makePickAction(leagueId: string, fighterId: string, slot: string) {
@@ -23,10 +23,6 @@ export async function forceAutoPickAction(leagueId: string) {
   const league = await prisma.league.findUnique({ where: { id: leagueId } });
   if (!league || league.commissionerId !== user.id) return { error: "Commissioner only." };
   if (league.status !== "DRAFTING") return { error: "Draft is not live." };
-  await prisma.league.update({
-    where: { id: leagueId },
-    data: { pickDeadline: new Date(0) },
-  });
-  await maybeAutoPick(leagueId);
+  await forceCurrentPick(leagueId, league.currentPickIndex);
   revalidatePath(`/leagues/${leagueId}/draft`);
 }

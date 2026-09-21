@@ -88,6 +88,13 @@ function useCountdown(deadline: string | null) {
   return Math.max(0, Math.ceil((new Date(deadline).getTime() - now) / 1000));
 }
 
+function formatClock(seconds: number | null) {
+  if (seconds == null) return "--:--";
+  const minutes = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${minutes}:${secs.toString().padStart(2, "0")}`;
+}
+
 export function DraftRoom({ leagueId, initial }: { leagueId: string; initial: DraftState }) {
   const [state, setState] = useState(initial);
   const [query, setQuery] = useState("");
@@ -95,16 +102,23 @@ export function DraftRoom({ leagueId, initial }: { leagueId: string; initial: Dr
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const remaining = useCountdown(state.league.pickDeadline);
+  const clockExpired = remaining === 0;
 
   useEffect(() => {
-    const id = setInterval(async () => {
+    let cancelled = false;
+    async function pull() {
       const res = await fetch(`/api/leagues/${leagueId}/draft`, { cache: "no-store" });
-      if (!res.ok) return;
+      if (!res.ok || cancelled) return;
       const next = (await res.json()) as DraftState;
-      setState(next);
-    }, remaining === 0 ? 1200 : 2000);
-    return () => clearInterval(id);
-  }, [leagueId, remaining]);
+      if (!cancelled) setState(next);
+    }
+    if (clockExpired) void pull();
+    const id = setInterval(pull, clockExpired ? 1000 : 2000);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, [leagueId, clockExpired]);
 
   const openSlots = state.onTheClock?.openSlots ?? [];
   const activeSlot = openSlots.includes(slot) ? slot : (openSlots[0] ?? "");
@@ -162,10 +176,13 @@ export function DraftRoom({ leagueId, initial }: { leagueId: string; initial: Dr
               )}
             </div>
             <div className="text-right">
-              <p className="font-display text-4xl tabular-nums text-amber">
-                {remaining == null ? "--" : remaining}
+              <p className="font-display text-4xl tabular-nums text-amber">{formatClock(remaining)}</p>
+              <p className="text-[11px] uppercase tracking-[0.18em] text-mist">
+                {clockExpired ? "autodrafting" : "pick clock"}
               </p>
-              <p className="text-[11px] uppercase tracking-[0.18em] text-mist">seconds</p>
+              {state.league.status === "DRAFTING" ? (
+                <p className="mt-1 text-[11px] text-mist">Best eligible fighter at 0:00</p>
+              ) : null}
               {state.league.isCommissioner && state.league.status === "DRAFTING" && (
                 <button
                   className="mt-2 text-xs uppercase tracking-[0.16em] text-mist hover:text-amber"
@@ -294,7 +311,11 @@ export function DraftRoom({ leagueId, initial }: { leagueId: string; initial: Dr
                 </div>
                 <div className="text-xs text-mist">
                   {p.teamName} · {SLOT_LABELS[p.slot as RosterSlotKey] ?? p.slot}
-                  {p.autoPick ? " · auto" : ""}
+                  {p.autoPick ? (
+                    <span className="ml-1.5 rounded-sm bg-amber/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-amber">
+                      Auto
+                    </span>
+                  ) : null}
                 </div>
               </li>
             ))}

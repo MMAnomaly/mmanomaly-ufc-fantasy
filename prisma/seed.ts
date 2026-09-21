@@ -161,7 +161,7 @@ async function seedDemo() {
         name: "Fight Week Invitational",
         commissionerId: commissioner.id,
         maxTeams: 8,
-        pickClockSeconds: 90,
+        pickClockSeconds: 120,
       },
     });
     await prisma.membership.create({

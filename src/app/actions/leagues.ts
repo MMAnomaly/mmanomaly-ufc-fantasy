@@ -5,7 +5,15 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth";
-import { DEFAULT_PICK_CLOCK, DEFAULT_TEAMS, MAX_TEAMS, MIN_START_TEAMS, MIN_TEAMS, shuffle } from "@/lib/draft";
+import {
+  deadlineFrom,
+  DEFAULT_PICK_CLOCK,
+  DEFAULT_TEAMS,
+  MAX_TEAMS,
+  MIN_START_TEAMS,
+  MIN_TEAMS,
+  shuffle,
+} from "@/lib/draft";
 import { prisma } from "@/lib/prisma";
 
 const createSchema = z.object({
@@ -184,7 +192,7 @@ export async function startDraftAction(leagueId: string) {
     where: { id: leagueId },
     data: {
       status: "DRAFTING",
-      pickDeadline: new Date(Date.now() + league.pickClockSeconds * 1000),
+      pickDeadline: deadlineFrom(new Date(), league.pickClockSeconds),
     },
   });
   revalidatePath(`/leagues/${leagueId}`);
@@ -214,7 +222,7 @@ export async function resumeDraftAction(leagueId: string) {
     where: { id: leagueId },
     data: {
       status: "DRAFTING",
-      pickDeadline: new Date(Date.now() + league.pickClockSeconds * 1000),
+      pickDeadline: deadlineFrom(new Date(), league.pickClockSeconds),
     },
   });
   revalidatePath(`/leagues/${leagueId}`);
