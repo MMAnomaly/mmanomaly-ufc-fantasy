@@ -1,0 +1,855 @@
+{
+  "generated_at": "2026-09-26T12:42:18-07:00",
+  "sources": [
+    "https://www.ufc.com/events",
+    "https://www.ufc.com/event/ufc-fight-night-september-26-2026",
+    "https://www.ufc.com/event/ufc-332",
+    "https://www.ufc.com/event/ufc-fight-night-october-10-2026",
+    "https://www.ufc.com/event/ufc-fight-night-october-17-2026",
+    "https://www.ufc.com/event/ufc-333",
+    "https://www.ufc.com/event/ufc-fight-night-october-31-2026",
+    "https://www.ufc.com/event/ufc-fight-night-november-07-2026",
+    "https://www.ufc.com/event/ufc-334",
+    "https://www.ufc.com/event/ufc-fight-night-november-21-2026",
+    "https://www.ufc.com/event/ufc-335",
+    "https://en.wikipedia.org/wiki/2026_in_UFC",
+    "https://en.wikipedia.org/wiki/UFC_Fight_Night:_Rosas_Jr._vs._Barcelos",
+    "https://en.wikipedia.org/wiki/UFC_332",
+    "https://en.wikipedia.org/wiki/UFC_333",
+    "https://en.wikipedia.org/wiki/UFC_334",
+    "https://en.wikipedia.org/wiki/UFC_335",
+    "Wikipedia: UFC Fight Night: Allen vs. Duncan / Buckley vs. Malott / Moicano vs. Nolan / Bonfim vs. Brady / UFC Fight Night 294",
+    "https://www.mmafighting.com/ufc/511552/ufc-334-full-fight-card-announced (UFC 334 card segments)",
+    "Sherdog/MMA Fighting/Fighters Only UFC Vegas 121 weigh-in results (Sep 25) via web search",
+    "Tapology forum event thread https://www.tapology.com/forum/threads/99307 and Tapology UFC 332 event page (search-index snippets only; tapology.com FightCenter pages returned Cloudflare 403)",
+    "/home/box/shared/active-fighter-repository/bigmarcel24_announcements.json (cross-check)"
+  ],
+  "segment_legend": "card_segment null = segment not yet published; confirmed=false = media-reported / Wikipedia \"announced\" bout not yet on the official UFC.com card",
+  "event": "UFC Vegas 121",
+  "event_full_name": "UFC Fight Night: Rosas Jr. vs. Barcelos (UFC Fight Night 289 / UFC Vegas 121)",
+  "date": "2026-09-26",
+  "location": "Meta APEX, Las Vegas (Enterprise), Nevada, USA",
+  "tapology_url": null,
+  "ufc_url": "https://www.ufc.com/event/ufc-fight-night-september-26-2026",
+  "bout_count": 12,
+  "bouts": [
+    {
+      "fighter_a": "Raul Rosas Jr.",
+      "fighter_b": "Raoni Barcelos",
+      "weight_class": "Bantamweight",
+      "card_segment": "main",
+      "confirmed": true
+    },
+    {
+      "fighter_a": "Norma Dumont",
+      "fighter_b": "Ailín Pérez",
+      "weight_class": "Women's Bantamweight",
+      "card_segment": "main",
+      "confirmed": true
+    },
+    {
+      "fighter_a": "Luis Hernandez",
+      "fighter_b": "Sedriques Dumas",
+      "weight_class": "Light Heavyweight",
+      "card_segment": "main",
+      "confirmed": true
+    },
+    {
+      "fighter_a": "Mahammadali Osmanli",
+      "fighter_b": "Ilimbek Akylbek",
+      "weight_class": "Bantamweight",
+      "card_segment": "main",
+      "confirmed": true
+    },
+    {
+      "fighter_a": "Melissa Amaya",
+      "fighter_b": "Tina Black",
+      "weight_class": "Women's Strawweight",
+      "card_segment": "main",
+      "confirmed": true
+    },
+    {
+      "fighter_a": "Brady Hiestand",
+      "fighter_b": "Rinya Nakamura",
+      "weight_class": "Bantamweight",
+      "card_segment": "prelims",
+      "confirmed": true
+    },
+    {
+      "fighter_a": "Rodolfo Vieira",
+      "fighter_b": "Robert Bryczek",
+      "weight_class": "Middleweight",
+      "card_segment": "prelims",
+      "confirmed": true
+    },
+    {
+      "fighter_a": "Rodolfo Bellato",
+      "fighter_b": "Christian Edwards",
+      "weight_class": "Light Heavyweight",
+      "card_segment": "prelims",
+      "confirmed": true
+    },
+    {
+      "fighter_a": "Elves Brener",
+      "fighter_b": "Josiah Harrell",
+      "weight_class": "Lightweight",
+      "card_segment": "prelims",
+      "confirmed": true
+    },
+    {
+      "fighter_a": "Montel Jackson",
+      "fighter_b": "Ricky Simón",
+      "weight_class": "Bantamweight",
+      "card_segment": "prelims",
+      "confirmed": true
+    },
+    {
+      "fighter_a": "John Castañeda",
+      "fighter_b": "Alateng Heili",
+      "weight_class": "Bantamweight",
+      "card_segment": "prelims",
+      "confirmed": true
+    },
+    {
+      "fighter_a": "Vanessa Demopoulos",
+      "fighter_b": "Yazmin Jauregui",
+      "weight_class": "Women's Strawweight",
+      "card_segment": "prelims",
+      "confirmed": true
+    }
+  ],
+  "notes": "Prelims 5 PM ET / 2 PM PT, main card 8 PM ET / 5 PM PT (Paramount+). All 24 fighters made weight Sep 25. Mickey Gall withdrew (medical) Sep 24; replaced by newcomer Luis Hernandez at LHW vs Sedriques Dumas. Tina Black is the ring name of Valesca Machado (TUF 34 strawweight final). Tapology event page Cloudflare-blocked; card cross-checked vs Tapology forum event thread (12 bouts).",
+  "next_events": [
+    {
+      "event": "UFC 332",
+      "event_full_name": "UFC 332: Silva vs. Wang",
+      "date": "2026-10-03",
+      "location": "Delta Center, Salt Lake City, Utah, USA",
+      "tapology_url": "https://www.tapology.com/fightcenter/events/146635-ufc-332",
+      "ufc_url": "https://www.ufc.com/event/ufc-332",
+      "bout_count": 14,
+      "bouts": [
+        {
+          "fighter_a": "Natália Silva",
+          "fighter_b": "Wang Cong",
+          "weight_class": "Women's Flyweight (title)",
+          "card_segment": "main",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Deiveson Figueiredo",
+          "fighter_b": "Payton Talbott",
+          "weight_class": "Bantamweight",
+          "card_segment": "main",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "King Green",
+          "fighter_b": "Esteban Ribovics",
+          "weight_class": "Lightweight",
+          "card_segment": "main",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Roberto Soldic",
+          "fighter_b": "Khaos Williams",
+          "weight_class": "Welterweight",
+          "card_segment": "main",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Ateba Gautier",
+          "fighter_b": "Roman Kopylov",
+          "weight_class": "Middleweight",
+          "card_segment": "main",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Imanol Rodríguez",
+          "fighter_b": "Alden Coria",
+          "weight_class": "Flyweight",
+          "card_segment": "prelims",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Damian Pinas",
+          "fighter_b": "Andrey Pulyaev",
+          "weight_class": "Middleweight",
+          "card_segment": "prelims",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Marcus McGhee",
+          "fighter_b": "Bernardo Sopaj",
+          "weight_class": "Bantamweight",
+          "card_segment": "prelims",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Anthony Wint",
+          "fighter_b": "Lucas Armand",
+          "weight_class": "Heavyweight",
+          "card_segment": "prelims",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Johnny Walker",
+          "fighter_b": "Mick Parkin",
+          "weight_class": "Heavyweight",
+          "card_segment": "early prelims",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Rafael dos Anjos",
+          "fighter_b": "Alexander Hernandez",
+          "weight_class": "Lightweight",
+          "card_segment": "early prelims",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Marvin Vettori",
+          "fighter_b": "Ismail Naurdiev",
+          "weight_class": "Middleweight",
+          "card_segment": "early prelims",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Court McGee",
+          "fighter_b": "Eric Nolan",
+          "weight_class": "Welterweight",
+          "card_segment": "early prelims",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Jacobe Smith",
+          "fighter_b": "Bruce Whitehead",
+          "weight_class": "Welterweight",
+          "card_segment": null,
+          "confirmed": false
+        }
+      ],
+      "notes": "Vacant women's flyweight title (Shevchenko vacated). Main card 8 PM ET / 5 PM PT on CBS + Paramount+; prelims 6 PM ET; early prelims 4 PM ET. Jacobe Smith vs Bruce Whitehead reported added Sep 24 (MMA Mania via Wikipedia), not yet on UFC.com; segment unknown."
+    },
+    {
+      "event": "UFC Vegas 122",
+      "event_full_name": "UFC Fight Night: Allen vs. Duncan (UFC Fight Night 290)",
+      "date": "2026-10-10",
+      "location": "Meta APEX, Las Vegas, Nevada, USA",
+      "tapology_url": null,
+      "ufc_url": "https://www.ufc.com/event/ufc-fight-night-october-10-2026",
+      "bout_count": 12,
+      "bouts": [
+        {
+          "fighter_a": "Brendan Allen",
+          "fighter_b": "Christian Leroy Duncan",
+          "weight_class": "Middleweight",
+          "card_segment": "main",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Malcolm Wellmaker",
+          "fighter_b": "Otari Tanzilovi",
+          "weight_class": "Bantamweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Jai Herbert",
+          "fighter_b": "Matheus Camilo",
+          "weight_class": "Lightweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Francisco Prado",
+          "fighter_b": "Ismael Bonfim",
+          "weight_class": "Lightweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Darya Zheleznyakova",
+          "fighter_b": "Alice Pereira",
+          "weight_class": "Women's Bantamweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Melissa Gatto",
+          "fighter_b": "Ernesta Kareckaitė",
+          "weight_class": "Women's Flyweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Felipe Franco",
+          "fighter_b": "Alexander Poppeck",
+          "weight_class": "Light Heavyweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Gerald Meerschaert",
+          "fighter_b": "Julius Walker",
+          "weight_class": "Light Heavyweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "RJ Harris",
+          "fighter_b": "Allen Frye Jr.",
+          "weight_class": "Heavyweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Ketlen Souza",
+          "fighter_b": "Loopy Godinez",
+          "weight_class": "Women's Strawweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Andre Fili",
+          "fighter_b": "Kai Kamaka III",
+          "weight_class": "Featherweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Niko Price",
+          "fighter_b": "Leon Shahbazyan",
+          "weight_class": "Welterweight",
+          "card_segment": null,
+          "confirmed": false
+        }
+      ],
+      "notes": "UFC.com lists only the main event; remaining bouts are Wikipedia \"announced bouts\" (media reports), segments unknown."
+    },
+    {
+      "event": "UFC Fight Night Edmonton",
+      "event_full_name": "UFC Fight Night: Buckley vs. Malott (UFC Fight Night 291)",
+      "date": "2026-10-17",
+      "location": "Rogers Place, Edmonton, Alberta, Canada",
+      "tapology_url": null,
+      "ufc_url": "https://www.ufc.com/event/ufc-fight-night-october-17-2026",
+      "bout_count": 13,
+      "bouts": [
+        {
+          "fighter_a": "Joaquin Buckley",
+          "fighter_b": "Mike Malott",
+          "weight_class": "Welterweight",
+          "card_segment": "main",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Erin Blanchfield",
+          "fighter_b": "Jasmine Jasudavicius",
+          "weight_class": "Women's Flyweight",
+          "card_segment": "main",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Kyle Nelson",
+          "fighter_b": "Cristian Perez Gonzalez",
+          "weight_class": "Lightweight",
+          "card_segment": "main",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Marc-André Barriault",
+          "fighter_b": "Kyle Daukaus",
+          "weight_class": "Middleweight",
+          "card_segment": "main",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Louis Jourdain",
+          "fighter_b": "Timothy Cuamba",
+          "weight_class": "Bantamweight",
+          "card_segment": "main",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Mandel Nallo",
+          "fighter_b": "Nate Landwehr",
+          "weight_class": "Lightweight",
+          "card_segment": "main",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Tanner Boser",
+          "fighter_b": "Jhonata Diniz",
+          "weight_class": "Heavyweight",
+          "card_segment": "prelims",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Julien Leblanc",
+          "fighter_b": "Gilbert Urbina",
+          "weight_class": "Middleweight",
+          "card_segment": "prelims",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Javad Mahjoub",
+          "fighter_b": "Louie Sutherland",
+          "weight_class": "Heavyweight",
+          "card_segment": "prelims",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Jamey-Lyn Horth",
+          "fighter_b": "Katlyn Cerminara",
+          "weight_class": "Women's Flyweight",
+          "card_segment": "prelims",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Chad Anheliger",
+          "fighter_b": "Steven Koslow",
+          "weight_class": "Bantamweight",
+          "card_segment": "prelims",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Melissa Croden",
+          "fighter_b": "Chelsea Chandler",
+          "weight_class": "Women's Bantamweight",
+          "card_segment": "prelims",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Cody Chovancek",
+          "fighter_b": "You Su-young",
+          "weight_class": "Bantamweight",
+          "card_segment": "prelims",
+          "confirmed": true
+        }
+      ],
+      "notes": null
+    },
+    {
+      "event": "UFC 333",
+      "event_full_name": "UFC 333: Volkanovski vs. Evloev",
+      "date": "2026-10-24",
+      "location": "Etihad Arena, Yas Island, Abu Dhabi, UAE",
+      "tapology_url": null,
+      "ufc_url": "https://www.ufc.com/event/ufc-333",
+      "bout_count": 11,
+      "bouts": [
+        {
+          "fighter_a": "Alexander Volkanovski",
+          "fighter_b": "Movsar Evloev",
+          "weight_class": "Featherweight (title)",
+          "card_segment": "main",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Petr Yan",
+          "fighter_b": "Merab Dvalishvili",
+          "weight_class": "Bantamweight (title)",
+          "card_segment": "main",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Lone'er Kavanagh",
+          "fighter_b": "Ramazan Temirov",
+          "weight_class": "Flyweight",
+          "card_segment": "main",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Alexander Volkov",
+          "fighter_b": "Rizvan Kuniev",
+          "weight_class": "Heavyweight",
+          "card_segment": "main",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Losene Keita",
+          "fighter_b": "Aaron Pico",
+          "weight_class": "Featherweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Azamat Murzakanov",
+          "fighter_b": "Dominick Reyes",
+          "weight_class": "Light Heavyweight",
+          "card_segment": "prelims",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Nikita Krylov",
+          "fighter_b": "Abdul-Rakhman Yakhyaev",
+          "weight_class": "Light Heavyweight",
+          "card_segment": "prelims",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Abusupiyan Magomedov",
+          "fighter_b": "Cameron Rowston",
+          "weight_class": "Middleweight",
+          "card_segment": "prelims",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Grant Dawson",
+          "fighter_b": "Nurullo Aliev",
+          "weight_class": "Lightweight",
+          "card_segment": "prelims",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Jacob Malkoun",
+          "fighter_b": "Abubakar Vagaev",
+          "weight_class": "Middleweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Colby Thicknesse",
+          "fighter_b": "Asaf Chopurov",
+          "weight_class": "Bantamweight",
+          "card_segment": null,
+          "confirmed": false
+        }
+      ],
+      "notes": "Main card 2 PM ET / 11 AM PT. UFC.com still lists Arnold Allen vs Aaron Pico on the main card, but Allen withdrew (injury) and Losene Keita replaced him (MMA Junkie Sep 18 via Wikipedia; BigMarcel24/Heavy) - Keita vs Pico listed with segment null. Malkoun vs Vagaev (Heavy Sep 23) and Thicknesse vs Chopurov (Heavy Sep 24) reported added; not yet on UFC.com."
+    },
+    {
+      "event": "UFC Vegas 123",
+      "event_full_name": "UFC Fight Night: Moicano vs. Nolan (UFC Fight Night 292)",
+      "date": "2026-10-31",
+      "location": "Meta APEX, Las Vegas, Nevada, USA",
+      "tapology_url": null,
+      "ufc_url": "https://www.ufc.com/event/ufc-fight-night-october-31-2026",
+      "bout_count": 11,
+      "bouts": [
+        {
+          "fighter_a": "Renato Moicano",
+          "fighter_b": "Tom Nolan",
+          "weight_class": "Lightweight",
+          "card_segment": "main",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Lucia Szabova",
+          "fighter_b": "Tainara Lisboa",
+          "weight_class": "Women's Bantamweight",
+          "card_segment": null,
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Nick Klein",
+          "fighter_b": "Joseph Kropschot",
+          "weight_class": "Middleweight",
+          "card_segment": null,
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Julian Erosa",
+          "fighter_b": "Lee Jeong-yeong",
+          "weight_class": "Featherweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Yana Santos",
+          "fighter_b": "Luana Santos",
+          "weight_class": "Women's Bantamweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Andre Petroski",
+          "fighter_b": "Azamat Bekoev",
+          "weight_class": "Middleweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Theodor Berggren",
+          "fighter_b": "Rodrigo Sezinando",
+          "weight_class": "Welterweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Gastón Bolaños",
+          "fighter_b": "Francis Marshall",
+          "weight_class": "Featherweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Farman Hasanov",
+          "fighter_b": "Jean-Paul Lebosnoyani",
+          "weight_class": "Welterweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Talita Alencar",
+          "fighter_b": "Piera Rodriguez",
+          "weight_class": "Women's Strawweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Randy Brown",
+          "fighter_b": "Carlos Leal Miranda",
+          "weight_class": "Welterweight",
+          "card_segment": null,
+          "confirmed": false
+        }
+      ],
+      "notes": "UFC.com lists 3 bouts without segments (headliner = main); others are Wikipedia \"announced bouts\"."
+    },
+    {
+      "event": "UFC Vegas 124",
+      "event_full_name": "UFC Fight Night: Bonfim vs. Brady (UFC Fight Night 293)",
+      "date": "2026-11-07",
+      "location": "Meta APEX, Las Vegas, Nevada, USA",
+      "tapology_url": null,
+      "ufc_url": "https://www.ufc.com/event/ufc-fight-night-november-07-2026",
+      "bout_count": 11,
+      "bouts": [
+        {
+          "fighter_a": "Gabriel Bonfim",
+          "fighter_b": "Sean Brady",
+          "weight_class": "Welterweight",
+          "card_segment": "main",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Karine Silva",
+          "fighter_b": "Gabriella Fernandes",
+          "weight_class": "Women's Flyweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Davey Grant",
+          "fighter_b": "Elijah Smith",
+          "weight_class": "Bantamweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Murtazali Magomedov",
+          "fighter_b": "José Mauro Delano",
+          "weight_class": "Featherweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Wellington Turman",
+          "fighter_b": "Ko Seok-hyeon",
+          "weight_class": "Welterweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Tatiana Suarez",
+          "fighter_b": "Virna Jandiroba",
+          "weight_class": "Women's Strawweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "José Henrique Souza",
+          "fighter_b": "Jonny Parsons",
+          "weight_class": "Welterweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Alvin Hines",
+          "fighter_b": "Gabriel Lorenço",
+          "weight_class": "Heavyweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Billy Elekana",
+          "fighter_b": "Lucas Fernando",
+          "weight_class": "Light Heavyweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Lucas Brennan",
+          "fighter_b": "Austin Bashi",
+          "weight_class": "Featherweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Nina Nikolija Milošević",
+          "fighter_b": "Priscila Cachoeira",
+          "weight_class": "Women's Bantamweight",
+          "card_segment": null,
+          "confirmed": false
+        }
+      ],
+      "notes": "UFC.com lists only the main event; others are Wikipedia \"announced bouts\" (e.g. Milošević vs Cachoeira per MMA Junkie Sep 24)."
+    },
+    {
+      "event": "UFC 334",
+      "event_full_name": "UFC 334: Gane vs. Hokit (Polymarket UFC 334)",
+      "date": "2026-11-14",
+      "location": "Madison Square Garden, New York City, New York, USA",
+      "tapology_url": null,
+      "ufc_url": "https://www.ufc.com/event/ufc-334",
+      "bout_count": 12,
+      "bouts": [
+        {
+          "fighter_a": "Ciryl Gane",
+          "fighter_b": "Josh Hokit",
+          "weight_class": "Heavyweight (title)",
+          "card_segment": "main",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Kayla Harrison",
+          "fighter_b": "Amanda Nunes",
+          "weight_class": "Women's Bantamweight (title)",
+          "card_segment": "main",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Caio Borralho",
+          "fighter_b": "Yousri Belgaroui",
+          "weight_class": "Middleweight",
+          "card_segment": "main",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Uroš Medić",
+          "fighter_b": "Kevin Holland",
+          "weight_class": "Welterweight",
+          "card_segment": "main",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Bilal Hasan",
+          "fighter_b": "Luis Gurule",
+          "weight_class": "Flyweight",
+          "card_segment": "main",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Stephen Thompson",
+          "fighter_b": "Charles Radtke",
+          "weight_class": "Welterweight",
+          "card_segment": "prelims",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Drew Dober",
+          "fighter_b": "Chris Duncan",
+          "weight_class": "Lightweight",
+          "card_segment": "prelims",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Jim Miller",
+          "fighter_b": "Terrance McKinney",
+          "weight_class": "Lightweight",
+          "card_segment": "prelims",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Donte Johnson",
+          "fighter_b": "Baisangur Susurkaev",
+          "weight_class": "Middleweight",
+          "card_segment": "prelims",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Macy Chiasson",
+          "fighter_b": "Beatriz Mesquita",
+          "weight_class": "Women's Bantamweight",
+          "card_segment": "prelims",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Adrian Yañez",
+          "fighter_b": "Juan Díaz",
+          "weight_class": "Bantamweight",
+          "card_segment": "prelims",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Nazim Sadykhov",
+          "fighter_b": "Jefferson Nascimento",
+          "weight_class": "Lightweight",
+          "card_segment": "prelims",
+          "confirmed": true
+        }
+      ],
+      "notes": "Segments from MMA Fighting full-card article (Sep 20); UFC.com lists the same 12 bouts."
+    },
+    {
+      "event": "UFC Fight Night Qatar",
+      "event_full_name": "UFC Fight Night 294 (UFC Qatar)",
+      "date": "2026-11-21",
+      "location": "ABHA Arena (Ali Bin Hamad al-Attiyah Arena), Al Rayyan/Doha, Qatar",
+      "tapology_url": null,
+      "ufc_url": "https://www.ufc.com/event/ufc-fight-night-november-21-2026",
+      "bout_count": 4,
+      "bouts": [
+        {
+          "fighter_a": "Aleksandre Topuria",
+          "fighter_b": "Santiago Luna",
+          "weight_class": "Bantamweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Amir Albazi",
+          "fighter_b": "Alessandro Costa",
+          "weight_class": "Flyweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Kyoji Horiguchi",
+          "fighter_b": "Asu Almabayev",
+          "weight_class": "Flyweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Magomed Zaynukov",
+          "fighter_b": "Manoel Sousa",
+          "weight_class": "Lightweight",
+          "card_segment": null,
+          "confirmed": false
+        }
+      ],
+      "notes": "UFC.com has no bouts listed yet; all bouts are Wikipedia \"announced bouts\"."
+    },
+    {
+      "event": "UFC 335",
+      "event_full_name": "UFC 335",
+      "date": "2026-12-12",
+      "location": "T-Mobile Arena, Las Vegas, Nevada, USA",
+      "tapology_url": null,
+      "ufc_url": "https://www.ufc.com/event/ufc-335",
+      "bout_count": 1,
+      "bouts": [
+        {
+          "fighter_a": "Sean Strickland",
+          "fighter_b": "Nassourdine Imavov",
+          "weight_class": "Middleweight (title)",
+          "card_segment": null,
+          "confirmed": false
+        }
+      ],
+      "notes": "UFC.com shows \"TBD vs TBD\". Strickland (c) vs Imavov middleweight title fight is listed by Wikipedia (Imavov confirmed per telecomasia Sep 4) and reported by multiple outlets as in the works; not officially announced."
+    }
+  ]
+}

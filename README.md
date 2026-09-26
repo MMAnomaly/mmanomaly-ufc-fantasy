@@ -77,7 +77,9 @@ Do not commit real secrets. Copy `.env.example` and generate values locally / in
 
    If you skip the migration folder, `npx prisma db push` then `npx prisma db seed` also creates the schema.
 
-   Seed loads `data/fighters_by_class.json` (640 fighters). Optional `SEED_DEMO=true` is for local demos, not production.
+   Seed loads `data/fighters_by_class.json` (640 fighters) and, when a card file is present, the `UfcCard` rows used by Fighting this week. Optional `SEED_DEMO=true` is for local demos, not production.
+
+   `prisma/migrations/20260926193600_ufc_card` adds `UfcCard`. Production needs `npx prisma migrate deploy` before `npx prisma db seed`. Re-run the seed after replacing the upcoming-card file so the standings panel picks up the new bouts. If that file is absent, seed leaves existing `UfcCard` rows alone and the page derives the next card from `Fighter.nextBoutJson`.
 
 6. Confirm **Settings → Cron Jobs** shows `GET /api/jobs/sunday-score` on `0 22 * * 0`. Cron runs on production deployments only.
 
@@ -110,7 +112,7 @@ Hobby cron jobs run at most once per day (this weekly job is within that limit) 
 3. Copy the **invite link** from the lobby or Admin. Invitees hit `/join/[token]`, then register with email + password (or log in) and join. Unique email per league membership is enforced via unique user email + one membership per user/league.
 4. **Admin**: randomize snake order, then Up/Down to pin last season’s winner at 1. Start the draft when at least 2 teams have joined.
 5. **Draft**: on your turn pick **one fighter** into **any open slot**. Flex can be any class. No fighter may be drafted twice. When the server clock hits 0:00, the best eligible fighter is autodrafted (see below). Commissioner can pause, resume, reorder the snake, or force auto-pick.
-6. **Standings** show season totals, last-event delta, and roster breakdown (zeros until a scoring job runs).
+6. **Standings** show who on each roster is booked for the upcoming card, then season totals, last-event delta, and roster breakdown (zeros until a scoring job runs).
 7. **Account & team** (`/leagues/[id]/settings`, or the Settings tab) lets a member rename their own team, set a display picture, and change their password. Commissioners do not edit other teams. The name is trimmed, 2–32 characters, and unique in the league ignoring case. The picture is optional: JPEG, PNG, or WebP up to 2MB, shown in a circle (initials if unset). Password change asks for the current password and a confirmation; the new password must be at least 8 characters, the same rule as registration. There is no email reset in v1. The password is the account login, shared across leagues.
 
 ## Team pictures
@@ -191,6 +193,37 @@ Jobs store raw fight stat lines plus computed fantasy points per fighter per eve
 | `womens_bantamweight` | Women’s Bantamweight (25 listed; under 30 is expected) |
 
 Each fighter is stored once (`id` from Tapology slug). Women’s Bantamweight is thinner than the ≥30 guideline on purpose.
+
+## Fighting this week
+
+The standings page leads with the rostered fighters booked on the upcoming UFC card, grouped by team in standings order. The panel is server-rendered with the rest of the page.
+
+The upcoming card is the file's primary event while that date is still today or later in **America/Los_Angeles**. An event stays on the panel through the end of its event day. After that day, the panel uses the earliest still-future entry in `next_events`. If every seeded card is in the past, the page derives a card from `Fighter.nextBoutJson` (earliest future `date`, grouped by event name). A bout with an event name and an empty `date` is included when that event name matches the chosen card. Bout names match fighter records without regard to accents or case, and a roster that holds both spellings (Juan Diaz and Juan Díaz) lists that person once. `confirmed: false` on the bout that is shown — either the card file or `nextBoutJson` — draws a small unconfirmed tag. `tapology_url` and `card_segment` may be null. Only fighters on a roster in the league being viewed are listed.
+
+`Fighter.upcomingFightClass` is not used to pick the card. The seed sets it to the fighter's `classKey` whenever `nextBoutJson` is present.
+
+`prisma db seed` loads the first upcoming-card file that exists:
+
+1. `/home/box/shared/active-fighter-repository/upcoming_card.json`
+2. `data/upcoming_card.json` (committed copy of the shared export)
+3. `data/upcoming-card.json`
+
+If none of those files exist, the seed logs a skip and does not change `UfcCard`. The file shape is:
+
+```json
+{
+  "event": "UFC 332",
+  "date": "2026-10-03",
+  "location": "Las Vegas, Nevada",
+  "tapology_url": "https://www.tapology.com/fightcenter/events/...",
+  "bouts": [
+    { "fighter_a": "Alden Coria", "fighter_b": "Imanol Rodriguez", "weight_class": "Flyweight", "card_segment": "Prelims" }
+  ],
+  "next_events": [{ "event": "UFC 333", "date": "2026-10-24", "bouts": [] }]
+}
+```
+
+On production, copy the shared export into place (or rely on the committed fallback), then run `npx prisma migrate deploy` and `npx prisma db seed`.
 
 Optional demo accounts (`SEED_DEMO=true` in `.env` before `npm run db:seed`):
 
