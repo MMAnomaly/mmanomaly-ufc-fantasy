@@ -57,6 +57,11 @@ export function FightingThisWeekPanel({ data }: { data: FightingThisWeek }) {
                       <p className="min-w-0 break-words text-sm">
                         <span className="font-medium">{fighter.name}</span>
                         {fighter.opponent ? <span className="text-mist"> vs. {fighter.opponent}</span> : null}
+                        {fighter.unconfirmed ? (
+                          <span className="ml-2 inline-flex rounded-full border border-amber/40 px-1.5 py-0.5 align-middle text-[10px] uppercase tracking-[0.14em] text-amber">
+                            Unconfirmed
+                          </span>
+                        ) : null}
                       </p>
                       {detail ? <p className="shrink-0 text-xs text-mist">{detail}</p> : null}
                     </li>

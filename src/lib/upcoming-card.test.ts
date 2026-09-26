@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
+import path from "node:path";
 import {
   buildFightingThisWeek,
   explicitCardFromStored,
@@ -142,6 +144,7 @@ describe("fighting this week grouping", () => {
         fighterB: "Wang Cong",
         weightClass: "Women's Flyweight",
         cardSegment: "Main Card",
+        confirmed: true,
         order: 1,
       },
       {
@@ -149,6 +152,7 @@ describe("fighting this week grouping", () => {
         fighterB: "Deiveson Figueiredo",
         weightClass: "Bantamweight",
         cardSegment: "Main Event",
+        confirmed: true,
         order: 0,
       },
     ],
@@ -234,6 +238,7 @@ describe("fighting this week grouping", () => {
       opponent: "Wang Cong",
       weightClass: "Women's Flyweight",
       cardSegment: "Main Card",
+      unconfirmed: false,
     });
     assert.equal(view.teams[0]?.fighters[1]?.opponent, "Ramazan Temirov");
     assert.equal(view.teams[0]?.fighters[1]?.cardSegment, null);
@@ -244,6 +249,7 @@ describe("fighting this week grouping", () => {
       opponent: "Deiveson Figueiredo",
       weightClass: "Bantamweight",
       cardSegment: "Main Event",
+      unconfirmed: false,
     });
   });
 
@@ -325,6 +331,140 @@ describe("fighting this week grouping", () => {
     assert.equal(view.teams.length, 0);
   });
 
+  it("matches accent-insensitive names and lists a duplicated fighter once", () => {
+    const view = buildFightingThisWeek({
+      teams: [
+        team({
+          membershipId: "one",
+          teamName: "One",
+          fighters: [
+            {
+              id: "diaz-plain",
+              name: "Juan Diaz",
+              weightClass: "Bantamweight",
+              nextBoutJson: JSON.stringify({
+                opponent: "Adrian Yanez",
+                event: "UFC 334",
+                date: "2026-11-14",
+                confirmed: false,
+              }),
+            },
+            {
+              id: "diaz-accent",
+              name: "Juan Díaz",
+              weightClass: "Bantamweight",
+              nextBoutJson: JSON.stringify({
+                opponent: "Adrian Yañez",
+                event: "UFC 334",
+                date: "",
+                confirmed: true,
+              }),
+            },
+          ],
+        }),
+      ],
+      explicitCards: [
+        card({
+          event: "UFC 334",
+          date: "2026-11-14",
+          bouts: [
+            {
+              fighterA: "Juan Diaz",
+              fighterB: "Adrian Yanez",
+              weightClass: "Bantamweight",
+              cardSegment: "prelims",
+              confirmed: true,
+              order: 2,
+            },
+          ],
+        }),
+      ],
+      fighterNextBouts: [],
+      now: DAY_AFTER_VEGAS,
+    });
+    assert.equal(view.teams[0]?.fighters.length, 1);
+    assert.equal(view.teams[0]?.fighters[0]?.id, "diaz-plain");
+    assert.equal(view.teams[0]?.fighters[0]?.opponent, "Adrian Yanez");
+    assert.equal(view.teams[0]?.fighters[0]?.cardSegment, "Prelims");
+    assert.equal(view.teams[0]?.fighters[0]?.unconfirmed, false);
+  });
+
+  it("tags a next-bout match unconfirmed when confirmed is false", () => {
+    const view = buildFightingThisWeek({
+      teams: [
+        team({
+          membershipId: "one",
+          teamName: "One",
+          fighters: [
+            {
+              id: "reported",
+              name: "Jacobe Smith",
+              weightClass: "Welterweight",
+              nextBoutJson: JSON.stringify({
+                opponent: "Bruce Whitehead",
+                event: "UFC 332",
+                date: "2026-10-03",
+                confirmed: false,
+              }),
+            },
+          ],
+        }),
+      ],
+      explicitCards: [card({ event: "UFC 332", date: "2026-10-03", tapologyUrl: null })],
+      fighterNextBouts: [],
+      now: DAY_AFTER_VEGAS,
+    });
+    assert.equal(view.card?.tapologyUrl, null);
+    assert.equal(view.teams[0]?.fighters[0]?.unconfirmed, true);
+    assert.equal(view.teams[0]?.fighters[0]?.cardSegment, null);
+    assert.equal(view.teams[0]?.fighters[0]?.opponent, "Bruce Whitehead");
+  });
+
+  it("tags a card-file bout unconfirmed when that bout is not official", () => {
+    const view = buildFightingThisWeek({
+      teams: [
+        team({
+          membershipId: "one",
+          teamName: "One",
+          fighters: [
+            {
+              id: "smith",
+              name: "Jacobe Smith",
+              weightClass: "Welterweight",
+              nextBoutJson: JSON.stringify({
+                opponent: "Bruce Whitehead",
+                event: "UFC 332",
+                date: "2026-10-03",
+                confirmed: true,
+              }),
+            },
+          ],
+        }),
+      ],
+      explicitCards: [
+        card({
+          event: "UFC 332",
+          date: "2026-10-03",
+          bouts: [
+            {
+              fighterA: "Jacobe Smith",
+              fighterB: "Bruce Whitehead",
+              weightClass: "Welterweight",
+              cardSegment: null,
+              confirmed: false,
+              order: 0,
+            },
+          ],
+        }),
+      ],
+      fighterNextBouts: [],
+      now: DAY_AFTER_VEGAS,
+    });
+    assert.equal(view.teams[0]?.fighters[0]?.unconfirmed, true);
+    assert.equal(view.teams[0]?.fighters[0]?.cardSegment, null);
+    assert.equal(view.teams[0]?.fighters[0]?.weightClass, "Welterweight");
+  });
+
   it("drops unsafe tapology urls", () => {
     const view = buildFightingThisWeek({
       teams: [],
@@ -333,6 +473,39 @@ describe("fighting this week grouping", () => {
       now: DAY_AFTER_VEGAS,
     });
     assert.equal(view.card?.tapologyUrl, null);
+  });
+});
+
+describe("real upcoming card file", () => {
+  const document = JSON.parse(readFileSync(path.join(process.cwd(), "data", "upcoming_card.json"), "utf8")) as unknown;
+
+  it("keeps the primary event through its Pacific day, then the earliest future next event", () => {
+    const cards = parseUpcomingCardDocument(document);
+    assert.equal(cards[0]?.event, "UFC Vegas 121");
+    assert.equal(cards[0]?.tapologyUrl, null);
+    assert.ok(cards[0]?.bouts.some((bout) => bout.cardSegment === null) === false);
+
+    const onTheDay = selectUpcomingCard({
+      explicitCards: cards,
+      fighterNextBouts: [JSON.stringify({ opponent: "X", event: "UFC 335", date: "2026-12-12", confirmed: true })],
+      now: VEGAS_NIGHT,
+    });
+    assert.equal(onTheDay?.event, "UFC Vegas 121");
+    assert.equal(onTheDay?.location, "Meta APEX, Las Vegas (Enterprise), Nevada, USA");
+    assert.equal(onTheDay?.bouts.length, 12);
+
+    const dayAfter = selectUpcomingCard({
+      explicitCards: cards,
+      fighterNextBouts: [JSON.stringify({ opponent: "X", event: "UFC Vegas 121", date: "2026-09-26", confirmed: true })],
+      now: DAY_AFTER_VEGAS,
+    });
+    assert.equal(dayAfter?.event, "UFC 332");
+    assert.equal(dayAfter?.date, "2026-10-03");
+    assert.equal(dayAfter?.tapologyUrl, "https://www.tapology.com/fightcenter/events/146635-ufc-332");
+    assert.ok((dayAfter?.bouts.length ?? 0) > 0);
+    const reported = dayAfter?.bouts.find((bout) => bout.fighterA === "Jacobe Smith");
+    assert.equal(reported?.confirmed, false);
+    assert.equal(reported?.cardSegment, null);
   });
 });
 

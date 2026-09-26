@@ -198,15 +198,15 @@ Each fighter is stored once (`id` from Tapology slug). Women’s Bantamweight is
 
 The standings page leads with the rostered fighters booked on the upcoming UFC card, grouped by team in standings order. The panel is server-rendered with the rest of the page.
 
-The upcoming card is the earliest event dated today or later in **America/Los_Angeles**. An event stays on the panel through the end of its event day. Selection prefers rows in `UfcCard`. If none of those dates are still upcoming, the page derives the card from `Fighter.nextBoutJson` (earliest future `date`, grouped by event name). A bout with an event name and an empty `date` is included when that event name matches the chosen card. Only fighters on a roster in the league being viewed are listed.
+The upcoming card is the file's primary event while that date is still today or later in **America/Los_Angeles**. An event stays on the panel through the end of its event day. After that day, the panel uses the earliest still-future entry in `next_events`. If every seeded card is in the past, the page derives a card from `Fighter.nextBoutJson` (earliest future `date`, grouped by event name). A bout with an event name and an empty `date` is included when that event name matches the chosen card. Bout names match fighter records without regard to accents or case, and a roster that holds both spellings (Juan Diaz and Juan Díaz) lists that person once. `confirmed: false` on the bout that is shown — either the card file or `nextBoutJson` — draws a small unconfirmed tag. `tapology_url` and `card_segment` may be null. Only fighters on a roster in the league being viewed are listed.
 
 `Fighter.upcomingFightClass` is not used to pick the card. The seed sets it to the fighter's `classKey` whenever `nextBoutJson` is present.
 
 `prisma db seed` loads the first upcoming-card file that exists:
 
 1. `/home/box/shared/active-fighter-repository/upcoming_card.json`
-2. `data/upcoming_card.json`
-3. `data/upcoming-card.json` (committed fallback built from dated `next_bout` pairs in the fighter export)
+2. `data/upcoming_card.json` (committed copy of the shared export)
+3. `data/upcoming-card.json`
 
 If none of those files exist, the seed logs a skip and does not change `UfcCard`. The file shape is:
 

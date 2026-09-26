@@ -17,6 +17,8 @@ export type CardBout = {
   fighterB: string;
   weightClass: string | null;
   cardSegment: string | null;
+  /** False when the card file marks the bout as reported but not on the official card. */
+  confirmed: boolean;
   order: number;
 };
 
@@ -49,6 +51,7 @@ export type FightingFighterView = {
   opponent: string | null;
   weightClass: string | null;
   cardSegment: string | null;
+  unconfirmed: boolean;
 };
 
 export type FightingTeamView = {
@@ -74,6 +77,8 @@ type NextBout = {
   opponent: string | null;
   event: string | null;
   date: string;
+  /** Null when the seed omitted the flag. False means reported, not official. */
+  confirmed: boolean | null;
 };
 
 const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
@@ -163,8 +168,9 @@ export function parseNextBout(json: string | null | undefined): NextBout | null 
   const event = readString(parsed.event);
   const opponent = readString(parsed.opponent);
   const date = typeof parsed.date === "string" ? parsed.date.trim() : "";
+  const confirmed = typeof parsed.confirmed === "boolean" ? parsed.confirmed : null;
   if (!event && !opponent) return null;
-  return { event, opponent, date };
+  return { event, opponent, date, confirmed };
 }
 
 export function parseUpcomingCardDocument(raw: unknown): ExplicitCard[] {
@@ -214,6 +220,7 @@ export function serializeBouts(bouts: CardBout[]): string {
       fighter_b: bout.fighterB,
       weight_class: bout.weightClass,
       card_segment: bout.cardSegment,
+      confirmed: bout.confirmed,
     })),
   );
 }
@@ -224,13 +231,20 @@ export function selectUpcomingCard(input: {
   now: Date;
 }): ExplicitCard | null {
   const today = losAngelesDateKey(input.now);
-  const explicit = input.explicitCards
-    .filter((card) => card.event.trim() && isIsoDate(card.date) && card.date >= today)
+  const upcoming = input.explicitCards.filter(
+    (card) => card.event.trim() && isIsoDate(card.date) && card.date >= today,
+  );
+  // The file's primary event stays up through the end of its Pacific day.
+  // After that, the earliest still-future next_events entry takes over.
+  const primary = upcoming.find((card) => card.sortOrder === 0);
+  if (primary) return primary;
+  const nextEvent = upcoming
+    .filter((card) => card.sortOrder !== 0)
     .sort(
       (a, b) =>
         a.date.localeCompare(b.date) || a.sortOrder - b.sortOrder || a.event.localeCompare(b.event),
-    );
-  if (explicit.length > 0) return explicit[0];
+    )[0];
+  if (nextEvent) return nextEvent;
   return deriveCardFromBouts(input.fighterNextBouts, today);
 }
 
@@ -247,15 +261,22 @@ export function buildFightingThisWeek(input: {
 
   const teams: FightingTeamView[] = [];
   for (const team of input.teams) {
-    const seen = new Set<string>();
-    const fighters: (FightingFighterView & { segmentRank: number; order: number })[] = [];
+    const seenIds = new Set<string>();
+    const matched: (FightingFighterView & { segmentRank: number; order: number; nameKey: string })[] = [];
     for (const fighter of team.fighters) {
-      if (seen.has(fighter.id)) continue;
-      const matched = matchFighter(fighter, card);
-      if (!matched) continue;
-      seen.add(fighter.id);
-      fighters.push(matched);
+      if (seenIds.has(fighter.id)) continue;
+      const row = matchFighter(fighter, card);
+      if (!row) continue;
+      seenIds.add(fighter.id);
+      matched.push({ ...row, nameKey: normalizeMatchKey(fighter.name) || fighter.id });
     }
+    // Juan Diaz and Juan Díaz are one person stored twice. Keep the card bout over a next-bout fallback.
+    const byName = new Map<string, (typeof matched)[number]>();
+    for (const row of matched) {
+      const existing = byName.get(row.nameKey);
+      if (!existing || preferRosterRow(row, existing)) byName.set(row.nameKey, row);
+    }
+    const fighters = [...byName.values()];
     fighters.sort(
       (a, b) => a.segmentRank - b.segmentRank || a.order - b.order || a.name.localeCompare(b.name),
     );
@@ -270,6 +291,7 @@ export function buildFightingThisWeek(input: {
         opponent: fighter.opponent,
         weightClass: fighter.weightClass,
         cardSegment: fighter.cardSegment,
+        unconfirmed: fighter.unconfirmed,
       })),
     });
   }
@@ -285,6 +307,15 @@ export function buildFightingThisWeek(input: {
     teams,
     teamsWithoutFighters: input.teams.length - teams.length,
   };
+}
+
+function preferRosterRow(
+  incoming: { order: number; unconfirmed: boolean },
+  existing: { order: number; unconfirmed: boolean },
+): boolean {
+  if (incoming.order !== existing.order) return incoming.order < existing.order;
+  if (incoming.unconfirmed !== existing.unconfirmed) return !incoming.unconfirmed;
+  return false;
 }
 
 function deriveCardFromBouts(fighterNextBouts: (string | null | undefined)[], today: string): ExplicitCard | null {
@@ -330,7 +361,8 @@ function matchFighter(
       name: fighter.name,
       opponent: opponent.trim() || null,
       weightClass: bout.weightClass?.trim() || fighter.weightClass?.trim() || null,
-      cardSegment: bout.cardSegment?.trim() || null,
+      cardSegment: segmentLabel(bout.cardSegment),
+      unconfirmed: bout.confirmed === false,
       segmentRank: segmentRank(bout.cardSegment),
       order: bout.order,
     };
@@ -348,16 +380,31 @@ function matchFighter(
     opponent: next.opponent,
     weightClass: fighter.weightClass?.trim() || null,
     cardSegment: null,
+    unconfirmed: next.confirmed === false,
     segmentRank: segmentRank(null),
     order: Number.MAX_SAFE_INTEGER,
   };
 }
 
+function segmentLabel(segment: string | null): string | null {
+  if (!segment?.trim()) return null;
+  const key = normalizeMatchKey(segment);
+  const labels: Record<string, string> = {
+    main: "Main card",
+    prelims: "Prelims",
+    prelim: "Prelims",
+    "early prelims": "Early prelims",
+    "early prelim": "Early prelims",
+  };
+  return labels[key] ?? segment.trim();
+}
+
 function segmentRank(segment: string | null): number {
   if (!segment) return 50;
   const key = normalizeMatchKey(segment);
-    const ranks: Record<string, number> = {
+  const ranks: Record<string, number> = {
     "main event": 0,
+    main: 0,
     "main card": 1,
     prelims: 2,
     prelim: 2,
@@ -401,6 +448,7 @@ function parseBout(value: unknown, order: number): CardBout | null {
     fighterB,
     weightClass: readString(value.weight_class),
     cardSegment: readString(value.card_segment),
+    confirmed: value.confirmed !== false,
     order,
   };
 }
