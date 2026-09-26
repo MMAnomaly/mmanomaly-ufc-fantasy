@@ -1,9 +1,16 @@
 import { PrismaClient } from "@prisma/client";
 import { hash } from "bcryptjs";
 import { randomBytes } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { CLASS_TO_SLOT, type ClassKey } from "../src/lib/slots";
+import {
+  parseUpcomingCardDocument,
+  resolveUpcomingCardPath,
+  serializeBouts,
+  upcomingCardExternalKey,
+  type ExplicitCard,
+} from "../src/lib/upcoming-card";
 
 const prisma = new PrismaClient();
 
@@ -126,6 +133,59 @@ async function seedFighters() {
   }
 }
 
+async function seedUpcomingCard() {
+  const file = resolveUpcomingCardPath(existsSync);
+  if (!file) {
+    console.log("No upcoming card file found; leaving UfcCard rows unchanged");
+    return;
+  }
+
+  let raw: unknown;
+  try {
+    raw = JSON.parse(readFileSync(file, "utf8")) as unknown;
+  } catch (err) {
+    throw new Error(`Upcoming card file ${file} is not valid JSON`, { cause: err });
+  }
+
+  const cards = dedupeUpcomingCards(parseUpcomingCardDocument(raw));
+  if (cards.length === 0) {
+    console.warn(`Upcoming card file ${file} had no dated events; leaving UfcCard rows unchanged`);
+    return;
+  }
+
+  const keys = cards.map((card) => upcomingCardExternalKey(card.event, card.date));
+  await prisma.$transaction([
+    prisma.ufcCard.deleteMany({ where: { externalKey: { notIn: keys } } }),
+    ...cards.map((card) => {
+      const externalKey = upcomingCardExternalKey(card.event, card.date);
+      const data = {
+        name: card.event,
+        date: card.date,
+        location: card.location,
+        tapologyUrl: card.tapologyUrl,
+        boutsJson: serializeBouts(card.bouts),
+        sortOrder: card.sortOrder,
+      };
+      return prisma.ufcCard.upsert({
+        where: { externalKey },
+        update: data,
+        create: { externalKey, ...data },
+      });
+    }),
+  ]);
+  console.log(`Seeded ${cards.length} upcoming card event(s) from ${file}`);
+}
+
+function dedupeUpcomingCards(cards: ExplicitCard[]) {
+  const byKey = new Map<string, ExplicitCard>();
+  for (const card of cards) {
+    const key = upcomingCardExternalKey(card.event, card.date);
+    const existing = byKey.get(key);
+    if (!existing || card.bouts.length > existing.bouts.length) byKey.set(key, card);
+  }
+  return [...byKey.values()];
+}
+
 async function seedDemo() {
   if (process.env.SEED_DEMO !== "true") return;
   const commishEmail = process.env.DEMO_COMMISSIONER_EMAIL ?? "commish@mmanomaly.local";
@@ -193,6 +253,7 @@ async function seedDemo() {
 
 async function main() {
   await seedFighters();
+  await seedUpcomingCard();
   await seedDemo();
 }
 

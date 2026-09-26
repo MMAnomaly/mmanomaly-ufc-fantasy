@@ -1,0 +1,312 @@
+{
+  "generated_from": "data/fighters_by_class.json",
+  "note": "Dated next_bout pairs from the fighter export. The shared upcoming_card.json overrides this file when present. Location and Tapology URL are omitted here because the export does not include them.",
+  "event": "UFC Vegas 121",
+  "date": "2026-09-26",
+  "bouts": [
+    {
+      "fighter_a": "Alateng Heili",
+      "fighter_b": "John Castañeda",
+      "weight_class": "Bantamweight"
+    },
+    {
+      "fighter_a": "Montel Jackson",
+      "fighter_b": "Ricky Simón",
+      "weight_class": "Bantamweight"
+    },
+    {
+      "fighter_a": "Norma Dumont",
+      "fighter_b": "Ailín Pérez",
+      "weight_class": "Bantamweight"
+    },
+    {
+      "fighter_a": "Raoni Barcelos",
+      "fighter_b": "Raul Rosas Jr.",
+      "weight_class": "Bantamweight"
+    },
+    {
+      "fighter_a": "Christian Edwards",
+      "fighter_b": "Rodolfo Bellato",
+      "weight_class": "Light Heavyweight"
+    },
+    {
+      "fighter_a": "Elves Brener",
+      "fighter_b": "Josiah Harrell",
+      "weight_class": "Lightweight"
+    },
+    {
+      "fighter_a": "Robert Bryczek",
+      "fighter_b": "Rodolfo Vieira",
+      "weight_class": "Middleweight"
+    },
+    {
+      "fighter_a": "Vanessa Demopoulos",
+      "fighter_b": "Yazmin Jauregui",
+      "weight_class": "Strawweight"
+    },
+    {
+      "fighter_a": "Rinya Nakamura",
+      "fighter_b": "Brady Hiestand",
+      "weight_class": "Bantamweight"
+    },
+    {
+      "fighter_a": "Mickey Gall",
+      "fighter_b": "Sedriques Dumas",
+      "weight_class": "Welterweight"
+    }
+  ],
+  "next_events": [
+    {
+      "event": "UFC 332",
+      "date": "2026-10-03",
+      "bouts": [
+        {
+          "fighter_a": "Bernardo Sopaj",
+          "fighter_b": "Marcus McGhee",
+          "weight_class": "Bantamweight"
+        },
+        {
+          "fighter_a": "Payton Talbott",
+          "fighter_b": "Deiveson Figueiredo",
+          "weight_class": "Bantamweight"
+        },
+        {
+          "fighter_a": "Alden Coria",
+          "fighter_b": "Imanol Rodríguez",
+          "weight_class": "Flyweight"
+        },
+        {
+          "fighter_a": "Natália Silva",
+          "fighter_b": "Wang Cong",
+          "weight_class": "Flyweight"
+        },
+        {
+          "fighter_a": "Anthony Wint",
+          "fighter_b": "Lucas Armand",
+          "weight_class": "Heavyweight"
+        },
+        {
+          "fighter_a": "Johnny Walker",
+          "fighter_b": "Mick Parkin",
+          "weight_class": "Heavyweight"
+        },
+        {
+          "fighter_a": "Alexander Hernandez",
+          "fighter_b": "Rafael dos Anjos",
+          "weight_class": "Lightweight"
+        },
+        {
+          "fighter_a": "Esteban Ribovics",
+          "fighter_b": "King Green",
+          "weight_class": "Lightweight"
+        },
+        {
+          "fighter_a": "Andrey Pulyaev",
+          "fighter_b": "Damian Pinas",
+          "weight_class": "Middleweight"
+        },
+        {
+          "fighter_a": "Ateba Gautier",
+          "fighter_b": "Roman Kopylov",
+          "weight_class": "Middleweight"
+        },
+        {
+          "fighter_a": "Ismail Naurdiev",
+          "fighter_b": "Marvin Vettori",
+          "weight_class": "Middleweight"
+        },
+        {
+          "fighter_a": "Court McGee",
+          "fighter_b": "Eric Nolan",
+          "weight_class": "Welterweight"
+        },
+        {
+          "fighter_a": "Khaos Williams",
+          "fighter_b": "Roberto Soldic",
+          "weight_class": "Welterweight"
+        }
+      ]
+    },
+    {
+      "event": "UFC Fight Night Oct 10",
+      "date": "2026-10-10",
+      "bouts": [
+        {
+          "fighter_a": "Brendan Allen",
+          "fighter_b": "Christian Leroy Duncan",
+          "weight_class": "Middleweight"
+        },
+        {
+          "fighter_a": "Leon Shahbazyan",
+          "fighter_b": "Niko Price",
+          "weight_class": "Welterweight"
+        }
+      ]
+    },
+    {
+      "event": "UFC Fight Night Edmonton",
+      "date": "2026-10-17",
+      "bouts": [
+        {
+          "fighter_a": "Chelsea Chandler",
+          "fighter_b": "Melissa Croden",
+          "weight_class": "Bantamweight"
+        },
+        {
+          "fighter_a": "Erin Blanchfield",
+          "fighter_b": "Jasmine Jasudavicius",
+          "weight_class": "Flyweight"
+        },
+        {
+          "fighter_a": "Jhonata Diniz",
+          "fighter_b": "Tanner Boser",
+          "weight_class": "Heavyweight"
+        },
+        {
+          "fighter_a": "Mandel Nallo",
+          "fighter_b": "Nate Landwehr",
+          "weight_class": "Lightweight"
+        },
+        {
+          "fighter_a": "Gilbert Urbina",
+          "fighter_b": "Julien Leblanc",
+          "weight_class": "Middleweight"
+        },
+        {
+          "fighter_a": "Kyle Daukaus",
+          "fighter_b": "Marc-André Barriault",
+          "weight_class": "Middleweight"
+        },
+        {
+          "fighter_a": "Joaquin Buckley",
+          "fighter_b": "Mike Malott",
+          "weight_class": "Welterweight"
+        },
+        {
+          "fighter_a": "Chad Anheliger",
+          "fighter_b": "Steven Koslow",
+          "weight_class": "Bantamweight"
+        },
+        {
+          "fighter_a": "Jamey-Lyn Horth",
+          "fighter_b": "Katlyn Cerminara",
+          "weight_class": "Flyweight"
+        },
+        {
+          "fighter_a": "Louie Sutherland",
+          "fighter_b": "Javad Mahjoub",
+          "weight_class": "Heavyweight"
+        }
+      ]
+    },
+    {
+      "event": "UFC 333",
+      "date": "2026-10-24",
+      "bouts": [
+        {
+          "fighter_a": "Petr Yan",
+          "fighter_b": "Merab Dvalishvili",
+          "weight_class": "Bantamweight"
+        },
+        {
+          "fighter_a": "Aaron Pico",
+          "fighter_b": "Losene Keita",
+          "weight_class": "Featherweight"
+        },
+        {
+          "fighter_a": "Alexander Volkanovski",
+          "fighter_b": "Movsar Evloev",
+          "weight_class": "Featherweight"
+        },
+        {
+          "fighter_a": "Lone'er Kavanagh",
+          "fighter_b": "Ramazan Temirov",
+          "weight_class": "Flyweight"
+        },
+        {
+          "fighter_a": "Alexander Volkov",
+          "fighter_b": "Rizvan Kuniev",
+          "weight_class": "Heavyweight"
+        },
+        {
+          "fighter_a": "Dominick Reyes",
+          "fighter_b": "Azamat Murzakanov",
+          "weight_class": "Light Heavyweight"
+        },
+        {
+          "fighter_a": "Nikita Krylov",
+          "fighter_b": "Abdul-Rakhman Yakhyaev",
+          "weight_class": "Light Heavyweight"
+        },
+        {
+          "fighter_a": "Grant Dawson",
+          "fighter_b": "Nurullo Aliev",
+          "weight_class": "Lightweight"
+        }
+      ]
+    },
+    {
+      "event": "UFC Fight Night Oct 31",
+      "date": "2026-10-31",
+      "bouts": [
+        {
+          "fighter_a": "Jeong Yeong Lee",
+          "fighter_b": "Julian Erosa",
+          "weight_class": "Featherweight"
+        },
+        {
+          "fighter_a": "Renato Moicano",
+          "fighter_b": "Tom Nolan",
+          "weight_class": "Lightweight"
+        },
+        {
+          "fighter_a": "Tainara Lisboa",
+          "fighter_b": "Lucia Szabova",
+          "weight_class": "Flyweight"
+        },
+        {
+          "fighter_a": "Nick Klein",
+          "fighter_b": "Joseph Kropschot",
+          "weight_class": "Middleweight"
+        }
+      ]
+    },
+    {
+      "event": "UFC Fight Night Nov 7",
+      "date": "2026-11-07",
+      "bouts": [
+        {
+          "fighter_a": "Virna Jandiroba",
+          "fighter_b": "Tatiana Suarez",
+          "weight_class": "Strawweight"
+        },
+        {
+          "fighter_a": "Sean Brady",
+          "fighter_b": "Gabriel Bonfim",
+          "weight_class": "Welterweight"
+        }
+      ]
+    },
+    {
+      "event": "UFC 334",
+      "date": "2026-11-14",
+      "bouts": [
+        {
+          "fighter_a": "Juan Diaz",
+          "fighter_b": "Adrian Yañez",
+          "weight_class": "Bantamweight"
+        },
+        {
+          "fighter_a": "Kayla Harrison",
+          "fighter_b": "Amanda Nunes",
+          "weight_class": "Bantamweight"
+        },
+        {
+          "fighter_a": "Ciryl Gane",
+          "fighter_b": "Josh Hokit",
+          "weight_class": "Heavyweight"
+        }
+      ]
+    }
+  ]
+}

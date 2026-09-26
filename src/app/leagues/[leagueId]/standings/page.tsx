@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
+import { FightingThisWeekPanel } from "@/components/fighting-this-week";
 import { TeamAvatar } from "@/components/team-avatar";
 import { requireUser } from "@/lib/auth";
+import { getFightingThisWeek } from "@/lib/fighting-this-week";
 import { getStandings } from "@/lib/standings";
 import { SLOT_SHORT, type RosterSlotKey } from "@/lib/slots";
 
@@ -13,9 +15,23 @@ export default async function StandingsPage({
   const { leagueId } = await params;
   const data = await getStandings(leagueId);
   if (!data) notFound();
+  const fighting = await getFightingThisWeek(
+    data.rows.map((row) => ({
+      membershipId: row.membershipId,
+      teamName: row.teamName,
+      avatarUrl: row.avatarUrl,
+      fighters: row.roster.map((slot) => ({
+        id: slot.fighter.id,
+        name: slot.fighter.name,
+        weightClass: slot.fighter.weightClass,
+        nextBoutJson: slot.fighter.nextBoutJson,
+      })),
+    })),
+  );
 
   return (
     <div className="space-y-6">
+      <FightingThisWeekPanel data={fighting} />
       <section className="rounded-md border border-line bg-panel p-5">
         <div className="mb-4 flex items-end justify-between">
           <h2 className="font-display text-3xl tracking-wide">Standings</h2>

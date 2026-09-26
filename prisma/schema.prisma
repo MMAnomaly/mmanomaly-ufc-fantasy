@@ -137,6 +137,26 @@ model DraftPick {
   @@unique([leagueId, fighterId])
 }
 
+/// Booked upcoming UFC card for the standings "Fighting this week" panel.
+/// Seeded from upcoming_card.json when that file is present. Distinct from
+/// UfcEvent, which stores completed cards for scoring.
+model UfcCard {
+  id          String   @id @default(cuid())
+  /// Slug of the event name plus the calendar date. Reseeding upserts on this.
+  externalKey String   @unique
+  name        String
+  /// Calendar date YYYY-MM-DD. Compared as a date in America/Los_Angeles.
+  date        String
+  location    String?
+  tapologyUrl String?
+  /// JSON array of { fighter_a, fighter_b, weight_class, card_segment }.
+  boutsJson   String   @default("[]")
+  sortOrder   Int      @default(0)
+  updatedAt   DateTime @updatedAt
+
+  @@index([date])
+}
+
 model UfcEvent {
   id         String   @id @default(cuid())
   externalId String   @unique
