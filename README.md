@@ -44,6 +44,7 @@ First-time alternative (no migration history): `npx prisma db push && npm run db
 | `AUTH_SECRET` | JWT signing key (required, ≥16 chars). Generate: `openssl rand -base64 32` |
 | `APP_URL` | Public origin (invite/script URLs). Local: `http://localhost:3000` |
 | `CRON_SECRET` | Bearer token for `/api/jobs/sunday-score` and `/api/jobs/draft-tick`. Generate: `openssl rand -base64 32` |
+| `ADMIN_IMPORT_SECRET` | Bearer token for `POST /api/admin/import`. Same value on Vercel and the ops machine. Generate: `openssl rand -base64 32` |
 | `BLOB_READ_WRITE_TOKEN` | Optional. Stores uploaded team pictures in Vercel Blob. Without it, local dev writes `public/uploads/avatars` (gitignored). On Vercel without it, members paste a public image URL |
 | `SEED_DEMO` | If `true`, seed also creates demo users/league |
 
@@ -59,6 +60,7 @@ Do not commit real secrets. Copy `.env.example` and generate values locally / in
    | --- | --- |
    | `AUTH_SECRET` | `openssl rand -base64 32` |
    | `CRON_SECRET` | `openssl rand -base64 32` (Vercel Cron sends `Authorization: Bearer <CRON_SECRET>` automatically when this is set) |
+   | `ADMIN_IMPORT_SECRET` | `openssl rand -base64 32`. Ops sends this as `Authorization: Bearer <ADMIN_IMPORT_SECRET>` to `POST /api/admin/import` |
    | `DATABASE_URL` | Pooled URL. Vercel Postgres: `POSTGRES_PRISMA_URL` or `POSTGRES_URL`. Neon: the pooled (`-pooler`) URL |
    | `DIRECT_URL` | Direct / non-pooling URL. Vercel Postgres: `POSTGRES_URL_NON_POOLING`. Neon: the non-pooler URL. Same as `DATABASE_URL` if the host has no pooler |
    | `APP_URL` | `https://your-project.vercel.app` (or your custom domain) |
@@ -172,11 +174,28 @@ Documented path to score a completed event:
    - Vercel Cron: `GET /api/jobs/sunday-score` with `Authorization: Bearer $CRON_SECRET`
    - Manual: `POST /api/jobs/sunday-score` with the same header
 
-Jobs store raw fight stat lines plus computed fantasy points per fighter per event. Re-running the same event replaces its fights/scores (idempotent for standings).
+Jobs store raw fight stat lines plus computed fantasy points per fighter per event. Re-running the same event from the admin UI or CLI replaces its fights/scores (idempotent for standings). The ops import endpoint below does not rewrite an event that already has scores.
+
+## Push Active Fighter Repository data
+
+When the ops machine cannot open Postgres (`TCP 5432`) but can reach the deployment over HTTPS, scoring and card reloads run inside Vercel. Set `ADMIN_IMPORT_SECRET` on the deployment and on the ops machine, and set `APP_URL` to the deployment origin (no path).
+
+```bash
+node scripts/push-afr.mjs --cards /path/to/active-fighter-repository
+node scripts/push-afr.mjs --results vegas122-results.json edmonton-results.json
+node scripts/push-afr.mjs --cards /path/to/active-fighter-repository --results vegas122-results.json edmonton-results.json
+```
+
+`scripts/push-afr.mjs` is Node 20 with built-in `fetch` and no dependencies. `--cards` reads `fighters_by_class.json` and `upcoming_card.json` from that folder. `--results` takes one or more results files and posts them oldest `event.date` first. When both flags are present, the card reload is posted first so new fighters exist before scoring. The script prints each response body and does not print the secret.
+
+`POST /api/admin/import` is an App Router route handler on the Node.js runtime. Auth is `Authorization: Bearer <ADMIN_IMPORT_SECRET>`, compared in constant time. A mismatch is 401. If the env var is unset, the route returns 503 and does not read the body. The JSON body is `{ "kind": "results" | "cards", "data": ... }`. A full card reload is about 0.77 MB, under the platform body limit.
+
+- `kind: "results"` — `data` is one Active Fighter Repository results file (see `test/fixtures/afr-edmonton-results.json` and `test/fixtures/afr-vegas122-results.json`). Each bout's `fighters` array is mapped into the existing `ParsedEvent` shape and scored with `persistAndScoreEvent`. `fighters_listed_on_card` is ignored. `externalId` and `url` are `event.ufcstats_url`, or `event.ufc_url` when that is null. `name` is `event.short_name`. `date` is the event date at 12:00 UTC. `source` is `afr-ufcstats`. Stat lines use `total_strikes_landed`, `sig_strikes_landed`, `takedowns_landed`, `reversals`, `control_time_seconds`, and `knockdowns`. `method`, `end_round`, and `end_time` come from the bout. `isWinner` is `result === "W"`; a draw (`"D"`) is not a winner. If a `UfcEvent` with that `externalId` already has fantasy scores, the handler returns `{ "alreadyScored": true }` and leaves the rows alone. Otherwise the response lists scored fighters with points and the unmatched fighter names.
+- `kind: "cards"` — `data` is `{ "fightersByClass", "upcomingCard" }` in the shapes of `data/fighters_by_class.json` and `upcoming_card.json`. The fighter and `UfcCard` / `next_bout` upsert lives in `src/lib/afr-pool.ts` and is what `prisma/seed.ts` calls too. It writes fighters and upcoming-card rows only. It does not modify users, leagues, memberships, roster slots, draft picks, events, or scores. Fighters missing from the file drop out of the draftable pool (`active: false`) only when they are not on any roster; rostered fighters are left in place and are not deleted. The response returns upsert, deactivation, retained, and card counts. A card payload with no dated events leaves existing `UfcCard` rows unchanged.
 
 ## Fighter seed
 
-`data/fighters_by_class.json` is an Active Fighter Repository export (640 fighters, 11 classes; snapshot `2026-09-21T09:38:06-07:00`). `prisma/seed.ts` upserts each fighter and maps `class_key` → roster slots. Fighters already stored but missing from the file are marked `active: false` so they leave the draft pool; picks and scores stay attached to the old row.
+`data/fighters_by_class.json` is an Active Fighter Repository export (640 fighters, 11 classes; snapshot `2026-09-21T09:38:06-07:00`). `prisma/seed.ts` upserts each fighter and maps `class_key` → roster slots through `src/lib/afr-pool.ts`. Fighters already stored but missing from the file are marked `active: false` when they are not on a roster, so they leave the draft pool. Rostered fighters stay in the database and are not deactivated or deleted; picks and scores stay attached to the old row.
 
 | `class_key` | Roster slot |
 | --- | --- |
@@ -236,7 +255,7 @@ Optional demo accounts (`SEED_DEMO=true` in `.env` before `npm run db:seed`):
 npm test
 ```
 
-Covers snake order (13 slots × N teams), the 2:00 autodraft (expiry, open slots, uniqueness, ranking, and a manual-vs-autopick race), and the DK Classic formula (SS = strike + additional, R1 quick-win, decision vs finish, loser move points).
+Covers snake order (13 slots × N teams), the 2:00 autodraft (expiry, open slots, uniqueness, ranking, and a manual-vs-autopick race), the DK Classic formula (SS = strike + additional, R1 quick-win, decision vs finish, loser move points), and the Active Fighter Repository results mapping against `test/fixtures`.
 
 ## Out of scope for v1
 
