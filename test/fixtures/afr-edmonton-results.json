@@ -1,0 +1,2396 @@
+{
+  "event": {
+    "name": "UFC Fight Night: Buckley vs. Malott",
+    "short_name": "UFC Fight Night Edmonton",
+    "date": "2026-10-17",
+    "location": "Rogers Place, Edmonton, Alberta, Canada",
+    "ufcstats_url": null,
+    "ufc_url": "https://www.ufc.com/event/ufc-fight-night-october-17-2026",
+    "bout_count": 13
+  },
+  "generated_at": "2026-10-18T10:55:34-07:00",
+  "sources": [
+    "https://d29dxerjsp82wz.cloudfront.net/api/v3/event/live/1332.json + /api/v3/fight/live/<fmid>.json (UFC.com official FightMetric stats feed behind https://www.ufc.com/event/ufc-fight-night-october-17-2026; OfficialStats=true, Status=Final on all 13 bouts; per-bout URLs listed in each bout; raw files in /workspace/edmonton/ufcjson/ and /workspace/edmonton/ev1332.json)",
+    "https://en.wikipedia.org/wiki/UFC_Fight_Night:_Buckley_vs._Malott (cross-check of winner, method, round, time, judges' scores)",
+    "http://ufcstats.com (primary source, but unreachable from the box on 2026-10-18: TCP connect timeouts; not used)",
+    "/workspace/edmonton/backup/upcoming_card.json = upcoming_card.json as of 2026-10-11 (bout list, weight classes, name spellings)",
+    "/workspace/season5-rosters.txt (drafted_team: Jasmine Jasudavicius=Mary, Erin Blanchfield=Ninos)"
+  ],
+  "notes": [
+    "UFCStats.com could not be reached from the box on 2026-10-18 (TCP timeouts). Stats were taken from the official UFC.com FightMetric feed (OfficialStats=true on all 13 bouts). Same approach as the 2026-10-11 Vegas 122 file. ufcstats_url is null; ufcstats_name holds the UFC.com spelling. Nothing is estimated.",
+    "Fighter order in each bout is red corner then blue corner (UFCStats order). judges_scores are fighters[0]-fighters[1] per judge; Wikipedia winner-perspective scores are in wikipedia_result.",
+    "Weight class/name fields use upcoming_card.json spelling (e.g. Cristian Perez Gonzalez, Timothy Cuamba, You Su-young, Marc-André Barriault); ufcstats_name is the UFC.com spelling (Cristian Perez, Timmy Cuamba, SuYoung You, Marc-Andre Barriault).",
+    "Method-detail wording diffs (winner/round/time match Wikipedia on all 13): Malott finish UFC.com \"Knee to Head At Distance\" vs Wikipedia \"KO (knee and punch)\"; Nallo finish UFC.com \"Punches to Head On Ground\" vs Wikipedia \"TKO (leg kick and punches)\"; Galanti finish UFC.com \"Neck Crank From Back Control\" vs Wikipedia \"Submission (face crank)\".",
+    "Season 5 drafted_team on this card: Erin Blanchfield → Ninos (L); Jasmine Jasudavicius → Mary (W)",
+    "Raw data saved in /workspace/edmonton/ufcjson/ (fight JSON) and /workspace/edmonton/ev1332.json; build script /workspace/edmonton/build.py.",
+    "Fantasy points are NOT computed here; the app does that."
+  ],
+  "bouts": [
+    {
+      "bout_order": 1,
+      "card_segment": "main",
+      "weight_class": "Welterweight",
+      "fighters_listed_on_card": [
+        "Joaquin Buckley",
+        "Mike Malott"
+      ],
+      "winner": "Mike Malott",
+      "method": "KO/TKO",
+      "method_detail": "Knee to Head At Distance",
+      "judges_scores": null,
+      "end_round": 2,
+      "end_time": "2:32",
+      "scheduled_rounds": 5,
+      "time_format": "5 Rnd (5-5-5-5-5)",
+      "referee": "Marc Goddard",
+      "wikipedia_result": "KO (knee and punch) — R2 2:32",
+      "stats_complete": true,
+      "sources": [
+        "https://d29dxerjsp82wz.cloudfront.net/api/v3/fight/live/13002.json (UFC.com official fight stats, fmid 13002)",
+        "http://ufcstats.com/event-details/ (UFCStats unreachable from box 2026-10-18; not used)",
+        "https://en.wikipedia.org/wiki/UFC_Fight_Night:_Buckley_vs._Malott"
+      ],
+      "fighters": [
+        {
+          "name": "Joaquin Buckley",
+          "ufcstats_name": "Joaquin Buckley",
+          "opponent": "Mike Malott",
+          "weight_class": "Welterweight",
+          "result": "L",
+          "method": "KO/TKO",
+          "method_detail": "Knee to Head At Distance",
+          "end_round": 2,
+          "end_time": "2:32",
+          "scheduled_rounds": 5,
+          "total_fight_time_seconds": 452,
+          "knockdowns": 0,
+          "sig_strikes_landed": 14,
+          "sig_strikes_attempted": 53,
+          "total_strikes_landed": 20,
+          "total_strikes_attempted": 59,
+          "takedowns_landed": 0,
+          "takedowns_attempted": 0,
+          "submission_attempts": 0,
+          "reversals": 0,
+          "control_time_seconds": 8,
+          "sig_strikes_by_target_position": {
+            "head": {
+              "landed": 6,
+              "attempted": 45
+            },
+            "body": {
+              "landed": 4,
+              "attempted": 4
+            },
+            "leg": {
+              "landed": 4,
+              "attempted": 4
+            },
+            "distance": {
+              "landed": 10,
+              "attempted": 49
+            },
+            "clinch": {
+              "landed": 4,
+              "attempted": 4
+            },
+            "ground": {
+              "landed": 0,
+              "attempted": 0
+            }
+          },
+          "per_round": [
+            {
+              "round": 1,
+              "knockdowns": 0,
+              "sig_strikes_landed": 9,
+              "sig_strikes_attempted": 37,
+              "total_strikes_landed": 9,
+              "total_strikes_attempted": 37,
+              "takedowns_landed": 0,
+              "takedowns_attempted": 0,
+              "submission_attempts": 0,
+              "reversals": 0,
+              "control_time_seconds": 0
+            },
+            {
+              "round": 2,
+              "knockdowns": 0,
+              "sig_strikes_landed": 5,
+              "sig_strikes_attempted": 16,
+              "total_strikes_landed": 11,
+              "total_strikes_attempted": 22,
+              "takedowns_landed": 0,
+              "takedowns_attempted": 0,
+              "submission_attempts": 0,
+              "reversals": 0,
+              "control_time_seconds": 8
+            }
+          ],
+          "drafted_team": null
+        },
+        {
+          "name": "Mike Malott",
+          "ufcstats_name": "Mike Malott",
+          "opponent": "Joaquin Buckley",
+          "weight_class": "Welterweight",
+          "result": "W",
+          "method": "KO/TKO",
+          "method_detail": "Knee to Head At Distance",
+          "end_round": 2,
+          "end_time": "2:32",
+          "scheduled_rounds": 5,
+          "total_fight_time_seconds": 452,
+          "knockdowns": 1,
+          "sig_strikes_landed": 37,
+          "sig_strikes_attempted": 50,
+          "total_strikes_landed": 38,
+          "total_strikes_attempted": 51,
+          "takedowns_landed": 0,
+          "takedowns_attempted": 0,
+          "submission_attempts": 0,
+          "reversals": 0,
+          "control_time_seconds": 85,
+          "sig_strikes_by_target_position": {
+            "head": {
+              "landed": 15,
+              "attempted": 24
+            },
+            "body": {
+              "landed": 20,
+              "attempted": 24
+            },
+            "leg": {
+              "landed": 2,
+              "attempted": 2
+            },
+            "distance": {
+              "landed": 21,
+              "attempted": 34
+            },
+            "clinch": {
+              "landed": 15,
+              "attempted": 15
+            },
+            "ground": {
+              "landed": 1,
+              "attempted": 1
+            }
+          },
+          "per_round": [
+            {
+              "round": 1,
+              "knockdowns": 0,
+              "sig_strikes_landed": 15,
+              "sig_strikes_attempted": 25,
+              "total_strikes_landed": 15,
+              "total_strikes_attempted": 25,
+              "takedowns_landed": 0,
+              "takedowns_attempted": 0,
+              "submission_attempts": 0,
+              "reversals": 0,
+              "control_time_seconds": 0
+            },
+            {
+              "round": 2,
+              "knockdowns": 1,
+              "sig_strikes_landed": 22,
+              "sig_strikes_attempted": 25,
+              "total_strikes_landed": 23,
+              "total_strikes_attempted": 26,
+              "takedowns_landed": 0,
+              "takedowns_attempted": 0,
+              "submission_attempts": 0,
+              "reversals": 0,
+              "control_time_seconds": 85
+            }
+          ],
+          "drafted_team": null
+        }
+      ]
+    },
+    {
+      "bout_order": 2,
+      "card_segment": "main",
+      "weight_class": "Women's Flyweight",
+      "fighters_listed_on_card": [
+        "Erin Blanchfield",
+        "Jasmine Jasudavicius"
+      ],
+      "winner": "Jasmine Jasudavicius",
+      "method": "U-DEC",
+      "method_detail": null,
+      "judges_scores": [
+        {
+          "judge": "Eric Colon",
+          "score": "28-29"
+        },
+        {
+          "judge": "Thomas Collins",
+          "score": "28-29"
+        },
+        {
+          "judge": "Junichiro Kamijo",
+          "score": "28-29"
+        }
+      ],
+      "end_round": 3,
+      "end_time": "5:00",
+      "scheduled_rounds": 3,
+      "time_format": "3 Rnd (5-5-5)",
+      "referee": "Jerin Valel",
+      "wikipedia_result": "Decision (unanimous) (29–28, 29–28, 29–28) — R3 5:00",
+      "stats_complete": true,
+      "sources": [
+        "https://d29dxerjsp82wz.cloudfront.net/api/v3/fight/live/13046.json (UFC.com official fight stats, fmid 13046)",
+        "http://ufcstats.com/event-details/ (UFCStats unreachable from box 2026-10-18; not used)",
+        "https://en.wikipedia.org/wiki/UFC_Fight_Night:_Buckley_vs._Malott"
+      ],
+      "fighters": [
+        {
+          "name": "Erin Blanchfield",
+          "ufcstats_name": "Erin Blanchfield",
+          "opponent": "Jasmine Jasudavicius",
+          "weight_class": "Women's Flyweight",
+          "result": "L",
+          "method": "U-DEC",
+          "method_detail": null,
+          "end_round": 3,
+          "end_time": "5:00",
+          "scheduled_rounds": 3,
+          "total_fight_time_seconds": 900,
+          "knockdowns": 0,
+          "sig_strikes_landed": 62,
+          "sig_strikes_attempted": 134,
+          "total_strikes_landed": 66,
+          "total_strikes_attempted": 141,
+          "takedowns_landed": 1,
+          "takedowns_attempted": 2,
+          "submission_attempts": 0,
+          "reversals": 1,
+          "control_time_seconds": 14,
+          "sig_strikes_by_target_position": {
+            "head": {
+              "landed": 57,
+              "attempted": 127
+            },
+            "body": {
+              "landed": 4,
+              "attempted": 6
+            },
+            "leg": {
+              "landed": 1,
+              "attempted": 1
+            },
+            "distance": {
+              "landed": 60,
+              "attempted": 132
+            },
+            "clinch": {
+              "landed": 1,
+              "attempted": 1
+            },
+            "ground": {
+              "landed": 1,
+              "attempted": 1
+            }
+          },
+          "per_round": [
+            {
+              "round": 1,
+              "knockdowns": 0,
+              "sig_strikes_landed": 10,
+              "sig_strikes_attempted": 25,
+              "total_strikes_landed": 10,
+              "total_strikes_attempted": 25,
+              "takedowns_landed": 0,
+              "takedowns_attempted": 0,
+              "submission_attempts": 0,
+              "reversals": 0,
+              "control_time_seconds": 0
+            },
+            {
+              "round": 2,
+              "knockdowns": 0,
+              "sig_strikes_landed": 10,
+              "sig_strikes_attempted": 24,
+              "total_strikes_landed": 12,
+              "total_strikes_attempted": 27,
+              "takedowns_landed": 0,
+              "takedowns_attempted": 1,
+              "submission_attempts": 0,
+              "reversals": 1,
+              "control_time_seconds": 13
+            },
+            {
+              "round": 3,
+              "knockdowns": 0,
+              "sig_strikes_landed": 42,
+              "sig_strikes_attempted": 85,
+              "total_strikes_landed": 44,
+              "total_strikes_attempted": 89,
+              "takedowns_landed": 1,
+              "takedowns_attempted": 1,
+              "submission_attempts": 0,
+              "reversals": 0,
+              "control_time_seconds": 1
+            }
+          ],
+          "drafted_team": "Ninos"
+        },
+        {
+          "name": "Jasmine Jasudavicius",
+          "ufcstats_name": "Jasmine Jasudavicius",
+          "opponent": "Erin Blanchfield",
+          "weight_class": "Women's Flyweight",
+          "result": "W",
+          "method": "U-DEC",
+          "method_detail": null,
+          "end_round": 3,
+          "end_time": "5:00",
+          "scheduled_rounds": 3,
+          "total_fight_time_seconds": 900,
+          "knockdowns": 0,
+          "sig_strikes_landed": 43,
+          "sig_strikes_attempted": 138,
+          "total_strikes_landed": 74,
+          "total_strikes_attempted": 180,
+          "takedowns_landed": 5,
+          "takedowns_attempted": 13,
+          "submission_attempts": 3,
+          "reversals": 1,
+          "control_time_seconds": 479,
+          "sig_strikes_by_target_position": {
+            "head": {
+              "landed": 36,
+              "attempted": 129
+            },
+            "body": {
+              "landed": 5,
+              "attempted": 6
+            },
+            "leg": {
+              "landed": 2,
+              "attempted": 3
+            },
+            "distance": {
+              "landed": 41,
+              "attempted": 136
+            },
+            "clinch": {
+              "landed": 1,
+              "attempted": 1
+            },
+            "ground": {
+              "landed": 1,
+              "attempted": 1
+            }
+          },
+          "per_round": [
+            {
+              "round": 1,
+              "knockdowns": 0,
+              "sig_strikes_landed": 9,
+              "sig_strikes_attempted": 26,
+              "total_strikes_landed": 19,
+              "total_strikes_attempted": 40,
+              "takedowns_landed": 3,
+              "takedowns_attempted": 4,
+              "submission_attempts": 1,
+              "reversals": 0,
+              "control_time_seconds": 208
+            },
+            {
+              "round": 2,
+              "knockdowns": 0,
+              "sig_strikes_landed": 12,
+              "sig_strikes_attempted": 29,
+              "total_strikes_landed": 31,
+              "total_strikes_attempted": 51,
+              "takedowns_landed": 1,
+              "takedowns_attempted": 2,
+              "submission_attempts": 2,
+              "reversals": 1,
+              "control_time_seconds": 204
+            },
+            {
+              "round": 3,
+              "knockdowns": 0,
+              "sig_strikes_landed": 22,
+              "sig_strikes_attempted": 83,
+              "total_strikes_landed": 24,
+              "total_strikes_attempted": 89,
+              "takedowns_landed": 1,
+              "takedowns_attempted": 7,
+              "submission_attempts": 0,
+              "reversals": 0,
+              "control_time_seconds": 67
+            }
+          ],
+          "drafted_team": "Mary"
+        }
+      ]
+    },
+    {
+      "bout_order": 3,
+      "card_segment": "main",
+      "weight_class": "Lightweight",
+      "fighters_listed_on_card": [
+        "Kyle Nelson",
+        "Cristian Perez Gonzalez"
+      ],
+      "winner": "Cristian Perez Gonzalez",
+      "method": "KO/TKO",
+      "method_detail": "Punches to Head At Distance",
+      "judges_scores": null,
+      "end_round": 1,
+      "end_time": "0:27",
+      "scheduled_rounds": 3,
+      "time_format": "3 Rnd (5-5-5)",
+      "referee": "Jason Herzog",
+      "wikipedia_result": "KO (punches) — R1 0:27",
+      "stats_complete": true,
+      "sources": [
+        "https://d29dxerjsp82wz.cloudfront.net/api/v3/fight/live/13158.json (UFC.com official fight stats, fmid 13158)",
+        "http://ufcstats.com/event-details/ (UFCStats unreachable from box 2026-10-18; not used)",
+        "https://en.wikipedia.org/wiki/UFC_Fight_Night:_Buckley_vs._Malott"
+      ],
+      "fighters": [
+        {
+          "name": "Kyle Nelson",
+          "ufcstats_name": "Kyle Nelson",
+          "opponent": "Cristian Perez Gonzalez",
+          "weight_class": "Lightweight",
+          "result": "L",
+          "method": "KO/TKO",
+          "method_detail": "Punches to Head At Distance",
+          "end_round": 1,
+          "end_time": "0:27",
+          "scheduled_rounds": 3,
+          "total_fight_time_seconds": 27,
+          "knockdowns": 0,
+          "sig_strikes_landed": 5,
+          "sig_strikes_attempted": 7,
+          "total_strikes_landed": 5,
+          "total_strikes_attempted": 7,
+          "takedowns_landed": 0,
+          "takedowns_attempted": 0,
+          "submission_attempts": 0,
+          "reversals": 0,
+          "control_time_seconds": 0,
+          "sig_strikes_by_target_position": {
+            "head": {
+              "landed": 4,
+              "attempted": 6
+            },
+            "body": {
+              "landed": 1,
+              "attempted": 1
+            },
+            "leg": {
+              "landed": 0,
+              "attempted": 0
+            },
+            "distance": {
+              "landed": 5,
+              "attempted": 7
+            },
+            "clinch": {
+              "landed": 0,
+              "attempted": 0
+            },
+            "ground": {
+              "landed": 0,
+              "attempted": 0
+            }
+          },
+          "per_round": [
+            {
+              "round": 1,
+              "knockdowns": 0,
+              "sig_strikes_landed": 5,
+              "sig_strikes_attempted": 7,
+              "total_strikes_landed": 5,
+              "total_strikes_attempted": 7,
+              "takedowns_landed": 0,
+              "takedowns_attempted": 0,
+              "submission_attempts": 0,
+              "reversals": 0,
+              "control_time_seconds": 0
+            }
+          ],
+          "drafted_team": null
+        },
+        {
+          "name": "Cristian Perez Gonzalez",
+          "ufcstats_name": "Cristian Perez",
+          "opponent": "Kyle Nelson",
+          "weight_class": "Lightweight",
+          "result": "W",
+          "method": "KO/TKO",
+          "method_detail": "Punches to Head At Distance",
+          "end_round": 1,
+          "end_time": "0:27",
+          "scheduled_rounds": 3,
+          "total_fight_time_seconds": 27,
+          "knockdowns": 1,
+          "sig_strikes_landed": 10,
+          "sig_strikes_attempted": 21,
+          "total_strikes_landed": 10,
+          "total_strikes_attempted": 21,
+          "takedowns_landed": 0,
+          "takedowns_attempted": 0,
+          "submission_attempts": 0,
+          "reversals": 0,
+          "control_time_seconds": 4,
+          "sig_strikes_by_target_position": {
+            "head": {
+              "landed": 8,
+              "attempted": 19
+            },
+            "body": {
+              "landed": 1,
+              "attempted": 1
+            },
+            "leg": {
+              "landed": 1,
+              "attempted": 1
+            },
+            "distance": {
+              "landed": 5,
+              "attempted": 14
+            },
+            "clinch": {
+              "landed": 0,
+              "attempted": 2
+            },
+            "ground": {
+              "landed": 5,
+              "attempted": 5
+            }
+          },
+          "per_round": [
+            {
+              "round": 1,
+              "knockdowns": 1,
+              "sig_strikes_landed": 10,
+              "sig_strikes_attempted": 21,
+              "total_strikes_landed": 10,
+              "total_strikes_attempted": 21,
+              "takedowns_landed": 0,
+              "takedowns_attempted": 0,
+              "submission_attempts": 0,
+              "reversals": 0,
+              "control_time_seconds": 4
+            }
+          ],
+          "drafted_team": null
+        }
+      ]
+    },
+    {
+      "bout_order": 4,
+      "card_segment": "main",
+      "weight_class": "Middleweight",
+      "fighters_listed_on_card": [
+        "Marc-André Barriault",
+        "Kyle Daukaus"
+      ],
+      "winner": "Marc-André Barriault",
+      "method": "KO/TKO",
+      "method_detail": "Elbows to Head On Ground",
+      "judges_scores": null,
+      "end_round": 1,
+      "end_time": "4:28",
+      "scheduled_rounds": 3,
+      "time_format": "3 Rnd (5-5-5)",
+      "referee": "Marc Goddard",
+      "wikipedia_result": "TKO (elbows) — R1 4:28",
+      "stats_complete": true,
+      "sources": [
+        "https://d29dxerjsp82wz.cloudfront.net/api/v3/fight/live/13047.json (UFC.com official fight stats, fmid 13047)",
+        "http://ufcstats.com/event-details/ (UFCStats unreachable from box 2026-10-18; not used)",
+        "https://en.wikipedia.org/wiki/UFC_Fight_Night:_Buckley_vs._Malott"
+      ],
+      "fighters": [
+        {
+          "name": "Marc-André Barriault",
+          "ufcstats_name": "Marc-Andre Barriault",
+          "opponent": "Kyle Daukaus",
+          "weight_class": "Middleweight",
+          "result": "W",
+          "method": "KO/TKO",
+          "method_detail": "Elbows to Head On Ground",
+          "end_round": 1,
+          "end_time": "4:28",
+          "scheduled_rounds": 3,
+          "total_fight_time_seconds": 268,
+          "knockdowns": 1,
+          "sig_strikes_landed": 32,
+          "sig_strikes_attempted": 46,
+          "total_strikes_landed": 43,
+          "total_strikes_attempted": 60,
+          "takedowns_landed": 0,
+          "takedowns_attempted": 0,
+          "submission_attempts": 0,
+          "reversals": 0,
+          "control_time_seconds": 28,
+          "sig_strikes_by_target_position": {
+            "head": {
+              "landed": 31,
+              "attempted": 45
+            },
+            "body": {
+              "landed": 0,
+              "attempted": 0
+            },
+            "leg": {
+              "landed": 1,
+              "attempted": 1
+            },
+            "distance": {
+              "landed": 2,
+              "attempted": 4
+            },
+            "clinch": {
+              "landed": 2,
+              "attempted": 2
+            },
+            "ground": {
+              "landed": 28,
+              "attempted": 40
+            }
+          },
+          "per_round": [
+            {
+              "round": 1,
+              "knockdowns": 1,
+              "sig_strikes_landed": 32,
+              "sig_strikes_attempted": 46,
+              "total_strikes_landed": 43,
+              "total_strikes_attempted": 60,
+              "takedowns_landed": 0,
+              "takedowns_attempted": 0,
+              "submission_attempts": 0,
+              "reversals": 0,
+              "control_time_seconds": 28
+            }
+          ],
+          "drafted_team": null
+        },
+        {
+          "name": "Kyle Daukaus",
+          "ufcstats_name": "Kyle Daukaus",
+          "opponent": "Marc-André Barriault",
+          "weight_class": "Middleweight",
+          "result": "L",
+          "method": "KO/TKO",
+          "method_detail": "Elbows to Head On Ground",
+          "end_round": 1,
+          "end_time": "4:28",
+          "scheduled_rounds": 3,
+          "total_fight_time_seconds": 268,
+          "knockdowns": 0,
+          "sig_strikes_landed": 5,
+          "sig_strikes_attempted": 11,
+          "total_strikes_landed": 14,
+          "total_strikes_attempted": 23,
+          "takedowns_landed": 1,
+          "takedowns_attempted": 3,
+          "submission_attempts": 0,
+          "reversals": 0,
+          "control_time_seconds": 195,
+          "sig_strikes_by_target_position": {
+            "head": {
+              "landed": 4,
+              "attempted": 10
+            },
+            "body": {
+              "landed": 0,
+              "attempted": 0
+            },
+            "leg": {
+              "landed": 1,
+              "attempted": 1
+            },
+            "distance": {
+              "landed": 4,
+              "attempted": 10
+            },
+            "clinch": {
+              "landed": 1,
+              "attempted": 1
+            },
+            "ground": {
+              "landed": 0,
+              "attempted": 0
+            }
+          },
+          "per_round": [
+            {
+              "round": 1,
+              "knockdowns": 0,
+              "sig_strikes_landed": 5,
+              "sig_strikes_attempted": 11,
+              "total_strikes_landed": 14,
+              "total_strikes_attempted": 23,
+              "takedowns_landed": 1,
+              "takedowns_attempted": 3,
+              "submission_attempts": 0,
+              "reversals": 0,
+              "control_time_seconds": 195
+            }
+          ],
+          "drafted_team": null
+        }
+      ]
+    },
+    {
+      "bout_order": 5,
+      "card_segment": "main",
+      "weight_class": "Bantamweight",
+      "fighters_listed_on_card": [
+        "Louis Jourdain",
+        "Timothy Cuamba"
+      ],
+      "winner": "Timothy Cuamba",
+      "method": "SUB",
+      "method_detail": "Neck Crank From Back Control",
+      "judges_scores": null,
+      "end_round": 2,
+      "end_time": "2:48",
+      "scheduled_rounds": 3,
+      "time_format": "3 Rnd (5-5-5)",
+      "referee": "Andy Social",
+      "wikipedia_result": "Submission (neck crank) — R2 2:48",
+      "stats_complete": true,
+      "sources": [
+        "https://d29dxerjsp82wz.cloudfront.net/api/v3/fight/live/13051.json (UFC.com official fight stats, fmid 13051)",
+        "http://ufcstats.com/event-details/ (UFCStats unreachable from box 2026-10-18; not used)",
+        "https://en.wikipedia.org/wiki/UFC_Fight_Night:_Buckley_vs._Malott"
+      ],
+      "fighters": [
+        {
+          "name": "Louis Jourdain",
+          "ufcstats_name": "Louis Jourdain",
+          "opponent": "Timothy Cuamba",
+          "weight_class": "Bantamweight",
+          "result": "L",
+          "method": "SUB",
+          "method_detail": "Neck Crank From Back Control",
+          "end_round": 2,
+          "end_time": "2:48",
+          "scheduled_rounds": 3,
+          "total_fight_time_seconds": 468,
+          "knockdowns": 0,
+          "sig_strikes_landed": 9,
+          "sig_strikes_attempted": 36,
+          "total_strikes_landed": 21,
+          "total_strikes_attempted": 49,
+          "takedowns_landed": 0,
+          "takedowns_attempted": 1,
+          "submission_attempts": 1,
+          "reversals": 0,
+          "control_time_seconds": 0,
+          "sig_strikes_by_target_position": {
+            "head": {
+              "landed": 2,
+              "attempted": 18
+            },
+            "body": {
+              "landed": 3,
+              "attempted": 7
+            },
+            "leg": {
+              "landed": 4,
+              "attempted": 11
+            },
+            "distance": {
+              "landed": 9,
+              "attempted": 35
+            },
+            "clinch": {
+              "landed": 0,
+              "attempted": 1
+            },
+            "ground": {
+              "landed": 0,
+              "attempted": 0
+            }
+          },
+          "per_round": [
+            {
+              "round": 1,
+              "knockdowns": 0,
+              "sig_strikes_landed": 3,
+              "sig_strikes_attempted": 21,
+              "total_strikes_landed": 13,
+              "total_strikes_attempted": 32,
+              "takedowns_landed": 0,
+              "takedowns_attempted": 1,
+              "submission_attempts": 1,
+              "reversals": 0,
+              "control_time_seconds": 0
+            },
+            {
+              "round": 2,
+              "knockdowns": 0,
+              "sig_strikes_landed": 6,
+              "sig_strikes_attempted": 15,
+              "total_strikes_landed": 8,
+              "total_strikes_attempted": 17,
+              "takedowns_landed": 0,
+              "takedowns_attempted": 0,
+              "submission_attempts": 0,
+              "reversals": 0,
+              "control_time_seconds": 0
+            }
+          ],
+          "drafted_team": null
+        },
+        {
+          "name": "Timothy Cuamba",
+          "ufcstats_name": "Timmy Cuamba",
+          "opponent": "Louis Jourdain",
+          "weight_class": "Bantamweight",
+          "result": "W",
+          "method": "SUB",
+          "method_detail": "Neck Crank From Back Control",
+          "end_round": 2,
+          "end_time": "2:48",
+          "scheduled_rounds": 3,
+          "total_fight_time_seconds": 468,
+          "knockdowns": 0,
+          "sig_strikes_landed": 22,
+          "sig_strikes_attempted": 50,
+          "total_strikes_landed": 44,
+          "total_strikes_attempted": 80,
+          "takedowns_landed": 4,
+          "takedowns_attempted": 4,
+          "submission_attempts": 1,
+          "reversals": 0,
+          "control_time_seconds": 287,
+          "sig_strikes_by_target_position": {
+            "head": {
+              "landed": 15,
+              "attempted": 42
+            },
+            "body": {
+              "landed": 7,
+              "attempted": 8
+            },
+            "leg": {
+              "landed": 0,
+              "attempted": 0
+            },
+            "distance": {
+              "landed": 11,
+              "attempted": 35
+            },
+            "clinch": {
+              "landed": 3,
+              "attempted": 4
+            },
+            "ground": {
+              "landed": 8,
+              "attempted": 11
+            }
+          },
+          "per_round": [
+            {
+              "round": 1,
+              "knockdowns": 0,
+              "sig_strikes_landed": 9,
+              "sig_strikes_attempted": 26,
+              "total_strikes_landed": 21,
+              "total_strikes_attempted": 43,
+              "takedowns_landed": 3,
+              "takedowns_attempted": 3,
+              "submission_attempts": 0,
+              "reversals": 0,
+              "control_time_seconds": 216
+            },
+            {
+              "round": 2,
+              "knockdowns": 0,
+              "sig_strikes_landed": 13,
+              "sig_strikes_attempted": 24,
+              "total_strikes_landed": 23,
+              "total_strikes_attempted": 37,
+              "takedowns_landed": 1,
+              "takedowns_attempted": 1,
+              "submission_attempts": 1,
+              "reversals": 0,
+              "control_time_seconds": 71
+            }
+          ],
+          "drafted_team": null
+        }
+      ]
+    },
+    {
+      "bout_order": 6,
+      "card_segment": "main",
+      "weight_class": "Lightweight",
+      "fighters_listed_on_card": [
+        "Mandel Nallo",
+        "Nate Landwehr"
+      ],
+      "winner": "Mandel Nallo",
+      "method": "KO/TKO",
+      "method_detail": "Punches to Head On Ground",
+      "judges_scores": null,
+      "end_round": 2,
+      "end_time": "0:47",
+      "scheduled_rounds": 3,
+      "time_format": "3 Rnd (5-5-5)",
+      "referee": "Luke Boutin",
+      "wikipedia_result": "TKO (leg kick and punches) — R2 0:47",
+      "stats_complete": true,
+      "sources": [
+        "https://d29dxerjsp82wz.cloudfront.net/api/v3/fight/live/13016.json (UFC.com official fight stats, fmid 13016)",
+        "http://ufcstats.com/event-details/ (UFCStats unreachable from box 2026-10-18; not used)",
+        "https://en.wikipedia.org/wiki/UFC_Fight_Night:_Buckley_vs._Malott"
+      ],
+      "fighters": [
+        {
+          "name": "Mandel Nallo",
+          "ufcstats_name": "Mandel Nallo",
+          "opponent": "Nate Landwehr",
+          "weight_class": "Lightweight",
+          "result": "W",
+          "method": "KO/TKO",
+          "method_detail": "Punches to Head On Ground",
+          "end_round": 2,
+          "end_time": "0:47",
+          "scheduled_rounds": 3,
+          "total_fight_time_seconds": 347,
+          "knockdowns": 1,
+          "sig_strikes_landed": 58,
+          "sig_strikes_attempted": 100,
+          "total_strikes_landed": 58,
+          "total_strikes_attempted": 100,
+          "takedowns_landed": 1,
+          "takedowns_attempted": 1,
+          "submission_attempts": 1,
+          "reversals": 0,
+          "control_time_seconds": 32,
+          "sig_strikes_by_target_position": {
+            "head": {
+              "landed": 40,
+              "attempted": 77
+            },
+            "body": {
+              "landed": 7,
+              "attempted": 10
+            },
+            "leg": {
+              "landed": 11,
+              "attempted": 13
+            },
+            "distance": {
+              "landed": 56,
+              "attempted": 97
+            },
+            "clinch": {
+              "landed": 0,
+              "attempted": 0
+            },
+            "ground": {
+              "landed": 2,
+              "attempted": 3
+            }
+          },
+          "per_round": [
+            {
+              "round": 1,
+              "knockdowns": 0,
+              "sig_strikes_landed": 48,
+              "sig_strikes_attempted": 86,
+              "total_strikes_landed": 48,
+              "total_strikes_attempted": 86,
+              "takedowns_landed": 1,
+              "takedowns_attempted": 1,
+              "submission_attempts": 1,
+              "reversals": 0,
+              "control_time_seconds": 30
+            },
+            {
+              "round": 2,
+              "knockdowns": 1,
+              "sig_strikes_landed": 10,
+              "sig_strikes_attempted": 14,
+              "total_strikes_landed": 10,
+              "total_strikes_attempted": 14,
+              "takedowns_landed": 0,
+              "takedowns_attempted": 0,
+              "submission_attempts": 0,
+              "reversals": 0,
+              "control_time_seconds": 2
+            }
+          ],
+          "drafted_team": null
+        },
+        {
+          "name": "Nate Landwehr",
+          "ufcstats_name": "Nate Landwehr",
+          "opponent": "Mandel Nallo",
+          "weight_class": "Lightweight",
+          "result": "L",
+          "method": "KO/TKO",
+          "method_detail": "Punches to Head On Ground",
+          "end_round": 2,
+          "end_time": "0:47",
+          "scheduled_rounds": 3,
+          "total_fight_time_seconds": 347,
+          "knockdowns": 0,
+          "sig_strikes_landed": 13,
+          "sig_strikes_attempted": 47,
+          "total_strikes_landed": 14,
+          "total_strikes_attempted": 49,
+          "takedowns_landed": 0,
+          "takedowns_attempted": 0,
+          "submission_attempts": 0,
+          "reversals": 0,
+          "control_time_seconds": 0,
+          "sig_strikes_by_target_position": {
+            "head": {
+              "landed": 9,
+              "attempted": 37
+            },
+            "body": {
+              "landed": 1,
+              "attempted": 5
+            },
+            "leg": {
+              "landed": 3,
+              "attempted": 5
+            },
+            "distance": {
+              "landed": 13,
+              "attempted": 46
+            },
+            "clinch": {
+              "landed": 0,
+              "attempted": 1
+            },
+            "ground": {
+              "landed": 0,
+              "attempted": 0
+            }
+          },
+          "per_round": [
+            {
+              "round": 1,
+              "knockdowns": 0,
+              "sig_strikes_landed": 12,
+              "sig_strikes_attempted": 40,
+              "total_strikes_landed": 13,
+              "total_strikes_attempted": 42,
+              "takedowns_landed": 0,
+              "takedowns_attempted": 0,
+              "submission_attempts": 0,
+              "reversals": 0,
+              "control_time_seconds": 0
+            },
+            {
+              "round": 2,
+              "knockdowns": 0,
+              "sig_strikes_landed": 1,
+              "sig_strikes_attempted": 7,
+              "total_strikes_landed": 1,
+              "total_strikes_attempted": 7,
+              "takedowns_landed": 0,
+              "takedowns_attempted": 0,
+              "submission_attempts": 0,
+              "reversals": 0,
+              "control_time_seconds": 0
+            }
+          ],
+          "drafted_team": null
+        }
+      ]
+    },
+    {
+      "bout_order": 7,
+      "card_segment": "prelims",
+      "weight_class": "Heavyweight",
+      "fighters_listed_on_card": [
+        "Tanner Boser",
+        "Jhonata Diniz"
+      ],
+      "winner": "Tanner Boser",
+      "method": "KO/TKO",
+      "method_detail": "Punches to Head On Ground",
+      "judges_scores": null,
+      "end_round": 3,
+      "end_time": "4:26",
+      "scheduled_rounds": 3,
+      "time_format": "3 Rnd (5-5-5)",
+      "referee": "Jason Herzog",
+      "wikipedia_result": "TKO (punches) — R3 4:26",
+      "stats_complete": true,
+      "sources": [
+        "https://d29dxerjsp82wz.cloudfront.net/api/v3/fight/live/13049.json (UFC.com official fight stats, fmid 13049)",
+        "http://ufcstats.com/event-details/ (UFCStats unreachable from box 2026-10-18; not used)",
+        "https://en.wikipedia.org/wiki/UFC_Fight_Night:_Buckley_vs._Malott"
+      ],
+      "fighters": [
+        {
+          "name": "Tanner Boser",
+          "ufcstats_name": "Tanner Boser",
+          "opponent": "Jhonata Diniz",
+          "weight_class": "Heavyweight",
+          "result": "W",
+          "method": "KO/TKO",
+          "method_detail": "Punches to Head On Ground",
+          "end_round": 3,
+          "end_time": "4:26",
+          "scheduled_rounds": 3,
+          "total_fight_time_seconds": 866,
+          "knockdowns": 0,
+          "sig_strikes_landed": 44,
+          "sig_strikes_attempted": 71,
+          "total_strikes_landed": 196,
+          "total_strikes_attempted": 237,
+          "takedowns_landed": 3,
+          "takedowns_attempted": 3,
+          "submission_attempts": 1,
+          "reversals": 0,
+          "control_time_seconds": 618,
+          "sig_strikes_by_target_position": {
+            "head": {
+              "landed": 33,
+              "attempted": 59
+            },
+            "body": {
+              "landed": 8,
+              "attempted": 8
+            },
+            "leg": {
+              "landed": 3,
+              "attempted": 4
+            },
+            "distance": {
+              "landed": 16,
+              "attempted": 38
+            },
+            "clinch": {
+              "landed": 1,
+              "attempted": 1
+            },
+            "ground": {
+              "landed": 27,
+              "attempted": 32
+            }
+          },
+          "per_round": [
+            {
+              "round": 1,
+              "knockdowns": 0,
+              "sig_strikes_landed": 5,
+              "sig_strikes_attempted": 14,
+              "total_strikes_landed": 20,
+              "total_strikes_attempted": 33,
+              "takedowns_landed": 1,
+              "takedowns_attempted": 1,
+              "submission_attempts": 0,
+              "reversals": 0,
+              "control_time_seconds": 200
+            },
+            {
+              "round": 2,
+              "knockdowns": 0,
+              "sig_strikes_landed": 26,
+              "sig_strikes_attempted": 41,
+              "total_strikes_landed": 93,
+              "total_strikes_attempted": 108,
+              "takedowns_landed": 1,
+              "takedowns_attempted": 1,
+              "submission_attempts": 1,
+              "reversals": 0,
+              "control_time_seconds": 185
+            },
+            {
+              "round": 3,
+              "knockdowns": 0,
+              "sig_strikes_landed": 13,
+              "sig_strikes_attempted": 16,
+              "total_strikes_landed": 83,
+              "total_strikes_attempted": 96,
+              "takedowns_landed": 1,
+              "takedowns_attempted": 1,
+              "submission_attempts": 0,
+              "reversals": 0,
+              "control_time_seconds": 233
+            }
+          ],
+          "drafted_team": null
+        },
+        {
+          "name": "Jhonata Diniz",
+          "ufcstats_name": "Jhonata Diniz",
+          "opponent": "Tanner Boser",
+          "weight_class": "Heavyweight",
+          "result": "L",
+          "method": "KO/TKO",
+          "method_detail": "Punches to Head On Ground",
+          "end_round": 3,
+          "end_time": "4:26",
+          "scheduled_rounds": 3,
+          "total_fight_time_seconds": 866,
+          "knockdowns": 0,
+          "sig_strikes_landed": 14,
+          "sig_strikes_attempted": 45,
+          "total_strikes_landed": 28,
+          "total_strikes_attempted": 61,
+          "takedowns_landed": 0,
+          "takedowns_attempted": 0,
+          "submission_attempts": 0,
+          "reversals": 0,
+          "control_time_seconds": 0,
+          "sig_strikes_by_target_position": {
+            "head": {
+              "landed": 8,
+              "attempted": 35
+            },
+            "body": {
+              "landed": 3,
+              "attempted": 4
+            },
+            "leg": {
+              "landed": 3,
+              "attempted": 6
+            },
+            "distance": {
+              "landed": 13,
+              "attempted": 43
+            },
+            "clinch": {
+              "landed": 1,
+              "attempted": 2
+            },
+            "ground": {
+              "landed": 0,
+              "attempted": 0
+            }
+          },
+          "per_round": [
+            {
+              "round": 1,
+              "knockdowns": 0,
+              "sig_strikes_landed": 8,
+              "sig_strikes_attempted": 19,
+              "total_strikes_landed": 16,
+              "total_strikes_attempted": 27,
+              "takedowns_landed": 0,
+              "takedowns_attempted": 0,
+              "submission_attempts": 0,
+              "reversals": 0,
+              "control_time_seconds": 0
+            },
+            {
+              "round": 2,
+              "knockdowns": 0,
+              "sig_strikes_landed": 6,
+              "sig_strikes_attempted": 23,
+              "total_strikes_landed": 12,
+              "total_strikes_attempted": 29,
+              "takedowns_landed": 0,
+              "takedowns_attempted": 0,
+              "submission_attempts": 0,
+              "reversals": 0,
+              "control_time_seconds": 0
+            },
+            {
+              "round": 3,
+              "knockdowns": 0,
+              "sig_strikes_landed": 0,
+              "sig_strikes_attempted": 3,
+              "total_strikes_landed": 0,
+              "total_strikes_attempted": 5,
+              "takedowns_landed": 0,
+              "takedowns_attempted": 0,
+              "submission_attempts": 0,
+              "reversals": 0,
+              "control_time_seconds": 0
+            }
+          ],
+          "drafted_team": null
+        }
+      ]
+    },
+    {
+      "bout_order": 8,
+      "card_segment": "prelims",
+      "weight_class": "Middleweight",
+      "fighters_listed_on_card": [
+        "Julien Leblanc",
+        "Nick Galanti"
+      ],
+      "winner": "Nick Galanti",
+      "method": "SUB",
+      "method_detail": "Neck Crank From Back Control",
+      "judges_scores": null,
+      "end_round": 1,
+      "end_time": "1:26",
+      "scheduled_rounds": 3,
+      "time_format": "3 Rnd (5-5-5)",
+      "referee": "Jerin Valel",
+      "wikipedia_result": "Submission (face crank) — R1 1:26",
+      "stats_complete": true,
+      "sources": [
+        "https://d29dxerjsp82wz.cloudfront.net/api/v3/fight/live/13216.json (UFC.com official fight stats, fmid 13216)",
+        "http://ufcstats.com/event-details/ (UFCStats unreachable from box 2026-10-18; not used)",
+        "https://en.wikipedia.org/wiki/UFC_Fight_Night:_Buckley_vs._Malott"
+      ],
+      "fighters": [
+        {
+          "name": "Julien Leblanc",
+          "ufcstats_name": "Julien Leblanc",
+          "opponent": "Nick Galanti",
+          "weight_class": "Middleweight",
+          "result": "L",
+          "method": "SUB",
+          "method_detail": "Neck Crank From Back Control",
+          "end_round": 1,
+          "end_time": "1:26",
+          "scheduled_rounds": 3,
+          "total_fight_time_seconds": 86,
+          "knockdowns": 0,
+          "sig_strikes_landed": 0,
+          "sig_strikes_attempted": 1,
+          "total_strikes_landed": 3,
+          "total_strikes_attempted": 4,
+          "takedowns_landed": 0,
+          "takedowns_attempted": 0,
+          "submission_attempts": 0,
+          "reversals": 0,
+          "control_time_seconds": 0,
+          "sig_strikes_by_target_position": {
+            "head": {
+              "landed": 0,
+              "attempted": 1
+            },
+            "body": {
+              "landed": 0,
+              "attempted": 0
+            },
+            "leg": {
+              "landed": 0,
+              "attempted": 0
+            },
+            "distance": {
+              "landed": 0,
+              "attempted": 1
+            },
+            "clinch": {
+              "landed": 0,
+              "attempted": 0
+            },
+            "ground": {
+              "landed": 0,
+              "attempted": 0
+            }
+          },
+          "per_round": [
+            {
+              "round": 1,
+              "knockdowns": 0,
+              "sig_strikes_landed": 0,
+              "sig_strikes_attempted": 1,
+              "total_strikes_landed": 3,
+              "total_strikes_attempted": 4,
+              "takedowns_landed": 0,
+              "takedowns_attempted": 0,
+              "submission_attempts": 0,
+              "reversals": 0,
+              "control_time_seconds": 0
+            }
+          ],
+          "drafted_team": null
+        },
+        {
+          "name": "Nick Galanti",
+          "ufcstats_name": "Nick Galanti",
+          "opponent": "Julien Leblanc",
+          "weight_class": "Middleweight",
+          "result": "W",
+          "method": "SUB",
+          "method_detail": "Neck Crank From Back Control",
+          "end_round": 1,
+          "end_time": "1:26",
+          "scheduled_rounds": 3,
+          "total_fight_time_seconds": 86,
+          "knockdowns": 0,
+          "sig_strikes_landed": 1,
+          "sig_strikes_attempted": 2,
+          "total_strikes_landed": 3,
+          "total_strikes_attempted": 5,
+          "takedowns_landed": 2,
+          "takedowns_attempted": 2,
+          "submission_attempts": 1,
+          "reversals": 0,
+          "control_time_seconds": 75,
+          "sig_strikes_by_target_position": {
+            "head": {
+              "landed": 0,
+              "attempted": 1
+            },
+            "body": {
+              "landed": 1,
+              "attempted": 1
+            },
+            "leg": {
+              "landed": 0,
+              "attempted": 0
+            },
+            "distance": {
+              "landed": 1,
+              "attempted": 1
+            },
+            "clinch": {
+              "landed": 0,
+              "attempted": 0
+            },
+            "ground": {
+              "landed": 0,
+              "attempted": 1
+            }
+          },
+          "per_round": [
+            {
+              "round": 1,
+              "knockdowns": 0,
+              "sig_strikes_landed": 1,
+              "sig_strikes_attempted": 2,
+              "total_strikes_landed": 3,
+              "total_strikes_attempted": 5,
+              "takedowns_landed": 2,
+              "takedowns_attempted": 2,
+              "submission_attempts": 1,
+              "reversals": 0,
+              "control_time_seconds": 75
+            }
+          ],
+          "drafted_team": null
+        }
+      ]
+    },
+    {
+      "bout_order": 9,
+      "card_segment": "prelims",
+      "weight_class": "Heavyweight",
+      "fighters_listed_on_card": [
+        "Javad Mahjoub",
+        "Joel Faglier"
+      ],
+      "winner": "Joel Faglier",
+      "method": "KO/TKO",
+      "method_detail": "Punches to Head On Ground",
+      "judges_scores": null,
+      "end_round": 2,
+      "end_time": "2:11",
+      "scheduled_rounds": 3,
+      "time_format": "3 Rnd (5-5-5)",
+      "referee": "Marc Goddard",
+      "wikipedia_result": "TKO (punches) — R2 2:11",
+      "stats_complete": true,
+      "sources": [
+        "https://d29dxerjsp82wz.cloudfront.net/api/v3/fight/live/13217.json (UFC.com official fight stats, fmid 13217)",
+        "http://ufcstats.com/event-details/ (UFCStats unreachable from box 2026-10-18; not used)",
+        "https://en.wikipedia.org/wiki/UFC_Fight_Night:_Buckley_vs._Malott"
+      ],
+      "fighters": [
+        {
+          "name": "Javad Mahjoub",
+          "ufcstats_name": "Javad Mahjoub",
+          "opponent": "Joel Faglier",
+          "weight_class": "Heavyweight",
+          "result": "L",
+          "method": "KO/TKO",
+          "method_detail": "Punches to Head On Ground",
+          "end_round": 2,
+          "end_time": "2:11",
+          "scheduled_rounds": 3,
+          "total_fight_time_seconds": 431,
+          "knockdowns": 2,
+          "sig_strikes_landed": 60,
+          "sig_strikes_attempted": 114,
+          "total_strikes_landed": 67,
+          "total_strikes_attempted": 126,
+          "takedowns_landed": 1,
+          "takedowns_attempted": 3,
+          "submission_attempts": 0,
+          "reversals": 0,
+          "control_time_seconds": 96,
+          "sig_strikes_by_target_position": {
+            "head": {
+              "landed": 54,
+              "attempted": 105
+            },
+            "body": {
+              "landed": 5,
+              "attempted": 7
+            },
+            "leg": {
+              "landed": 1,
+              "attempted": 2
+            },
+            "distance": {
+              "landed": 37,
+              "attempted": 79
+            },
+            "clinch": {
+              "landed": 6,
+              "attempted": 11
+            },
+            "ground": {
+              "landed": 17,
+              "attempted": 24
+            }
+          },
+          "per_round": [
+            {
+              "round": 1,
+              "knockdowns": 2,
+              "sig_strikes_landed": 46,
+              "sig_strikes_attempted": 85,
+              "total_strikes_landed": 53,
+              "total_strikes_attempted": 96,
+              "takedowns_landed": 1,
+              "takedowns_attempted": 3,
+              "submission_attempts": 0,
+              "reversals": 0,
+              "control_time_seconds": 96
+            },
+            {
+              "round": 2,
+              "knockdowns": 0,
+              "sig_strikes_landed": 14,
+              "sig_strikes_attempted": 29,
+              "total_strikes_landed": 14,
+              "total_strikes_attempted": 30,
+              "takedowns_landed": 0,
+              "takedowns_attempted": 0,
+              "submission_attempts": 0,
+              "reversals": 0,
+              "control_time_seconds": 0
+            }
+          ],
+          "drafted_team": null
+        },
+        {
+          "name": "Joel Faglier",
+          "ufcstats_name": "Joel Faglier",
+          "opponent": "Javad Mahjoub",
+          "weight_class": "Heavyweight",
+          "result": "W",
+          "method": "KO/TKO",
+          "method_detail": "Punches to Head On Ground",
+          "end_round": 2,
+          "end_time": "2:11",
+          "scheduled_rounds": 3,
+          "total_fight_time_seconds": 431,
+          "knockdowns": 0,
+          "sig_strikes_landed": 51,
+          "sig_strikes_attempted": 76,
+          "total_strikes_landed": 52,
+          "total_strikes_attempted": 77,
+          "takedowns_landed": 1,
+          "takedowns_attempted": 1,
+          "submission_attempts": 0,
+          "reversals": 0,
+          "control_time_seconds": 2,
+          "sig_strikes_by_target_position": {
+            "head": {
+              "landed": 19,
+              "attempted": 40
+            },
+            "body": {
+              "landed": 26,
+              "attempted": 30
+            },
+            "leg": {
+              "landed": 6,
+              "attempted": 6
+            },
+            "distance": {
+              "landed": 44,
+              "attempted": 67
+            },
+            "clinch": {
+              "landed": 3,
+              "attempted": 4
+            },
+            "ground": {
+              "landed": 4,
+              "attempted": 5
+            }
+          },
+          "per_round": [
+            {
+              "round": 1,
+              "knockdowns": 0,
+              "sig_strikes_landed": 19,
+              "sig_strikes_attempted": 29,
+              "total_strikes_landed": 20,
+              "total_strikes_attempted": 30,
+              "takedowns_landed": 0,
+              "takedowns_attempted": 0,
+              "submission_attempts": 0,
+              "reversals": 0,
+              "control_time_seconds": 0
+            },
+            {
+              "round": 2,
+              "knockdowns": 0,
+              "sig_strikes_landed": 32,
+              "sig_strikes_attempted": 47,
+              "total_strikes_landed": 32,
+              "total_strikes_attempted": 47,
+              "takedowns_landed": 1,
+              "takedowns_attempted": 1,
+              "submission_attempts": 0,
+              "reversals": 0,
+              "control_time_seconds": 2
+            }
+          ],
+          "drafted_team": null
+        }
+      ]
+    },
+    {
+      "bout_order": 10,
+      "card_segment": "prelims",
+      "weight_class": "Women's Flyweight",
+      "fighters_listed_on_card": [
+        "Katlyn Cerminara",
+        "Mackenzie Stiller"
+      ],
+      "winner": "Katlyn Cerminara",
+      "method": "KO/TKO",
+      "method_detail": "Punches to Head On Ground",
+      "judges_scores": null,
+      "end_round": 1,
+      "end_time": "4:46",
+      "scheduled_rounds": 3,
+      "time_format": "3 Rnd (5-5-5)",
+      "referee": "Luke Boutin",
+      "wikipedia_result": "TKO (punches) — R1 4:46",
+      "stats_complete": true,
+      "sources": [
+        "https://d29dxerjsp82wz.cloudfront.net/api/v3/fight/live/13218.json (UFC.com official fight stats, fmid 13218)",
+        "http://ufcstats.com/event-details/ (UFCStats unreachable from box 2026-10-18; not used)",
+        "https://en.wikipedia.org/wiki/UFC_Fight_Night:_Buckley_vs._Malott"
+      ],
+      "fighters": [
+        {
+          "name": "Katlyn Cerminara",
+          "ufcstats_name": "Katlyn Cerminara",
+          "opponent": "Mackenzie Stiller",
+          "weight_class": "Women's Flyweight",
+          "result": "W",
+          "method": "KO/TKO",
+          "method_detail": "Punches to Head On Ground",
+          "end_round": 1,
+          "end_time": "4:46",
+          "scheduled_rounds": 3,
+          "total_fight_time_seconds": 286,
+          "knockdowns": 1,
+          "sig_strikes_landed": 32,
+          "sig_strikes_attempted": 71,
+          "total_strikes_landed": 35,
+          "total_strikes_attempted": 74,
+          "takedowns_landed": 0,
+          "takedowns_attempted": 0,
+          "submission_attempts": 0,
+          "reversals": 0,
+          "control_time_seconds": 15,
+          "sig_strikes_by_target_position": {
+            "head": {
+              "landed": 29,
+              "attempted": 67
+            },
+            "body": {
+              "landed": 2,
+              "attempted": 3
+            },
+            "leg": {
+              "landed": 1,
+              "attempted": 1
+            },
+            "distance": {
+              "landed": 25,
+              "attempted": 60
+            },
+            "clinch": {
+              "landed": 2,
+              "attempted": 3
+            },
+            "ground": {
+              "landed": 5,
+              "attempted": 8
+            }
+          },
+          "per_round": [
+            {
+              "round": 1,
+              "knockdowns": 1,
+              "sig_strikes_landed": 32,
+              "sig_strikes_attempted": 71,
+              "total_strikes_landed": 35,
+              "total_strikes_attempted": 74,
+              "takedowns_landed": 0,
+              "takedowns_attempted": 0,
+              "submission_attempts": 0,
+              "reversals": 0,
+              "control_time_seconds": 15
+            }
+          ],
+          "drafted_team": null
+        },
+        {
+          "name": "Mackenzie Stiller",
+          "ufcstats_name": "Mackenzie Stiller",
+          "opponent": "Katlyn Cerminara",
+          "weight_class": "Women's Flyweight",
+          "result": "L",
+          "method": "KO/TKO",
+          "method_detail": "Punches to Head On Ground",
+          "end_round": 1,
+          "end_time": "4:46",
+          "scheduled_rounds": 3,
+          "total_fight_time_seconds": 286,
+          "knockdowns": 0,
+          "sig_strikes_landed": 19,
+          "sig_strikes_attempted": 58,
+          "total_strikes_landed": 19,
+          "total_strikes_attempted": 58,
+          "takedowns_landed": 0,
+          "takedowns_attempted": 1,
+          "submission_attempts": 0,
+          "reversals": 0,
+          "control_time_seconds": 0,
+          "sig_strikes_by_target_position": {
+            "head": {
+              "landed": 9,
+              "attempted": 47
+            },
+            "body": {
+              "landed": 7,
+              "attempted": 8
+            },
+            "leg": {
+              "landed": 3,
+              "attempted": 3
+            },
+            "distance": {
+              "landed": 19,
+              "attempted": 58
+            },
+            "clinch": {
+              "landed": 0,
+              "attempted": 0
+            },
+            "ground": {
+              "landed": 0,
+              "attempted": 0
+            }
+          },
+          "per_round": [
+            {
+              "round": 1,
+              "knockdowns": 0,
+              "sig_strikes_landed": 19,
+              "sig_strikes_attempted": 58,
+              "total_strikes_landed": 19,
+              "total_strikes_attempted": 58,
+              "takedowns_landed": 0,
+              "takedowns_attempted": 1,
+              "submission_attempts": 0,
+              "reversals": 0,
+              "control_time_seconds": 0
+            }
+          ],
+          "drafted_team": null
+        }
+      ]
+    },
+    {
+      "bout_order": 11,
+      "card_segment": "prelims",
+      "weight_class": "Bantamweight",
+      "fighters_listed_on_card": [
+        "Chad Anheliger",
+        "Steven Koslow"
+      ],
+      "winner": "Steven Koslow",
+      "method": "SUB",
+      "method_detail": "Rear Naked Choke From Back Control",
+      "judges_scores": null,
+      "end_round": 3,
+      "end_time": "4:31",
+      "scheduled_rounds": 3,
+      "time_format": "3 Rnd (5-5-5)",
+      "referee": "Mike Tubbs",
+      "wikipedia_result": "Submission (rear-naked choke) — R3 4:31",
+      "stats_complete": true,
+      "sources": [
+        "https://d29dxerjsp82wz.cloudfront.net/api/v3/fight/live/13095.json (UFC.com official fight stats, fmid 13095)",
+        "http://ufcstats.com/event-details/ (UFCStats unreachable from box 2026-10-18; not used)",
+        "https://en.wikipedia.org/wiki/UFC_Fight_Night:_Buckley_vs._Malott"
+      ],
+      "fighters": [
+        {
+          "name": "Chad Anheliger",
+          "ufcstats_name": "Chad Anheliger",
+          "opponent": "Steven Koslow",
+          "weight_class": "Bantamweight",
+          "result": "L",
+          "method": "SUB",
+          "method_detail": "Rear Naked Choke From Back Control",
+          "end_round": 3,
+          "end_time": "4:31",
+          "scheduled_rounds": 3,
+          "total_fight_time_seconds": 871,
+          "knockdowns": 0,
+          "sig_strikes_landed": 34,
+          "sig_strikes_attempted": 59,
+          "total_strikes_landed": 39,
+          "total_strikes_attempted": 66,
+          "takedowns_landed": 0,
+          "takedowns_attempted": 0,
+          "submission_attempts": 0,
+          "reversals": 1,
+          "control_time_seconds": 12,
+          "sig_strikes_by_target_position": {
+            "head": {
+              "landed": 25,
+              "attempted": 48
+            },
+            "body": {
+              "landed": 4,
+              "attempted": 4
+            },
+            "leg": {
+              "landed": 5,
+              "attempted": 7
+            },
+            "distance": {
+              "landed": 31,
+              "attempted": 55
+            },
+            "clinch": {
+              "landed": 3,
+              "attempted": 4
+            },
+            "ground": {
+              "landed": 0,
+              "attempted": 0
+            }
+          },
+          "per_round": [
+            {
+              "round": 1,
+              "knockdowns": 0,
+              "sig_strikes_landed": 13,
+              "sig_strikes_attempted": 18,
+              "total_strikes_landed": 15,
+              "total_strikes_attempted": 22,
+              "takedowns_landed": 0,
+              "takedowns_attempted": 0,
+              "submission_attempts": 0,
+              "reversals": 0,
+              "control_time_seconds": 0
+            },
+            {
+              "round": 2,
+              "knockdowns": 0,
+              "sig_strikes_landed": 12,
+              "sig_strikes_attempted": 21,
+              "total_strikes_landed": 12,
+              "total_strikes_attempted": 21,
+              "takedowns_landed": 0,
+              "takedowns_attempted": 0,
+              "submission_attempts": 0,
+              "reversals": 1,
+              "control_time_seconds": 12
+            },
+            {
+              "round": 3,
+              "knockdowns": 0,
+              "sig_strikes_landed": 9,
+              "sig_strikes_attempted": 20,
+              "total_strikes_landed": 12,
+              "total_strikes_attempted": 23,
+              "takedowns_landed": 0,
+              "takedowns_attempted": 0,
+              "submission_attempts": 0,
+              "reversals": 0,
+              "control_time_seconds": 0
+            }
+          ],
+          "drafted_team": null
+        },
+        {
+          "name": "Steven Koslow",
+          "ufcstats_name": "Steven Koslow",
+          "opponent": "Chad Anheliger",
+          "weight_class": "Bantamweight",
+          "result": "W",
+          "method": "SUB",
+          "method_detail": "Rear Naked Choke From Back Control",
+          "end_round": 3,
+          "end_time": "4:31",
+          "scheduled_rounds": 3,
+          "total_fight_time_seconds": 871,
+          "knockdowns": 0,
+          "sig_strikes_landed": 51,
+          "sig_strikes_attempted": 88,
+          "total_strikes_landed": 97,
+          "total_strikes_attempted": 145,
+          "takedowns_landed": 4,
+          "takedowns_attempted": 4,
+          "submission_attempts": 2,
+          "reversals": 0,
+          "control_time_seconds": 417,
+          "sig_strikes_by_target_position": {
+            "head": {
+              "landed": 34,
+              "attempted": 66
+            },
+            "body": {
+              "landed": 8,
+              "attempted": 11
+            },
+            "leg": {
+              "landed": 9,
+              "attempted": 11
+            },
+            "distance": {
+              "landed": 40,
+              "attempted": 74
+            },
+            "clinch": {
+              "landed": 0,
+              "attempted": 1
+            },
+            "ground": {
+              "landed": 11,
+              "attempted": 13
+            }
+          },
+          "per_round": [
+            {
+              "round": 1,
+              "knockdowns": 0,
+              "sig_strikes_landed": 15,
+              "sig_strikes_attempted": 24,
+              "total_strikes_landed": 41,
+              "total_strikes_attempted": 53,
+              "takedowns_landed": 1,
+              "takedowns_attempted": 1,
+              "submission_attempts": 0,
+              "reversals": 0,
+              "control_time_seconds": 166
+            },
+            {
+              "round": 2,
+              "knockdowns": 0,
+              "sig_strikes_landed": 20,
+              "sig_strikes_attempted": 34,
+              "total_strikes_landed": 35,
+              "total_strikes_attempted": 57,
+              "takedowns_landed": 2,
+              "takedowns_attempted": 2,
+              "submission_attempts": 1,
+              "reversals": 0,
+              "control_time_seconds": 121
+            },
+            {
+              "round": 3,
+              "knockdowns": 0,
+              "sig_strikes_landed": 16,
+              "sig_strikes_attempted": 30,
+              "total_strikes_landed": 21,
+              "total_strikes_attempted": 35,
+              "takedowns_landed": 1,
+              "takedowns_attempted": 1,
+              "submission_attempts": 1,
+              "reversals": 0,
+              "control_time_seconds": 130
+            }
+          ],
+          "drafted_team": null
+        }
+      ]
+    },
+    {
+      "bout_order": 12,
+      "card_segment": "prelims",
+      "weight_class": "Women's Bantamweight",
+      "fighters_listed_on_card": [
+        "Melissa Croden",
+        "Chelsea Chandler"
+      ],
+      "winner": "Chelsea Chandler",
+      "method": "SUB",
+      "method_detail": "Kimura From Side Control",
+      "judges_scores": null,
+      "end_round": 1,
+      "end_time": "4:52",
+      "scheduled_rounds": 3,
+      "time_format": "3 Rnd (5-5-5)",
+      "referee": "Andy Social",
+      "wikipedia_result": "Submission (kimura) — R1 4:52",
+      "stats_complete": true,
+      "sources": [
+        "https://d29dxerjsp82wz.cloudfront.net/api/v3/fight/live/13050.json (UFC.com official fight stats, fmid 13050)",
+        "http://ufcstats.com/event-details/ (UFCStats unreachable from box 2026-10-18; not used)",
+        "https://en.wikipedia.org/wiki/UFC_Fight_Night:_Buckley_vs._Malott"
+      ],
+      "fighters": [
+        {
+          "name": "Melissa Croden",
+          "ufcstats_name": "Melissa Croden",
+          "opponent": "Chelsea Chandler",
+          "weight_class": "Women's Bantamweight",
+          "result": "L",
+          "method": "SUB",
+          "method_detail": "Kimura From Side Control",
+          "end_round": 1,
+          "end_time": "4:52",
+          "scheduled_rounds": 3,
+          "total_fight_time_seconds": 292,
+          "knockdowns": 0,
+          "sig_strikes_landed": 11,
+          "sig_strikes_attempted": 29,
+          "total_strikes_landed": 27,
+          "total_strikes_attempted": 45,
+          "takedowns_landed": 1,
+          "takedowns_attempted": 3,
+          "submission_attempts": 0,
+          "reversals": 0,
+          "control_time_seconds": 134,
+          "sig_strikes_by_target_position": {
+            "head": {
+              "landed": 5,
+              "attempted": 21
+            },
+            "body": {
+              "landed": 6,
+              "attempted": 8
+            },
+            "leg": {
+              "landed": 0,
+              "attempted": 0
+            },
+            "distance": {
+              "landed": 4,
+              "attempted": 16
+            },
+            "clinch": {
+              "landed": 7,
+              "attempted": 13
+            },
+            "ground": {
+              "landed": 0,
+              "attempted": 0
+            }
+          },
+          "per_round": [
+            {
+              "round": 1,
+              "knockdowns": 0,
+              "sig_strikes_landed": 11,
+              "sig_strikes_attempted": 29,
+              "total_strikes_landed": 27,
+              "total_strikes_attempted": 45,
+              "takedowns_landed": 1,
+              "takedowns_attempted": 3,
+              "submission_attempts": 0,
+              "reversals": 0,
+              "control_time_seconds": 134
+            }
+          ],
+          "drafted_team": null
+        },
+        {
+          "name": "Chelsea Chandler",
+          "ufcstats_name": "Chelsea Chandler",
+          "opponent": "Melissa Croden",
+          "weight_class": "Women's Bantamweight",
+          "result": "W",
+          "method": "SUB",
+          "method_detail": "Kimura From Side Control",
+          "end_round": 1,
+          "end_time": "4:52",
+          "scheduled_rounds": 3,
+          "total_fight_time_seconds": 292,
+          "knockdowns": 0,
+          "sig_strikes_landed": 12,
+          "sig_strikes_attempted": 27,
+          "total_strikes_landed": 37,
+          "total_strikes_attempted": 53,
+          "takedowns_landed": 0,
+          "takedowns_attempted": 1,
+          "submission_attempts": 1,
+          "reversals": 0,
+          "control_time_seconds": 76,
+          "sig_strikes_by_target_position": {
+            "head": {
+              "landed": 4,
+              "attempted": 19
+            },
+            "body": {
+              "landed": 8,
+              "attempted": 8
+            },
+            "leg": {
+              "landed": 0,
+              "attempted": 0
+            },
+            "distance": {
+              "landed": 3,
+              "attempted": 16
+            },
+            "clinch": {
+              "landed": 9,
+              "attempted": 11
+            },
+            "ground": {
+              "landed": 0,
+              "attempted": 0
+            }
+          },
+          "per_round": [
+            {
+              "round": 1,
+              "knockdowns": 0,
+              "sig_strikes_landed": 12,
+              "sig_strikes_attempted": 27,
+              "total_strikes_landed": 37,
+              "total_strikes_attempted": 53,
+              "takedowns_landed": 0,
+              "takedowns_attempted": 1,
+              "submission_attempts": 1,
+              "reversals": 0,
+              "control_time_seconds": 76
+            }
+          ],
+          "drafted_team": null
+        }
+      ]
+    },
+    {
+      "bout_order": 13,
+      "card_segment": "prelims",
+      "weight_class": "Bantamweight",
+      "fighters_listed_on_card": [
+        "Cody Chovancek",
+        "You Su-young"
+      ],
+      "winner": "You Su-young",
+      "method": "SUB",
+      "method_detail": "Kimura From Side Control",
+      "judges_scores": null,
+      "end_round": 3,
+      "end_time": "4:19",
+      "scheduled_rounds": 3,
+      "time_format": "3 Rnd (5-5-5)",
+      "referee": "Jason Herzog",
+      "wikipedia_result": "Submission (kimura) — R3 4:19",
+      "stats_complete": true,
+      "sources": [
+        "https://d29dxerjsp82wz.cloudfront.net/api/v3/fight/live/13132.json (UFC.com official fight stats, fmid 13132)",
+        "http://ufcstats.com/event-details/ (UFCStats unreachable from box 2026-10-18; not used)",
+        "https://en.wikipedia.org/wiki/UFC_Fight_Night:_Buckley_vs._Malott"
+      ],
+      "fighters": [
+        {
+          "name": "Cody Chovancek",
+          "ufcstats_name": "Cody Chovancek",
+          "opponent": "You Su-young",
+          "weight_class": "Bantamweight",
+          "result": "L",
+          "method": "SUB",
+          "method_detail": "Kimura From Side Control",
+          "end_round": 3,
+          "end_time": "4:19",
+          "scheduled_rounds": 3,
+          "total_fight_time_seconds": 859,
+          "knockdowns": 0,
+          "sig_strikes_landed": 1,
+          "sig_strikes_attempted": 7,
+          "total_strikes_landed": 17,
+          "total_strikes_attempted": 27,
+          "takedowns_landed": 0,
+          "takedowns_attempted": 0,
+          "submission_attempts": 0,
+          "reversals": 0,
+          "control_time_seconds": 12,
+          "sig_strikes_by_target_position": {
+            "head": {
+              "landed": 1,
+              "attempted": 6
+            },
+            "body": {
+              "landed": 0,
+              "attempted": 1
+            },
+            "leg": {
+              "landed": 0,
+              "attempted": 0
+            },
+            "distance": {
+              "landed": 0,
+              "attempted": 6
+            },
+            "clinch": {
+              "landed": 0,
+              "attempted": 0
+            },
+            "ground": {
+              "landed": 1,
+              "attempted": 1
+            }
+          },
+          "per_round": [
+            {
+              "round": 1,
+              "knockdowns": 0,
+              "sig_strikes_landed": 0,
+              "sig_strikes_attempted": 2,
+              "total_strikes_landed": 3,
+              "total_strikes_attempted": 6,
+              "takedowns_landed": 0,
+              "takedowns_attempted": 0,
+              "submission_attempts": 0,
+              "reversals": 0,
+              "control_time_seconds": 0
+            },
+            {
+              "round": 2,
+              "knockdowns": 0,
+              "sig_strikes_landed": 0,
+              "sig_strikes_attempted": 0,
+              "total_strikes_landed": 9,
+              "total_strikes_attempted": 10,
+              "takedowns_landed": 0,
+              "takedowns_attempted": 0,
+              "submission_attempts": 0,
+              "reversals": 0,
+              "control_time_seconds": 12
+            },
+            {
+              "round": 3,
+              "knockdowns": 0,
+              "sig_strikes_landed": 1,
+              "sig_strikes_attempted": 5,
+              "total_strikes_landed": 5,
+              "total_strikes_attempted": 11,
+              "takedowns_landed": 0,
+              "takedowns_attempted": 0,
+              "submission_attempts": 0,
+              "reversals": 0,
+              "control_time_seconds": 0
+            }
+          ],
+          "drafted_team": null
+        },
+        {
+          "name": "You Su-young",
+          "ufcstats_name": "SuYoung You",
+          "opponent": "Cody Chovancek",
+          "weight_class": "Bantamweight",
+          "result": "W",
+          "method": "SUB",
+          "method_detail": "Kimura From Side Control",
+          "end_round": 3,
+          "end_time": "4:19",
+          "scheduled_rounds": 3,
+          "total_fight_time_seconds": 859,
+          "knockdowns": 0,
+          "sig_strikes_landed": 5,
+          "sig_strikes_attempted": 7,
+          "total_strikes_landed": 82,
+          "total_strikes_attempted": 95,
+          "takedowns_landed": 6,
+          "takedowns_attempted": 8,
+          "submission_attempts": 1,
+          "reversals": 1,
+          "control_time_seconds": 709,
+          "sig_strikes_by_target_position": {
+            "head": {
+              "landed": 4,
+              "attempted": 5
+            },
+            "body": {
+              "landed": 0,
+              "attempted": 1
+            },
+            "leg": {
+              "landed": 1,
+              "attempted": 1
+            },
+            "distance": {
+              "landed": 2,
+              "attempted": 3
+            },
+            "clinch": {
+              "landed": 0,
+              "attempted": 0
+            },
+            "ground": {
+              "landed": 3,
+              "attempted": 4
+            }
+          },
+          "per_round": [
+            {
+              "round": 1,
+              "knockdowns": 0,
+              "sig_strikes_landed": 2,
+              "sig_strikes_attempted": 3,
+              "total_strikes_landed": 33,
+              "total_strikes_attempted": 37,
+              "takedowns_landed": 3,
+              "takedowns_attempted": 3,
+              "submission_attempts": 0,
+              "reversals": 0,
+              "control_time_seconds": 212
+            },
+            {
+              "round": 2,
+              "knockdowns": 0,
+              "sig_strikes_landed": 2,
+              "sig_strikes_attempted": 3,
+              "total_strikes_landed": 33,
+              "total_strikes_attempted": 40,
+              "takedowns_landed": 1,
+              "takedowns_attempted": 3,
+              "submission_attempts": 0,
+              "reversals": 1,
+              "control_time_seconds": 262
+            },
+            {
+              "round": 3,
+              "knockdowns": 0,
+              "sig_strikes_landed": 1,
+              "sig_strikes_attempted": 1,
+              "total_strikes_landed": 16,
+              "total_strikes_attempted": 18,
+              "takedowns_landed": 2,
+              "takedowns_attempted": 2,
+              "submission_attempts": 1,
+              "reversals": 0,
+              "control_time_seconds": 235
+            }
+          ],
+          "drafted_team": null
+        }
+      ]
+    }
+  ]
+}
