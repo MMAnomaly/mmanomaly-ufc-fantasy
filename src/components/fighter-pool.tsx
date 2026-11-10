@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { POOL_CLASS_KEYS, filterPoolRows, poolClassLabel, poolCounts, type PoolRow, type PoolSort } from "@/lib/fighter-pool";
+import { isTapologyFighterProfile, tapologyProfileHref } from "@/lib/tapology";
 
 export function FighterPool({
   active,
@@ -167,13 +168,7 @@ function PoolTable({ rows, empty }: { rows: PoolRow[]; empty: string }) {
               <td className="text-mist">{formatLastFight(row)}</td>
               <td className="text-mist">{row.upcoming ?? "—"}</td>
               <td>
-                {row.tapologyUrl ? (
-                  <a className="text-amber hover:underline" href={row.tapologyUrl} rel="noreferrer" target="_blank">
-                    Profile
-                  </a>
-                ) : (
-                  <span className="text-mist">—</span>
-                )}
+                <TapologyFighterLink name={row.name} tapologyUrl={row.tapologyUrl} />
               </td>
               <td>{row.draftedBy ? <span>Drafted · {row.draftedBy}</span> : <span className="text-mist">Available</span>}</td>
             </tr>
@@ -226,6 +221,16 @@ function SortButton({
       {label}
       {active ? (direction === "asc" ? " ↑" : " ↓") : ""}
     </button>
+  );
+}
+
+function TapologyFighterLink({ name, tapologyUrl }: { name: string; tapologyUrl: string | null }) {
+  const href = tapologyProfileHref({ name, tapologyUrl });
+  const profile = isTapologyFighterProfile(href);
+  return (
+    <a className="text-amber hover:underline" href={href} rel="noreferrer" target="_blank">
+      {profile ? "Profile" : "Search Tapology"}
+    </a>
   );
 }
 
