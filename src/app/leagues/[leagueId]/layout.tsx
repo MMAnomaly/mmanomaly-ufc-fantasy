@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma";
 
 const TABS = [
   { href: "", label: "Lobby" },
+  { href: "/pool", label: "Pool" },
   { href: "/draft", label: "Draft" },
   { href: "/roster", label: "My Team" },
   { href: "/standings", label: "Standings" },
