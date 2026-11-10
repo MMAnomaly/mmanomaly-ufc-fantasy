@@ -31,6 +31,8 @@ export function CreateLeagueForm() {
         defaultValue={DEFAULT_PICK_CLOCK}
         required
       />
+      <Field label="Season start" name="seasonStart" type="date" required />
+      <Field label="Season end" name="seasonEnd" type="date" required />
       {state?.error ? <p className="text-sm text-blood">{state.error}</p> : null}
       <PrimaryButton>Open the books</PrimaryButton>
     </form>

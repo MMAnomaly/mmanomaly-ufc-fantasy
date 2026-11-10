@@ -35,6 +35,9 @@ model League {
   currentPickIndex Int       @default(0)
   /// Server-authoritative expiry for the current pick. Null when the draft is not live.
   pickDeadline     DateTime?
+  /// Inclusive season window. Stored at 12:00 UTC so the America/Los_Angeles calendar day does not shift. Null counts every score.
+  seasonStart      DateTime?
+  seasonEnd        DateTime?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 

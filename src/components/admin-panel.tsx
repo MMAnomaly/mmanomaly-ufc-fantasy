@@ -34,6 +34,8 @@ export function AdminPanel({
   status,
   maxTeams,
   pickClockSeconds,
+  seasonStart,
+  seasonEnd,
   invites,
   teams,
 }: {
@@ -42,6 +44,8 @@ export function AdminPanel({
   status: string;
   maxTeams: number;
   pickClockSeconds: number;
+  seasonStart: string;
+  seasonEnd: string;
   invites: Invite[];
   teams: Team[];
 }) {
@@ -49,6 +53,7 @@ export function AdminPanel({
   const [log, setLog] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [url, setUrl] = useState("");
+  const [settingsError, setSettingsError] = useState<string | null>(null);
 
   const liveInvites = invites.filter((i) => !i.revoked);
 
@@ -59,8 +64,9 @@ export function AdminPanel({
         <form
           className="mt-4 grid gap-4 sm:grid-cols-3"
           action={(formData) => {
-            startTransition(() => {
-              void updateLeagueSettingsAction(leagueId, formData);
+            startTransition(async () => {
+              const result = await updateLeagueSettingsAction(leagueId, formData);
+              setSettingsError(result?.error ?? null);
             });
           }}
         >
@@ -74,8 +80,11 @@ export function AdminPanel({
             max={300}
             defaultValue={pickClockSeconds}
           />
+          <Field label="Season start" name="seasonStart" type="date" required defaultValue={seasonStart} />
+          <Field label="Season end" name="seasonEnd" type="date" required defaultValue={seasonEnd} />
           <div className="sm:col-span-3">
-            <PrimaryButton>Save settings</PrimaryButton>
+            {settingsError ? <p className="mb-3 text-sm text-blood">{settingsError}</p> : null}
+            <PrimaryButton disabled={pending}>Save settings</PrimaryButton>
           </div>
         </form>
       </section>

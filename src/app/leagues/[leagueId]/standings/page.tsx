@@ -32,6 +32,16 @@ export default async function StandingsPage({
   return (
     <div className="space-y-6">
       <FightingThisWeekPanel data={fighting} />
+      {data.seasonLabel || data.championLabel ? (
+        <section className="space-y-3">
+          {data.seasonLabel ? <p className="text-sm text-mist">{data.seasonLabel}</p> : null}
+          {data.championLabel ? (
+            <div className="rounded-md border border-amber/40 bg-amber/10 px-4 py-3">
+              <p className="font-display text-2xl tracking-wide text-amber">{data.championLabel}</p>
+            </div>
+          ) : null}
+        </section>
+      ) : null}
       <section className="rounded-md border border-line bg-panel p-5">
         <div className="mb-4 flex items-end justify-between">
           <h2 className="font-display text-3xl tracking-wide">Standings</h2>

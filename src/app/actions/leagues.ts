@@ -15,6 +15,7 @@ import {
   shuffle,
 } from "@/lib/draft";
 import { prisma } from "@/lib/prisma";
+import { validateSeasonRange } from "@/lib/season";
 import { disambiguateTeamName, isTeamNameConflict, isTeamNameTaken, TEAM_NAME_TAKEN } from "@/lib/team-membership";
 
 const createSchema = z.object({
@@ -22,12 +23,16 @@ const createSchema = z.object({
   maxTeams: z.coerce.number().int().min(MIN_TEAMS).max(MAX_TEAMS).default(DEFAULT_TEAMS),
   pickClockSeconds: z.coerce.number().int().min(15).max(300).default(DEFAULT_PICK_CLOCK),
   teamName: z.string().min(2).max(40),
+  seasonStart: z.string().trim().min(1),
+  seasonEnd: z.string().trim().min(1),
 });
 
 export async function createLeagueAction(_prev: unknown, formData: FormData) {
   const user = await requireUser();
   const parsed = createSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Check league settings." };
+  const season = validateSeasonRange(parsed.data.seasonStart, parsed.data.seasonEnd);
+  if (!season.ok) return { error: season.error };
 
   const league = await prisma.league.create({
     data: {
@@ -35,6 +40,8 @@ export async function createLeagueAction(_prev: unknown, formData: FormData) {
       commissionerId: user.id,
       maxTeams: parsed.data.maxTeams,
       pickClockSeconds: parsed.data.pickClockSeconds,
+      seasonStart: season.start,
+      seasonEnd: season.end,
       memberships: {
         create: {
           userId: user.id,
@@ -131,13 +138,18 @@ export async function updateLeagueSettingsAction(leagueId: string, formData: For
   if (league.status !== "SETUP" && maxTeams !== league.maxTeams) {
     return { error: "League size is locked after the draft starts." };
   }
+  const season = validateSeasonRange(String(formData.get("seasonStart") ?? ""), String(formData.get("seasonEnd") ?? ""));
+  if (!season.ok) return { error: season.error };
 
   await prisma.league.update({
     where: { id: leagueId },
-    data: { name, pickClockSeconds, maxTeams },
+    data: { name, pickClockSeconds, maxTeams, seasonStart: season.start, seasonEnd: season.end },
   });
   revalidatePath(`/leagues/${leagueId}`);
   revalidatePath(`/leagues/${leagueId}/admin`);
+  revalidatePath(`/leagues/${leagueId}/standings`);
+  revalidatePath(`/leagues/${leagueId}/roster`);
+  return {};
 }
 
 export async function randomizeDraftOrderAction(leagueId: string) {
