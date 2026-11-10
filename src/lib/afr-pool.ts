@@ -89,7 +89,46 @@ export type UpcomingCardResult = {
 export type AfrCardsResult = {
   fighters: FighterPoolResult;
   cards: UpcomingCardResult;
+  addedFromCards: string[];
+  reactivatedFromCards: string[];
+  unclassifiedFromCards: string[];
 };
+
+export type UpcomingCardFighter = {
+  name: string;
+  weightClass: string | null;
+  tapologyUrl: string | null;
+};
+
+/** Cards-payload and fightersByClass removal lists. `left_ufc` is an alias of `inactive`. */
+export type PoolRemovalOptions = {
+  released?: unknown;
+  cut?: unknown;
+  retired?: unknown;
+  inactive?: unknown;
+  left_ufc?: unknown;
+};
+
+type RemovalToken = {
+  /** Text returned when nobody matches. */
+  label: string;
+  /** A string entry (name or URL). Null when the entry is an object. */
+  raw: string | null;
+  name: string | null;
+  tapologyUrl: string | null;
+};
+
+const REMOVAL_LIST_KEYS = ["released", "cut", "retired", "inactive", "left_ufc"] as const;
+
+const REMOVAL_STATUSES = new Set([
+  "released",
+  "cut",
+  "retired",
+  "retirement",
+  "release",
+  "inactive",
+  "left_ufc",
+]);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -179,6 +218,15 @@ export function classKeyForWeightClass(weightClass: string): ClassKey | null {
   return aliases[normalized.replace(/'/g, "")] ?? null;
 }
 
+/**
+ * Division for an upcoming-card bout. Title and interim notes in parentheses
+ * are ignored. A catchweight label is not a draft division.
+ */
+export function classKeyForUpcomingWeightClass(weightClass: string): ClassKey | null {
+  if (/catch\s*weight/i.test(weightClass)) return null;
+  return classKeyForWeightClass(weightClass);
+}
+
 function sexForClass(classKey: ClassKey): string {
   return classKey.startsWith("womens_") ? "women" : "men";
 }
@@ -244,52 +292,119 @@ function releaseTokenMatches(
   return normalizeFighterName(fighter.name) === normalizeFighterName(trimmed);
 }
 
-function matchesAnyToken(
-  fighter: { id: string; name: string; tapologyUrl: string | null },
-  tokens: string[],
-): boolean {
-  return tokens.some((token) => releaseTokenMatches(token, fighter));
+function removalTokenFrom(entry: unknown, label: string, index: number): RemovalToken {
+  if (typeof entry === "string") {
+    const text = entry.trim();
+    if (!text) throw new AfrImportError(`${label}[${index}] must be a name, URL, or object`);
+    return { label: text, raw: text, name: null, tapologyUrl: null };
+  }
+  if (isRecord(entry)) {
+    const name = readString(entry.name);
+    const tapologyUrl = readString(entry.tapology_url) ?? readString(entry.tapologyUrl);
+    if (!name && !tapologyUrl) {
+      throw new AfrImportError(`${label}[${index}] needs a name or tapology_url`);
+    }
+    return { label: name ?? tapologyUrl ?? "", raw: null, name, tapologyUrl };
+  }
+  throw new AfrImportError(`${label}[${index}] must be a name, URL, or object`);
 }
 
-function readReleaseList(value: unknown, label: string): string[] {
+function readRemovalList(value: unknown, label: string): RemovalToken[] {
   if (value == null) return [];
   if (!Array.isArray(value)) {
-    throw new AfrImportError(`${label} must be an array of fighter names or URLs`);
+    throw new AfrImportError(`${label} must be an array of fighter names, URLs, or { name, tapology_url } objects`);
   }
-  return value.map((entry, index) => {
-    const text = readString(entry);
-    if (!text) throw new AfrImportError(`${label}[${index}] must be a name or URL`);
-    return text;
-  });
+  return value.map((entry, index) => removalTokenFrom(entry, label, index));
 }
 
-function dedupeTokens(tokens: string[]): string[] {
+function tokenKey(token: RemovalToken): string {
+  const url = token.tapologyUrl ?? (token.raw && urlSlug(token.raw) ? token.raw : null);
+  if (url) return `url:${canonicalUrl(url) ?? url.toLowerCase()}`;
+  if (token.name) return `name:${normalizeFighterName(token.name)}`;
+  if (token.raw) return `raw:${normalizeFighterName(token.raw) || token.raw.toLowerCase()}`;
+  return token.label.toLowerCase();
+}
+
+function dedupeTokens(tokens: RemovalToken[]): RemovalToken[] {
   const seen = new Set<string>();
-  const out: string[] = [];
+  const out: RemovalToken[] = [];
   for (const token of tokens) {
-    const key = token.trim().toLowerCase();
+    const key = tokenKey(token);
     if (!key || seen.has(key)) continue;
     seen.add(key);
-    out.push(token.trim());
+    out.push(token);
   }
   return out;
 }
 
-function isReleasedStatus(value: unknown): boolean {
+function isRemovalStatus(value: unknown): boolean {
   const text = readString(value);
   if (!text) return false;
-  const normalized = text.toLowerCase();
-  return normalized === "released" || normalized === "cut";
+  return REMOVAL_STATUSES.has(text.toLowerCase());
 }
 
-function releaseListsFrom(raw: unknown, options?: { released?: unknown; cut?: unknown }): string[] {
+export function removalTokensFrom(raw: unknown, options?: PoolRemovalOptions): RemovalToken[] {
   const document = isRecord(raw) ? raw : {};
-  return dedupeTokens([
-    ...readReleaseList(document.released, "released"),
-    ...readReleaseList(document.cut, "cut"),
-    ...readReleaseList(options?.released, "released"),
-    ...readReleaseList(options?.cut, "cut"),
-  ]);
+  const tokens: RemovalToken[] = [];
+  for (const key of REMOVAL_LIST_KEYS) {
+    tokens.push(...readRemovalList(document[key], key));
+    tokens.push(...readRemovalList(options?.[key], key));
+  }
+  return dedupeTokens(tokens);
+}
+
+function identitiesMatchingToken<T extends { id: string; name: string; tapologyUrl: string | null }>(
+  token: RemovalToken,
+  roster: T[],
+): T[] {
+  if (token.raw) {
+    const raw = token.raw;
+    return roster.filter((fighter) => releaseTokenMatches(raw, fighter));
+  }
+  if (token.tapologyUrl) {
+    const tapologyUrl = token.tapologyUrl;
+    const byUrl = roster.filter((fighter) => releaseTokenMatches(tapologyUrl, fighter));
+    if (byUrl.length > 0) return byUrl;
+  }
+  if (token.name) {
+    const nameKey = normalizeFighterName(token.name);
+    return roster.filter((fighter) => normalizeFighterName(fighter.name) === nameKey);
+  }
+  return [];
+}
+
+function sameBookedFighter(
+  hit: { id: string; name: string; tapologyUrl: string | null },
+  person: { name: string; tapologyUrl: string | null },
+): boolean {
+  if (normalizeFighterName(hit.name) === normalizeFighterName(person.name)) return true;
+  if (person.tapologyUrl && hit.tapologyUrl && canonicalUrl(person.tapologyUrl) === canonicalUrl(hit.tapologyUrl)) {
+    return true;
+  }
+  const slug = tapologySlug(person.tapologyUrl);
+  return Boolean(slug && hit.id.toLowerCase() === slug.toLowerCase());
+}
+
+/** True when this import's removal lists name the booked fighter. URL matches win over a different name. */
+function removalAppliesTo(
+  person: { name: string; tapologyUrl: string | null },
+  tokens: RemovalToken[],
+  roster: { id: string; name: string; tapologyUrl: string | null }[],
+): boolean {
+  const probe = {
+    id: tapologySlug(person.tapologyUrl) ?? "",
+    name: person.name,
+    tapologyUrl: person.tapologyUrl,
+  };
+  return tokens.some((token) => {
+    const hits = identitiesMatchingToken(token, roster);
+    if (hits.some((hit) => sameBookedFighter(hit, person))) return true;
+    if (token.tapologyUrl && hits.length > 0) return false;
+    if (token.raw) return releaseTokenMatches(token.raw, probe);
+    if (token.tapologyUrl && releaseTokenMatches(token.tapologyUrl, probe)) return true;
+    if (token.name && normalizeFighterName(token.name) === normalizeFighterName(person.name)) return true;
+    return false;
+  });
 }
 
 function asFighter(value: unknown, classKey: string): SeedFighter {
@@ -373,7 +488,7 @@ function prepareFighters(raw: unknown): {
     for (const entry of group.fighters) {
       const fighter = asFighter(entry, classKey);
       const row = fighterWrite(fighter, classKey);
-      const released = isRecord(entry) && isReleasedStatus(entry.status);
+      const released = isRecord(entry) && isRemovalStatus(entry.status);
       const prior = fighters.find((item) => item.write.id === row.id);
       if (prior) {
         if (released) prior.released = true;
@@ -394,25 +509,44 @@ function prepareFighters(raw: unknown): {
 /**
  * Upsert the draftable fighter pool and upcoming-card rows.
  * Touches `Fighter` and `UfcCard` only. Absence from the file does not change
- * `active`. An explicit release signal marks unrostered fighters inactive.
+ * `active`. Removal lists mark unrostered fighters inactive. Fighters on the
+ * upcoming card are added or reactivated unless this import also removes them.
  * Rostered fighters stay active. Users, leagues, rosters, picks, and scores
  * are not modified.
  *
- * Release signal (either key, on this payload and/or inside `fightersByClass`):
- * `released` / `cut` arrays of names, Tapology fighter URLs, or UFC Stats
- * fighter-details URLs. A fighter object may also set `status` to `released`
- * or `cut`. See the README section "Push Active Fighter Repository data".
+ * Removal lists (`released`, `cut`, `retired`, `inactive`, `left_ufc`) may sit
+ * on this payload and/or inside `fightersByClass`. Entries are names, URLs, or
+ * `{ name, tapology_url }` objects. A fighter object may set `status` to
+ * released, cut, retired, retirement, release, inactive, or left_ufc.
  */
 export async function importAfrCards(
   db: PrismaClient,
-  data: { fightersByClass: unknown; upcomingCard: unknown; released?: unknown; cut?: unknown },
+  data: {
+    fightersByClass: unknown;
+    upcomingCard: unknown;
+  } & PoolRemovalOptions,
 ): Promise<AfrCardsResult> {
-  const fighters = await upsertFighterPool(db, data.fightersByClass, {
+  const options: PoolRemovalOptions = {
     released: data.released,
     cut: data.cut,
-  });
+    retired: data.retired,
+    inactive: data.inactive,
+    left_ufc: data.left_ufc,
+  };
+  const fighters = await upsertFighterPool(db, data.fightersByClass, options);
   const cards = await upsertUpcomingCards(db, data.upcomingCard);
-  return { fighters, cards };
+  const fromCards = await syncUpcomingCardFighters(
+    db,
+    data.upcomingCard,
+    removalTokensFrom(data.fightersByClass, options),
+  );
+  return {
+    fighters: { ...fighters, activeByClass: await activePoolByClass(db) },
+    cards,
+    addedFromCards: fromCards.added,
+    reactivatedFromCards: fromCards.reactivated,
+    unclassifiedFromCards: fromCards.unclassified,
+  };
 }
 
 function poolFields(fighter: FighterWrite, active: boolean) {
@@ -466,19 +600,18 @@ export async function activePoolByClass(db: PrismaClient): Promise<Record<string
 /**
  * Upsert fighters from an AFR class export.
  * Fighters missing from the file keep their current `active` flag.
- * `released` / `cut` (on the document or in `options`) and per-fighter
- * `status: "released" | "cut"` are the only deactivation signals, and they
- * never deactivate a fighter who is on a roster.
+ * Removal lists and a per-fighter removal `status` are the only deactivation
+ * signals, and they never deactivate a fighter who is on a roster.
  * A results-created row with no Tapology URL is adopted in place when this
  * file later includes that same name, so scores stay on one id.
  */
 export async function upsertFighterPool(
   db: PrismaClient,
   raw: unknown,
-  options?: { released?: unknown; cut?: unknown },
+  options?: PoolRemovalOptions,
 ): Promise<FighterPoolResult> {
   const prepared = prepareFighters(raw);
-  const releaseTokens = releaseListsFrom(raw, options);
+  const releaseTokens = removalTokensFrom(raw, options);
 
   const existingRows = await db.fighter.findMany({
     select: {
@@ -509,17 +642,10 @@ export async function upsertFighterPool(
   for (const fighter of prepared.fighters) {
     const id = resolvePoolId(fighter.write, index);
     const prior = index.find((row) => row.id === id);
-    const released =
-      fighter.released ||
-      matchesAnyToken(
-        { id, name: fighter.write.name, tapologyUrl: fighter.write.tapologyUrl },
-        releaseTokens,
-      ) ||
-      (prior ? matchesAnyToken(prior, releaseTokens) : false);
     planned.push({
       id,
       write: fighter.write,
-      released,
+      released: fighter.released,
       rostered: prior?.rostered ?? false,
       previouslyActive: prior ? prior.active : null,
     });
@@ -537,6 +663,27 @@ export async function upsertFighterPool(
     }
   }
 
+  const matchRoster = [
+    ...original,
+    ...planned.map((row) => ({
+      id: row.id,
+      name: row.write.name,
+      tapologyUrl: row.write.tapologyUrl,
+      active: row.previouslyActive ?? true,
+      rostered: row.rostered,
+    })),
+  ];
+  const removalIds = new Set<string>();
+  const unmatchedReleases: string[] = [];
+  for (const token of releaseTokens) {
+    const hits = identitiesMatchingToken(token, matchRoster);
+    if (hits.length === 0) unmatchedReleases.push(token.label);
+    else for (const hit of hits) removalIds.add(hit.id);
+  }
+  for (const row of planned) {
+    if (removalIds.has(row.id)) row.released = true;
+  }
+
   let deactivated = 0;
   for (const row of planned) {
     const active = row.released && !row.rostered ? false : true;
@@ -550,7 +697,7 @@ export async function upsertFighterPool(
   }
 
   const touched = new Set(planned.map((row) => row.id));
-  const stale = original.filter((row) => !touched.has(row.id) && matchesAnyToken(row, releaseTokens));
+  const stale = original.filter((row) => !touched.has(row.id) && removalIds.has(row.id));
   const toDeactivate = stale.filter((row) => !row.rostered && row.active).map((row) => row.id);
   if (toDeactivate.length > 0) {
     const updated = await db.fighter.updateMany({
@@ -567,18 +714,6 @@ export async function upsertFighterPool(
   const rosteredRetained =
     planned.filter((row) => row.released && row.rostered).length + stale.filter((row) => row.rostered).length;
 
-  const unmatchedReleases = releaseTokens.filter((token) => {
-    const matchedPlanned = planned.some((row) =>
-      releaseTokenMatches(token, {
-        id: row.id,
-        name: row.write.name,
-        tapologyUrl: row.write.tapologyUrl,
-      }),
-    );
-    if (matchedPlanned) return false;
-    return !original.some((row) => releaseTokenMatches(token, row));
-  });
-
   return {
     upserted: prepared.fighters.length,
     deactivated,
@@ -588,6 +723,190 @@ export async function upsertFighterPool(
     activeByClass: await activePoolByClass(db),
     skippedClasses: prepared.skippedClasses,
   };
+}
+
+function divisionFields(classKey: ClassKey) {
+  return {
+    classKey,
+    slotKey: CLASS_TO_SLOT[classKey],
+    sex: sexForClass(classKey),
+    weightClass: CLASS_LABELS[classKey],
+    lastFightClass: classKey,
+  };
+}
+
+function boutCorner(value: unknown, urlValue: unknown): { name: string; tapologyUrl: string | null } | null {
+  if (typeof value === "string") {
+    const name = readString(value);
+    if (!name) return null;
+    return { name, tapologyUrl: readString(urlValue) };
+  }
+  if (isRecord(value)) {
+    const name = readString(value.name);
+    if (!name) return null;
+    return {
+      name,
+      tapologyUrl: readString(value.tapology_url) ?? readString(value.tapologyUrl) ?? readString(urlValue),
+    };
+  }
+  return null;
+}
+
+function cornersFromBout(bout: unknown): UpcomingCardFighter[] {
+  if (!isRecord(bout)) return [];
+  const weightClass = readString(bout.weight_class);
+  return [boutCorner(bout.fighter_a, bout.fighter_a_tapology_url), boutCorner(bout.fighter_b, bout.fighter_b_tapology_url)].flatMap(
+    (corner) => (corner ? [{ name: corner.name, weightClass, tapologyUrl: corner.tapologyUrl }] : []),
+  );
+}
+
+/** Primary-card bouts first, then each `next_events` card in file order. */
+export function upcomingFightersFromCard(raw: unknown): UpcomingCardFighter[] {
+  if (!isRecord(raw)) return [];
+  const out: UpcomingCardFighter[] = [];
+  const takeBouts = (bouts: unknown) => {
+    if (!Array.isArray(bouts)) return;
+    for (const bout of bouts) out.push(...cornersFromBout(bout));
+  };
+  takeBouts(raw.bouts);
+  if (Array.isArray(raw.next_events)) {
+    for (const event of raw.next_events) {
+      if (isRecord(event)) takeBouts(event.bouts);
+    }
+  }
+  return out;
+}
+
+/**
+ * Add or reactivate fighters booked on the upcoming card.
+ * The first bout in file order whose class maps wins. Catchweight and unknown
+ * classes are reported and do not add or move anyone. A fighter named by this
+ * import's removal lists is left for the removal pass. Unrostered active
+ * fighters move when the upcoming bout is a different division. Writes `Fighter` only.
+ */
+export async function syncUpcomingCardFighters(
+  db: PrismaClient,
+  rawCard: unknown,
+  removalTokens: RemovalToken[] = [],
+): Promise<FoughtSyncResult> {
+  const added: string[] = [];
+  const reactivated: string[] = [];
+  const unclassified: string[] = [];
+
+  const existing = await db.fighter.findMany({
+    select: {
+      id: true,
+      name: true,
+      active: true,
+      classKey: true,
+      tapologyUrl: true,
+      rosterSlots: { select: { id: true }, take: 1 },
+    },
+  });
+  const known = existing.map((row) => ({
+    id: row.id,
+    name: row.name,
+    tapologyUrl: row.tapologyUrl,
+    active: row.active,
+    classKey: row.classKey,
+    rostered: row.rosterSlots.length > 0,
+  }));
+  const roster = known.map((row) => ({ id: row.id, name: row.name, tapologyUrl: row.tapologyUrl }));
+  const taken = new Set(known.map((row) => row.id));
+  const seen = new Map<string, { classified: boolean }>();
+
+  const dropUnclassified = (name: string) => {
+    const key = normalizeFighterName(name);
+    for (let index = unclassified.length - 1; index >= 0; index -= 1) {
+      if (normalizeFighterName(unclassified[index] ?? "") === key) unclassified.splice(index, 1);
+    }
+  };
+
+  for (const appearance of upcomingFightersFromCard(rawCard)) {
+    const name = appearance.name.trim();
+    const nameKey = normalizeFighterName(name);
+    if (!nameKey) continue;
+    const prior = seen.get(nameKey);
+    if (prior?.classified) continue;
+    const classKey = appearance.weightClass ? classKeyForUpcomingWeightClass(appearance.weightClass) : null;
+    if (!classKey) {
+      if (!prior) {
+        unclassified.push(name);
+        seen.set(nameKey, { classified: false });
+      }
+      continue;
+    }
+
+    seen.set(nameKey, { classified: true });
+    dropUnclassified(name);
+    const person = { name, tapologyUrl: appearance.tapologyUrl };
+    if (removalAppliesTo(person, removalTokens, roster)) continue;
+
+    const match = matchFighterByName(known, name);
+    if (!match) {
+      const id = unusedFighterId(name, classKey, appearance.tapologyUrl, taken);
+      taken.add(id);
+      await db.fighter.create({
+        data: {
+          id,
+          name,
+          ...divisionFields(classKey),
+          record: null,
+          rankingJson: null,
+          lastFightDate: null,
+          lastFightNote: null,
+          upcomingFightClass: classKey,
+          nextBoutJson: null,
+          tapologyUrl: appearance.tapologyUrl,
+          wikipediaUrl: null,
+          active: true,
+          activityNotes: "Added from an upcoming card.",
+        },
+      });
+      known.push({
+        id,
+        name,
+        tapologyUrl: appearance.tapologyUrl,
+        active: true,
+        classKey,
+        rostered: false,
+      });
+      roster.push({ id, name, tapologyUrl: appearance.tapologyUrl });
+      added.push(name);
+      continue;
+    }
+
+    if (!match.active) {
+      const data: {
+        active: true;
+        upcomingFightClass?: string;
+        classKey?: string;
+        slotKey?: string;
+        sex?: string;
+        weightClass?: string;
+        lastFightClass?: string;
+      } = { active: true };
+      if (!match.rostered) {
+        Object.assign(data, divisionFields(classKey));
+        data.upcomingFightClass = classKey;
+        match.classKey = classKey;
+      }
+      await db.fighter.update({ where: { id: match.id }, data });
+      match.active = true;
+      reactivated.push(name);
+      continue;
+    }
+
+    if (!match.rostered && match.classKey !== classKey) {
+      await db.fighter.update({
+        where: { id: match.id },
+        data: { ...divisionFields(classKey), upcomingFightClass: classKey },
+      });
+      match.classKey = classKey;
+    }
+  }
+
+  return { added, reactivated, unclassified };
 }
 
 function unusedFighterId(name: string, classKey: ClassKey, tapologyUrl: string | null, taken: Set<string>): string {

@@ -3,7 +3,7 @@ import { hash } from "bcryptjs";
 import { randomBytes } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
-import { upsertFighterPool, upsertUpcomingCards } from "../src/lib/afr-pool";
+import { removalTokensFrom, syncUpcomingCardFighters, upsertFighterPool, upsertUpcomingCards } from "../src/lib/afr-pool";
 import { resolveUpcomingCardPath } from "../src/lib/upcoming-card";
 
 const prisma = new PrismaClient();
@@ -14,10 +14,10 @@ async function seedFighters() {
   const result = await upsertFighterPool(prisma, raw);
   console.log(`Seeded ${result.upserted} fighters`);
   if (result.deactivated > 0) {
-    console.log(`Marked ${result.deactivated} fighters inactive (explicit release, not on a roster)`);
+    console.log(`Marked ${result.deactivated} fighters inactive (removal signal, not on a roster)`);
   }
   if (result.rosteredRetained > 0) {
-    console.log(`Left ${result.rosteredRetained} rostered fighters active (release signal ignored)`);
+    console.log(`Left ${result.rosteredRetained} rostered fighters active (removal signal ignored)`);
   }
   for (const token of result.unmatchedReleases) {
     console.warn(`Release signal matched no fighter: ${token}`);
@@ -28,9 +28,10 @@ async function seedFighters() {
   for (const [k, v] of Object.entries(result.activeByClass)) {
     console.log(`  ${k}: ${v} active`);
   }
+  return raw;
 }
 
-async function seedUpcomingCard() {
+async function seedUpcomingCard(fightersRaw: unknown) {
   const file = resolveUpcomingCardPath(existsSync);
   if (!file) {
     console.log("No upcoming card file found; leaving UfcCard rows unchanged");
@@ -47,9 +48,17 @@ async function seedUpcomingCard() {
   const result = await upsertUpcomingCards(prisma, raw);
   if (result.unchanged) {
     console.warn(`Upcoming card file ${file} had no dated events; leaving UfcCard rows unchanged`);
-    return;
+  } else {
+    console.log(`Seeded ${result.upserted} upcoming card event(s) from ${file}`);
   }
-  console.log(`Seeded ${result.upserted} upcoming card event(s) from ${file}`);
+  const fromCards = await syncUpcomingCardFighters(prisma, raw, removalTokensFrom(fightersRaw));
+  if (fromCards.added.length > 0) console.log(`Added ${fromCards.added.length} fighter(s) from the upcoming card`);
+  if (fromCards.reactivated.length > 0) {
+    console.log(`Reactivated ${fromCards.reactivated.length} fighter(s) from the upcoming card`);
+  }
+  for (const name of fromCards.unclassified) {
+    console.warn(`Upcoming card weight class not mapped for ${name}`);
+  }
 }
 
 async function seedDemo() {
@@ -118,8 +127,8 @@ async function seedDemo() {
 }
 
 async function main() {
-  await seedFighters();
-  await seedUpcomingCard();
+  const fightersRaw = await seedFighters();
+  await seedUpcomingCard(fightersRaw);
   await seedDemo();
 }
 

@@ -1,13 +1,17 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import type { PrismaClient } from "@prisma/client";
 import { describe, it } from "node:test";
 import { AfrImportError } from "./afr-results";
 import {
   activePoolByClass,
+  classKeyForUpcomingWeightClass,
   classKeyForWeightClass,
   foughtFightersFromEvent,
   importAfrCards,
   syncFoughtFighters,
+  upcomingFightersFromCard,
   upsertFighterPool,
 } from "./afr-pool";
 import { CLASS_LABELS, CLASS_TO_SLOT, type ClassKey } from "./slots";
@@ -25,6 +29,7 @@ type StoredFighter = {
   lastFightDate?: Date | null;
   lastFightClass?: string | null;
   activityNotes?: string | null;
+  upcomingFightClass?: string | null;
   record?: string | null;
 };
 
@@ -523,5 +528,247 @@ describe("results import pool membership", () => {
     assert.equal(rows.get("mens_heavyweight-debut-ace")?.record, "1-0");
     assert.equal(rows.get("mens_heavyweight-debut-ace")?.active, true);
     assert.equal(rows.has("555-debut-ace"), false);
+  });
+});
+
+function loadFixture(name: string): unknown {
+  return JSON.parse(readFileSync(path.join(process.cwd(), "test", "fixtures", name), "utf8")) as unknown;
+}
+
+describe("removal reasons", () => {
+  it("accepts retired, inactive, left_ufc, and the wider status spellings", async () => {
+    const retired = fighter({ id: "retired-vet", name: "Retired Vet" });
+    const left = fighter({ id: "left-vet", name: "Left Vet" });
+    const rostered = fighter({
+      id: "rostered-retiree",
+      name: "Rostered Retiree",
+      rosterCount: 1,
+      classKey: "mens_welterweight",
+      slotKey: "MEN_WELTERWEIGHT",
+    });
+    const { db, rows } = memoryDb([retired, left, rostered]);
+
+    const result = await upsertFighterPool(
+      db,
+      flyweightDoc(
+        [
+          { name: "Status Retired", status: "RETIRED" },
+          { name: "Status Retirement", status: "Retirement" },
+          { name: "Status Release", status: "release" },
+          { name: "Status Inactive", status: "inactive" },
+          { name: "Status Left", status: "left_ufc" },
+        ],
+        { inactive: ["Left Vet"], left_ufc: ["Rostered Retiree"] },
+      ),
+      { retired: ["Retired Vet"] },
+    );
+
+    assert.equal(rows.get("retired-vet")?.active, false);
+    assert.equal(rows.get("left-vet")?.active, false);
+    assert.equal(rows.get("rostered-retiree")?.active, true);
+    assert.equal(rows.get("rostered-retiree")?.rosterCount, 1);
+    for (const name of ["Status Retired", "Status Retirement", "Status Release", "Status Inactive", "Status Left"]) {
+      const row = [...rows.values()].find((item) => item.name === name);
+      assert.ok(row, name);
+      assert.equal(row.active, false);
+    }
+    assert.equal(result.rosteredRetained, 1);
+    assert.ok(result.deactivated >= 6);
+  });
+
+  it("matches removal objects by tapology url first, then name", async () => {
+    const julian = fighter({
+      id: "julian-erosa",
+      name: "Julian Erosa",
+      tapologyUrl: "https://www.tapology.com/fightcenter/fighters/julian-erosa",
+    });
+    const farid = fighter({ id: "farid-basharat", name: "Farid Basharat", tapologyUrl: null });
+    const decoy = fighter({
+      id: "decoy",
+      name: "Wrong Name",
+      tapologyUrl: "https://www.tapology.com/fightcenter/fighters/real-slug",
+    });
+    const fallback = fighter({ id: "fallback-name", name: "Fallback Name" });
+    const { db, rows } = memoryDb([julian, farid, decoy, fallback]);
+    const log = loadFixture("afr-released-log.json") as { name: string; tapology_url: string | null }[];
+
+    const result = await upsertFighterPool(db, flyweightDoc([{ name: "Keeper" }]), {
+      released: [
+        ...log,
+        {
+          name: "Wrong Name",
+          tapology_url: "https://www.tapology.com/fightcenter/fighters/real-slug",
+          type: "release",
+          date: "2026-11-01",
+          source: "url wins",
+        },
+        { name: "Nobody Home", tapology_url: null, type: "release" },
+        {
+          name: "Fallback Name",
+          tapology_url: "https://www.tapology.com/fightcenter/fighters/missing-slug",
+          type: "retirement",
+        },
+      ],
+    });
+
+    assert.equal(rows.get("julian-erosa")?.active, false);
+    assert.equal(rows.get("farid-basharat")?.active, false);
+    assert.equal(rows.get("decoy")?.active, false);
+    assert.equal(rows.get("decoy")?.name, "Wrong Name");
+    assert.equal(rows.get("fallback-name")?.active, false);
+    assert.deepEqual(result.unmatchedReleases, ["Nobody Home"]);
+  });
+
+  it("does not let an object url remove a different fighter who only shares the name", async () => {
+    const slug = fighter({
+      id: "julian-erosa",
+      name: "Julian Erosa",
+      tapologyUrl: "https://www.tapology.com/fightcenter/fighters/julian-erosa",
+    });
+    const sameName = fighter({
+      id: "other-julian",
+      name: "Julian Erosa",
+      classKey: "mens_bantamweight",
+      slotKey: "MEN_BANTAMWEIGHT",
+    });
+    const { db, rows } = memoryDb([slug, sameName]);
+    await upsertFighterPool(db, flyweightDoc([{ name: "Keeper" }]), {
+      retired: [
+        {
+          name: "Julian Erosa",
+          tapology_url: "https://www.tapology.com/fightcenter/fighters/julian-erosa",
+        },
+      ],
+    });
+    assert.equal(rows.get("julian-erosa")?.active, false);
+    assert.equal(rows.get("other-julian")?.active, true);
+  });
+
+  it("accepts the string released.json sample", async () => {
+    const julian = fighter({
+      id: "julian-erosa",
+      name: "Julian Erosa",
+      tapologyUrl: "https://www.tapology.com/fightcenter/fighters/julian-erosa",
+    });
+    const farid = fighter({ id: "farid", name: "Farid Basharat" });
+    const { db, rows } = memoryDb([julian, farid]);
+    const result = await upsertFighterPool(db, flyweightDoc([{ name: "Keeper" }]), {
+      released: loadFixture("afr-released.json"),
+    });
+    assert.equal(rows.get("julian-erosa")?.active, false);
+    assert.equal(rows.get("farid")?.active, false);
+    assert.deepEqual(result.unmatchedReleases, []);
+  });
+});
+
+describe("upcoming card pool additions", () => {
+  it("maps title suffixes and skips catchweight", () => {
+    assert.equal(classKeyForUpcomingWeightClass("Heavyweight (title)"), "mens_heavyweight");
+    assert.equal(classKeyForUpcomingWeightClass("Women's Bantamweight (title)"), "womens_bantamweight");
+    assert.equal(classKeyForUpcomingWeightClass("Welterweight (interim title)"), "mens_welterweight");
+    assert.equal(classKeyForUpcomingWeightClass("Lightweight (BMF title)"), "mens_lightweight");
+    assert.equal(classKeyForUpcomingWeightClass("Flyweight (title)"), "mens_flyweight");
+    assert.equal(classKeyForWeightClass("Lightweight (catchweight 163.5 lb)"), "mens_lightweight");
+    assert.equal(classKeyForUpcomingWeightClass("Lightweight (catchweight 163.5 lb)"), null);
+    assert.equal(classKeyForUpcomingWeightClass("Catchweight"), null);
+
+    const card = loadFixture("afr-upcoming-card.json");
+    const booked = upcomingFightersFromCard(card);
+    const gane = booked.find((fighter) => fighter.name === "Ciryl Gane");
+    const harrison = booked.find((fighter) => fighter.name === "Kayla Harrison");
+    const prochazka = booked.find((fighter) => fighter.name === "Jiří Procházka");
+    const bmf = booked.find((fighter) => fighter.name === "Max Holloway" || fighter.weightClass?.includes("BMF"));
+    assert.equal(gane?.weightClass, "Heavyweight (title)");
+    assert.equal(harrison?.weightClass, "Women's Bantamweight (title)");
+    assert.ok(prochazka, "next_events bout is included");
+    assert.ok(booked.some((fighter) => fighter.weightClass === "Lightweight (BMF title)"));
+    assert.ok(booked.some((fighter) => fighter.weightClass === "Welterweight (interim title)"));
+    assert.ok(bmf);
+  });
+
+  it("adds debuts, reactivates returning fighters, and moves an unrostered active fighter", async () => {
+    const mover = fighter({
+      id: "class-mover",
+      name: "Class Mover",
+      classKey: "mens_flyweight",
+      slotKey: "MEN_FLYWEIGHT",
+    });
+    const rostered = fighter({
+      id: "rostered-champ",
+      name: "Rostered Champ",
+      rosterCount: 1,
+      classKey: "mens_flyweight",
+      slotKey: "MEN_FLYWEIGHT",
+    });
+    const returning = fighter({
+      id: "returning-vet",
+      name: "Returning Vet",
+      active: false,
+      classKey: "mens_bantamweight",
+      slotKey: "MEN_BANTAMWEIGHT",
+    });
+    const removed = fighter({
+      id: "removed-vet",
+      name: "Removed Vet",
+      active: false,
+    });
+    const same = fighter({
+      id: "same-class",
+      name: "Same Class",
+      classKey: "mens_heavyweight",
+      slotKey: "MEN_HEAVYWEIGHT",
+      activityNotes: "stay",
+    });
+    const { db, rows } = memoryDb([mover, rostered, returning, removed, same]);
+
+    const result = await importAfrCards(db, {
+      fightersByClass: flyweightDoc([{ name: "Keeper" }]),
+      upcomingCard: {
+        bouts: [
+          {
+            fighter_a: "Ciryl Gane",
+            fighter_b: "Class Mover",
+            weight_class: "Heavyweight (title)",
+            fighter_a_tapology_url: "https://www.tapology.com/fightcenter/fighters/ciryl-gane",
+          },
+          { fighter_a: "Catchweight Kid", fighter_b: "Unknown Kid", weight_class: "Catchweight" },
+          { fighter_a: "Rostered Champ", fighter_b: "Returning Vet", weight_class: "Women's Strawweight" },
+          { fighter_a: "Same Class", fighter_b: "Ciryl Gane", weight_class: "Heavyweight (title)" },
+        ],
+        next_events: [
+          {
+            bouts: [
+              { fighter_a: "Class Mover", fighter_b: "Next Event Only", weight_class: "Flyweight" },
+              { fighter_a: "Removed Vet", fighter_b: "Late Debut", weight_class: "Lightweight (interim title)" },
+            ],
+          },
+        ],
+      },
+      retired: ["Removed Vet"],
+    });
+
+    assert.deepEqual(result.addedFromCards, ["Ciryl Gane", "Next Event Only", "Late Debut"]);
+    assert.deepEqual(result.reactivatedFromCards, ["Returning Vet"]);
+    assert.deepEqual(result.unclassifiedFromCards, ["Catchweight Kid", "Unknown Kid"]);
+    const gane = rows.get("ciryl-gane");
+    assert.equal(gane?.active, true);
+    assert.equal(gane?.classKey, "mens_heavyweight");
+    assert.equal(gane?.slotKey, "MEN_HEAVYWEIGHT");
+    assert.equal(gane?.activityNotes, "Added from an upcoming card.");
+    assert.equal(rows.get("class-mover")?.classKey, "mens_heavyweight");
+    assert.equal(rows.get("class-mover")?.slotKey, "MEN_HEAVYWEIGHT");
+    assert.equal(rows.get("rostered-champ")?.classKey, "mens_flyweight");
+    assert.equal(rows.get("rostered-champ")?.rosterCount, 1);
+    assert.equal(rows.get("returning-vet")?.active, true);
+    assert.equal(rows.get("returning-vet")?.classKey, "womens_strawweight");
+    assert.equal(rows.get("returning-vet")?.slotKey, "WOMEN_STRAWWEIGHT");
+    assert.equal(rows.get("removed-vet")?.active, false);
+    assert.equal([...rows.values()].some((row) => row.name === "Catchweight Kid"), false);
+    assert.equal(rows.get("mens_lightweight-late-debut")?.classKey, "mens_lightweight");
+    assert.equal(rows.get("same-class")?.classKey, "mens_heavyweight");
+    assert.equal(rows.get("same-class")?.activityNotes, "stay");
+    assert.equal(rows.get("same-class")?.upcomingFightClass, undefined);
+    assert.equal(result.fighters.activeByClass.mens_heavyweight, 3);
+    assert.equal(result.fighters.rosteredRetained, 0);
   });
 });
