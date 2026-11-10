@@ -3,12 +3,12 @@ import { describe, it } from "node:test";
 import {
   SEASON_5_END,
   SEASON_5_START,
-  championBanner,
   eventCountsForSeason,
   isSeededBaseline,
-  seasonChampions,
+  placeLabel,
   seasonInstant,
   seasonPhase,
+  seasonPodium,
   validateSeasonRange,
 } from "./season";
 
@@ -89,23 +89,71 @@ describe("season status and winner", () => {
     assert.equal(seasonPhase(new Date(), null, null).phase, "undated");
   });
 
-  it("names one champion and lists ties as co-champions", () => {
-    const rows = [
-      { teamName: "The Pit", total: 88.4 },
+  it("lists 1st, 2nd, and 3rd with competition ranking for ties", () => {
+    const clear = seasonPodium([
+      { teamName: "Fourth", total: 10 },
+      { teamName: "First", total: 40 },
+      { teamName: "Third", total: 20 },
+      { teamName: "Second", total: 30 },
+    ]);
+    assert.deepEqual(
+      clear.map((spot) => [spot.place, spot.row.teamName, spot.row.total]),
+      [
+        [1, "First", 40],
+        [2, "Second", 30],
+        [3, "Third", 20],
+      ],
+    );
+    assert.deepEqual(clear.map((spot) => placeLabel(spot.place)), ["1st", "2nd", "3rd"]);
+
+    const tiedFirst = seasonPodium([
       { teamName: "House Account", total: 102 },
       { teamName: "Late Replacement", total: 102 },
-    ];
-    const tied = seasonChampions(rows);
+      { teamName: "The Pit", total: 88.4 },
+      { teamName: "Also Ran", total: 70 },
+    ]);
     assert.deepEqual(
-      tied.map((row) => row.teamName),
-      ["House Account", "Late Replacement"],
+      tiedFirst.map((spot) => [spot.place, spot.row.teamName]),
+      [
+        [1, "House Account"],
+        [1, "Late Replacement"],
+        [3, "The Pit"],
+      ],
     );
-    assert.equal(championBanner(tied.map((row) => row.teamName)), "Season co-champions: House Account and Late Replacement");
-    assert.equal(championBanner(["House Account"]), "Season champion: House Account");
-    assert.equal(
-      championBanner(["A", "B", "C"]),
-      "Season co-champions: A, B, and C",
+
+    const tiedSecond = seasonPodium([
+      { teamName: "First", total: 50 },
+      { teamName: "A", total: 40 },
+      { teamName: "B", total: 40 },
+      { teamName: "C", total: 40 },
+      { teamName: "Next", total: 10 },
+    ]);
+    assert.deepEqual(
+      tiedSecond.map((spot) => [spot.place, spot.row.teamName]),
+      [
+        [1, "First"],
+        [2, "A"],
+        [2, "B"],
+        [2, "C"],
+      ],
     );
-    assert.equal(seasonChampions([]).length, 0);
+
+    const tiedThird = seasonPodium([
+      { teamName: "First", total: 9 },
+      { teamName: "Second", total: 8 },
+      { teamName: "C1", total: 7 },
+      { teamName: "C2", total: 7 },
+      { teamName: "C3", total: 7 },
+      { teamName: "Fourth", total: 1 },
+    ]);
+    assert.deepEqual(
+      tiedThird.map((spot) => spot.place),
+      [1, 2, 3, 3, 3],
+    );
+    assert.equal(seasonPodium([]).length, 0);
+    assert.deepEqual(
+      seasonPodium([{ teamName: "Only", total: 4 }]).map((spot) => spot.place),
+      [1],
+    );
   });
 });
