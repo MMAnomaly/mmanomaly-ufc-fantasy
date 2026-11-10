@@ -100,17 +100,35 @@ export function seasonPhase(now: Date, seasonStart: Date | null | undefined, sea
   return { phase: "during", label };
 }
 
-export function seasonChampions<T extends { total: number }>(rows: T[]): T[] {
-  if (rows.length === 0) return [];
-  const best = Math.max(...rows.map((row) => row.total));
-  return rows.filter((row) => row.total === best);
+export type PodiumSpot<T> = { place: number; row: T };
+
+/**
+ * Competition ranking for the final podium. Ties share a place and the next
+ * place skips (two teams tied for 1st, the next team is 3rd). Every team whose
+ * place is 1, 2, or 3 is included, so a tie for 3rd lists every team on 3rd.
+ */
+export function seasonPodium<T extends { total: number }>(rows: T[]): PodiumSpot<T>[] {
+  const sorted = [...rows].sort((a, b) => b.total - a.total);
+  const podium: PodiumSpot<T>[] = [];
+  let index = 0;
+  while (index < sorted.length) {
+    const place = index + 1;
+    if (place > 3) break;
+    const total = sorted[index]?.total;
+    while (index < sorted.length && sorted[index]?.total === total) {
+      const row = sorted[index];
+      if (row) podium.push({ place, row });
+      index += 1;
+    }
+  }
+  return podium;
 }
 
-export function championBanner(names: string[]): string | null {
-  if (names.length === 0) return null;
-  if (names.length === 1) return `Season champion: ${names[0]}`;
-  if (names.length === 2) return `Season co-champions: ${names[0]} and ${names[1]}`;
-  return `Season co-champions: ${names.slice(0, -1).join(", ")}, and ${names[names.length - 1]}`;
+export function placeLabel(place: number): string {
+  if (place === 1) return "1st";
+  if (place === 2) return "2nd";
+  if (place === 3) return "3rd";
+  return `${place}th`;
 }
 
 export function seasonDateInputValue(value: Date | null | undefined): string {

@@ -3,6 +3,7 @@ import { FightingThisWeekPanel } from "@/components/fighting-this-week";
 import { TeamAvatar } from "@/components/team-avatar";
 import { requireUser } from "@/lib/auth";
 import { getFightingThisWeek } from "@/lib/fighting-this-week";
+import { placeLabel } from "@/lib/season";
 import { getStandings } from "@/lib/standings";
 import { SLOT_SHORT, type RosterSlotKey } from "@/lib/slots";
 
@@ -32,12 +33,23 @@ export default async function StandingsPage({
   return (
     <div className="space-y-6">
       <FightingThisWeekPanel data={fighting} />
-      {data.seasonLabel || data.championLabel ? (
+      {data.seasonLabel || data.podium.length > 0 ? (
         <section className="space-y-3">
           {data.seasonLabel ? <p className="text-sm text-mist">{data.seasonLabel}</p> : null}
-          {data.championLabel ? (
+          {data.podium.length > 0 ? (
             <div className="rounded-md border border-amber/40 bg-amber/10 px-4 py-3">
-              <p className="font-display text-2xl tracking-wide text-amber">{data.championLabel}</p>
+              <p className="text-[11px] uppercase tracking-[0.16em] text-amber">Final podium</p>
+              <ol className="mt-2 space-y-1">
+                {data.podium.map((spot) => (
+                  <li className="flex items-baseline justify-between gap-4" key={spot.membershipId}>
+                    <span>
+                      <span className="font-display text-xl tracking-wide text-amber">{placeLabel(spot.place)}</span>{" "}
+                      <span className="font-medium">{spot.teamName}</span>
+                    </span>
+                    <span className="font-display text-xl tabular-nums">{spot.total.toFixed(1)}</span>
+                  </li>
+                ))}
+              </ol>
             </div>
           ) : null}
         </section>

@@ -1,7 +1,7 @@
 import "server-only";
 
 import { prisma } from "./prisma";
-import { championBanner, eventCountsForSeason, isSeededBaseline, seasonChampions, seasonPhase } from "./season";
+import { eventCountsForSeason, isSeededBaseline, seasonPhase, seasonPodium } from "./season";
 
 export async function getStandings(leagueId: string) {
   const league = await prisma.league.findUnique({
@@ -81,12 +81,20 @@ export async function getStandings(leagueId: string) {
   rows.sort((a, b) => b.total - a.total || a.draftPosition - b.draftPosition);
   const ranked = rows.map((row, index) => ({ ...row, rank: index + 1 }));
   const phase = seasonPhase(new Date(), league.seasonStart, league.seasonEnd);
-  const champions = phase.phase === "after" ? seasonChampions(ranked) : [];
+  const podium =
+    phase.phase === "after"
+      ? seasonPodium(ranked).map((spot) => ({
+          place: spot.place,
+          membershipId: spot.row.membershipId,
+          teamName: spot.row.teamName,
+          total: spot.row.total,
+        }))
+      : [];
   return {
     leagueName: league.name,
     latestEventDate: latestEventDate?.toISOString() ?? null,
     seasonLabel: phase.phase === "undated" ? null : phase.label,
-    championLabel: championBanner(champions.map((row) => row.teamName)),
+    podium,
     rows: ranked,
   };
 }
