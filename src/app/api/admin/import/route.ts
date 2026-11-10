@@ -1,7 +1,7 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { AfrImportError, parseAfrResults } from "@/lib/afr-results";
-import { importAfrCards } from "@/lib/afr-pool";
+import { activePoolByClass, importAfrCards } from "@/lib/afr-pool";
 import { prisma } from "@/lib/prisma";
 import { persistAndScoreEvent } from "@/lib/ufcstats";
 
@@ -66,6 +66,7 @@ async function importResults(data: unknown) {
       eventId: existing.id,
       externalId: parsed.externalId,
       name: existing.name,
+      activePoolByClass: await activePoolByClass(prisma),
     });
   }
 
@@ -89,6 +90,10 @@ async function importResults(data: unknown) {
     name: parsed.name,
     scored: scoredRows.map((row) => ({ name: row.fighter.name, points: row.points })),
     unmatched: [...new Set(unmatchedRows.map((row) => row.fighterName))],
+    fightersAdded: result.fightersAdded,
+    fightersReactivated: result.fightersReactivated,
+    unclassifiedFighters: result.unclassifiedFighters,
+    activePoolByClass: await activePoolByClass(prisma),
   });
 }
 
@@ -99,13 +104,17 @@ async function importCards(data: unknown) {
   const result = await importAfrCards(prisma, {
     fightersByClass: data.fightersByClass,
     upcomingCard: data.upcomingCard,
+    released: data.released,
+    cut: data.cut,
   });
   return NextResponse.json({
     ok: true,
     fightersUpserted: result.fighters.upserted,
     fightersDeactivated: result.fighters.deactivated,
     rosteredFightersRetained: result.fighters.rosteredRetained,
+    unmatchedReleases: result.fighters.unmatchedReleases,
     skippedClasses: result.fighters.skippedClasses,
+    activePoolByClass: result.fighters.activeByClass,
     cardsUpserted: result.cards.upserted,
     cardsRemoved: result.cards.removed,
     cardsUnchanged: result.cards.unchanged,

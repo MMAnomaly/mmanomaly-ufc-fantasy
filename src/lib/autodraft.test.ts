@@ -168,6 +168,74 @@ describe("autopick eligibility", () => {
     assert.equal(withoutInactive, null);
   });
 
+  it("rejects an inactive fighter, a missing fighter, and a slot the fighter does not fill", () => {
+    const now = new Date("2026-09-21T20:03:00.000Z");
+    const base = {
+      now,
+      expectedIndex: 0,
+      membershipId: "team-a",
+      membershipDraftPosition: 1,
+      autoPick: false as const,
+      requireExpired: false,
+    };
+    const inactiveFighter = pool.find((f) => f.id === "fly-inactive");
+    assert.ok(inactiveFighter);
+    const inactive = commitEvaluatedPick(snapshot(), {
+      ...base,
+      fighter: inactiveFighter,
+      slot: "MEN_FLYWEIGHT",
+    });
+    assert.equal(inactive.ok, false);
+    if (!inactive.ok) assert.equal(inactive.reason, "Fighter not available.");
+
+    const missing = commitEvaluatedPick(snapshot(), {
+      ...base,
+      fighter: null,
+      slot: "MEN_FLYWEIGHT",
+    });
+    assert.equal(missing.ok, false);
+    if (!missing.ok) assert.equal(missing.reason, "Fighter not available.");
+
+    const wrongSlot = commitEvaluatedPick(snapshot(), {
+      ...base,
+      fighter: pool[1],
+      slot: "MEN_HEAVYWEIGHT",
+    });
+    assert.equal(wrongSlot.ok, false);
+    if (!wrongSlot.ok) assert.equal(wrongSlot.reason, "Fighter does not fit that roster slot.");
+
+    const flex = commitEvaluatedPick(snapshot(), {
+      ...base,
+      fighter: pool[1],
+      slot: "FLEX_1",
+    });
+    assert.equal(flex.ok, true);
+    if (flex.ok) {
+      assert.deepEqual(flex.draft.takenFighterIds, ["fly-champ"]);
+      assert.deepEqual(flex.draft.filledSlots, ["FLEX_1"]);
+    }
+  });
+
+  it("does not autodraft when every fitting fighter is inactive or already picked", () => {
+    const deadline = new Date("2026-09-21T20:00:00.000Z");
+    const inactiveOnly = prepareAutoPick(
+      snapshot({ pickDeadline: deadline }),
+      [pool.find((f) => f.id === "fly-inactive")!],
+      deadline,
+    );
+    assert.equal(inactiveOnly.action, "error");
+    if (inactiveOnly.action === "error") {
+      assert.equal(inactiveOnly.reason, "No eligible fighters remain for auto-pick.");
+    }
+
+    const taken = chooseAutoPick({
+      fighters: pool,
+      takenIds: ["fly-champ", "hw-champ", "fly-two", "fly-unranked", "fly-inactive"],
+      openSlots: ["MEN_FLYWEIGHT", "MEN_HEAVYWEIGHT", "FLEX_1"],
+    });
+    assert.equal(taken, null);
+  });
+
   it("rejects a second commit of a fighter already on a roster", () => {
     const draft = snapshot({ takenFighterIds: ["fly-champ"], currentPickIndex: 1, onTheClockMembershipId: "team-b", onTheClockDraftPosition: 2 });
     const result = commitEvaluatedPick(draft, {

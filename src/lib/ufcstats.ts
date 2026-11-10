@@ -1,4 +1,5 @@
 import * as cheerio from "cheerio";
+import { foughtFightersFromEvent, matchFighterByName, syncFoughtFighters } from "./afr-pool";
 import { prisma } from "./prisma";
 import {
   computeDkClassicPoints,
@@ -20,6 +21,7 @@ export type ParsedStatLine = {
   reversals: number;
   controlTimeSeconds: number;
   isWinner: boolean;
+  tapologyUrl?: string | null;
 };
 
 export type ParsedFight = {
@@ -43,25 +45,9 @@ export type ParsedEvent = {
   fights: ParsedFight[];
 };
 
-function normalizeName(name: string) {
-  return name
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .replace(/[^a-z0-9]/g, "");
-}
-
 export async function matchFighterId(name: string): Promise<string | null> {
-  const target = normalizeName(name);
-  if (!target) return null;
   const fighters = await prisma.fighter.findMany({ select: { id: true, name: true } });
-  const exact = fighters.find((f) => normalizeName(f.name) === target);
-  if (exact) return exact.id;
-  const contains = fighters.filter((f) => {
-    const n = normalizeName(f.name);
-    return n.includes(target) || target.includes(n);
-  });
-  return contains.length === 1 ? contains[0].id : null;
+  return matchFighterByName(fighters, name)?.id ?? null;
 }
 
 async function fetchHtml(url: string) {
@@ -223,6 +209,13 @@ export async function persistAndScoreEvent(event: ParsedEvent, source: string) {
       },
     });
 
+    const poolSync = await syncFoughtFighters(prisma, foughtFightersFromEvent(event));
+    for (const name of poolSync.added) logs.push(`${name}: added to the draft pool`);
+    for (const name of poolSync.reactivated) logs.push(`${name}: reactivated in the draft pool`);
+    for (const name of poolSync.unclassified) {
+      logs.push(`${name}: weight class not mapped, not added to the draft pool`);
+    }
+
     await prisma.fight.deleteMany({ where: { eventId: savedEvent.id } });
     await prisma.fantasyScore.deleteMany({ where: { eventId: savedEvent.id } });
 
@@ -310,7 +303,13 @@ export async function persistAndScoreEvent(event: ParsedEvent, source: string) {
         log: logs.join("\n"),
       },
     });
-    return { eventId: savedEvent.id, log: logs.join("\n") };
+    return {
+      eventId: savedEvent.id,
+      log: logs.join("\n"),
+      fightersAdded: poolSync.added,
+      fightersReactivated: poolSync.reactivated,
+      unclassifiedFighters: poolSync.unclassified,
+    };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     await prisma.scoringJob.update({
