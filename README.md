@@ -53,7 +53,7 @@ Do not commit real secrets. Copy `.env.example` and generate values locally / in
 ## Deploy on Vercel
 
 1. **Provision Postgres** — [Vercel Postgres](https://vercel.com/storage/postgres) or [Neon](https://neon.tech) (or another hosted Postgres). Copy the connection strings; do not invent them.
-2. **Import the GitHub repo** at [vercel.com/new](https://vercel.com/new). Framework preset: Next.js. Build command: `npm run build` (runs `prisma generate && next build`). Install runs `postinstall` → `prisma generate`.
+2. **Import the GitHub repo** at [vercel.com/new](https://vercel.com/new). Framework preset: Next.js. Build command: `npm run build` (runs `prisma generate`, then `prisma migrate deploy` when `DATABASE_URL` is set, then `next build`). Install runs `postinstall` → `prisma generate`.
 3. **Set environment variables** (Production; Preview if you use a separate database):
 
    | Name | Value |
@@ -66,8 +66,8 @@ Do not commit real secrets. Copy `.env.example` and generate values locally / in
    | `APP_URL` | `https://your-project.vercel.app` (or your custom domain) |
    | `BLOB_READ_WRITE_TOKEN` | Optional. Vercel project → Storage → Blob → copy the read/write token. Enables team picture uploads in production |
 
-4. **Deploy**. The Next.js build does not apply migrations or seed data.
-5. **First deploy / empty database — run once** (and again after new migrations):
+4. **Deploy**. When `DATABASE_URL` is set, the Vercel build runs `prisma migrate deploy` before `next build`. That is how schema changes reach production: the ops machine cannot open Postgres on port 5432, and Vercel can. The command only applies migrations that are not already recorded. It does not seed and it does not delete scores. `DIRECT_URL` is the unpooled URL Prisma uses for migrate; if it is unset, the build uses `DATABASE_URL`. A local `npm run build` without `DATABASE_URL` skips migrate. If the database is unreachable, the production build fails instead of shipping a schema the app cannot read.
+5. **First deploy / empty database — seed once** (migrate already ran in the build when the database env vars were set):
 
    ```bash
    npx vercel env pull .env.production.local
@@ -81,7 +81,7 @@ Do not commit real secrets. Copy `.env.example` and generate values locally / in
 
    Seed loads `data/fighters_by_class.json` (640 fighters) and, when a card file is present, the `UfcCard` rows used by Fighting this week. Optional `SEED_DEMO=true` is for local demos, not production.
 
-   `prisma/migrations/20260926193600_ufc_card` adds `UfcCard`. Production needs `npx prisma migrate deploy` before `npx prisma db seed`. Re-run the seed after replacing the upcoming-card file so the standings panel picks up the new bouts. If that file is absent, seed leaves existing `UfcCard` rows alone and the page derives the next card from `Fighter.nextBoutJson`.
+   `prisma/migrations/20260926193600_ufc_card` adds `UfcCard`. `prisma/migrations/20261110183000_league_season_dates` adds `League.seasonStart` and `League.seasonEnd` and sets MMAnomaly League Season 5 to 2026-07-01 through 2026-12-31. The Vercel build applies both. The manual `npx prisma migrate deploy` above is the fallback when a build could not reach the database. Re-run the seed after replacing the upcoming-card file so the standings panel picks up the new bouts. If that file is absent, seed leaves existing `UfcCard` rows alone and the page derives the next card from `Fighter.nextBoutJson`.
 
 6. Confirm **Settings → Cron Jobs** shows `GET /api/jobs/sunday-score` on `0 22 * * 0`. Cron runs on production deployments only.
 
@@ -110,7 +110,7 @@ Hobby cron jobs run at most once per day (this weekly job is within that limit) 
 ## How to run a league
 
 1. **Register** at `/register` (commissioner does not need an invite).
-2. **Create a league** at `/leagues/new` (4–12 teams, default 8; pick clock default 120s / 2:00).
+2. **Create a league** at `/leagues/new` (4–12 teams, default 8; pick clock default 120s / 2:00). Season start and season end are required, and the end date has to be after the start. The commissioner can change both later under Admin → League settings. Dates are calendar days in America/Los_Angeles. Standings count a score when that event's Los Angeles day is inside the window, inclusive. Leagues with no dates still count every score. A seeded baseline always counts, including when its timestamp sits outside the window. A baseline event is one whose name, source, or external id contains `baseline`, or a score row with no bouts. Scores stay in the database either way. After the end date, standings name the champion, or the co-champions when the top total is shared. MMAnomaly League Season 5 is set to July 1, 2026 through December 31, 2026 by migration `20261110183000_league_season_dates`.
 3. Copy the **invite link** from the lobby or Admin. Invitees hit `/join/[token]`, then register with email + password (or log in) and join. Unique email per league membership is enforced via unique user email + one membership per user/league.
 4. **Admin**: randomize snake order, then Up/Down to pin last season’s winner at 1. Start the draft when at least 2 teams have joined.
 5. **Draft**: on your turn pick **one fighter** into **any open slot**. Flex can be any class. No fighter may be drafted twice. When the server clock hits 0:00, the best eligible fighter is autodrafted (see below). Commissioner can pause, resume, reorder the snake, or force auto-pick.

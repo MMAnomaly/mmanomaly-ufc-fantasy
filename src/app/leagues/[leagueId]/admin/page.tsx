@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { AdminPanel } from "@/components/admin-panel";
 import { requireCommissioner } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { seasonDateInputValue } from "@/lib/season";
 
 export default async function AdminPage({
   params,
@@ -26,6 +27,8 @@ export default async function AdminPage({
       status={full.status}
       maxTeams={full.maxTeams}
       pickClockSeconds={full.pickClockSeconds}
+      seasonStart={seasonDateInputValue(full.seasonStart)}
+      seasonEnd={seasonDateInputValue(full.seasonEnd)}
       invites={full.invites.map((i) => ({
         id: i.id,
         token: i.token,

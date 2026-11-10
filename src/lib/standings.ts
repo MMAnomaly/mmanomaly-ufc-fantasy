@@ -1,6 +1,7 @@
 import "server-only";
 
 import { prisma } from "./prisma";
+import { championBanner, eventCountsForSeason, isSeededBaseline, seasonChampions, seasonPhase } from "./season";
 
 export async function getStandings(leagueId: string) {
   const league = await prisma.league.findUnique({
@@ -18,15 +19,25 @@ export async function getStandings(leagueId: string) {
   if (!league) return null;
 
   const fighterIds = league.memberships.flatMap((m) => m.roster.map((r) => r.fighterId));
-  const scores = fighterIds.length
+  const allScores = fighterIds.length
     ? await prisma.fantasyScore.findMany({
         where: { fighterId: { in: fighterIds } },
-        include: { event: true },
+        include: { event: { include: { _count: { select: { fights: true } } } } },
       })
     : [];
+  const scores = allScores.filter((score) =>
+    eventCountsForSeason(
+      { ...score.event, fightCount: score.event._count.fights },
+      league.seasonStart,
+      league.seasonEnd,
+    ),
+  );
+  const fightNights = scores.filter(
+    (score) => !isSeededBaseline({ ...score.event, fightCount: score.event._count.fights }),
+  );
 
-  const latestEventDate = scores.reduce<Date | null>((acc, s) => {
-    if (!acc || s.event.date > acc) return s.event.date;
+  const latestEventDate = fightNights.reduce<Date | null>((acc, score) => {
+    if (!acc || score.event.date > acc) return score.event.date;
     return acc;
   }, null);
 
@@ -68,10 +79,15 @@ export async function getStandings(leagueId: string) {
   });
 
   rows.sort((a, b) => b.total - a.total || a.draftPosition - b.draftPosition);
+  const ranked = rows.map((row, index) => ({ ...row, rank: index + 1 }));
+  const phase = seasonPhase(new Date(), league.seasonStart, league.seasonEnd);
+  const champions = phase.phase === "after" ? seasonChampions(ranked) : [];
   return {
     leagueName: league.name,
     latestEventDate: latestEventDate?.toISOString() ?? null,
-    rows: rows.map((row, index) => ({ ...row, rank: index + 1 })),
+    seasonLabel: phase.phase === "undated" ? null : phase.label,
+    championLabel: championBanner(champions.map((row) => row.teamName)),
+    rows: ranked,
   };
 }
 

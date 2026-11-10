@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { TeamAvatar } from "@/components/team-avatar";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { eventCountsForSeason } from "@/lib/season";
 import { ALL_SLOTS, SLOT_LABELS, type RosterSlotKey } from "@/lib/slots";
 
 export default async function RosterPage({
@@ -24,7 +25,18 @@ export default async function RosterPage({
   const bySlot = new Map(membership.roster.map((r) => [r.slot, r]));
   const fighterIds = membership.roster.map((r) => r.fighterId);
   const scores = fighterIds.length
-    ? await prisma.fantasyScore.findMany({ where: { fighterId: { in: fighterIds } } })
+    ? (
+        await prisma.fantasyScore.findMany({
+          where: { fighterId: { in: fighterIds } },
+          include: { event: { include: { _count: { select: { fights: true } } } } },
+        })
+      ).filter((score) =>
+        eventCountsForSeason(
+          { ...score.event, fightCount: score.event._count.fights },
+          membership.league.seasonStart,
+          membership.league.seasonEnd,
+        ),
+      )
     : [];
   const pointsFor = (fighterId: string) =>
     Math.round(scores.filter((s) => s.fighterId === fighterId).reduce((sum, s) => sum + s.points, 0) * 100) /
