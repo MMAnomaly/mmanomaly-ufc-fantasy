@@ -106,6 +106,9 @@ async function importCards(data: unknown) {
     upcomingCard: data.upcomingCard,
     released: data.released,
     cut: data.cut,
+    retired: data.retired,
+    inactive: data.inactive,
+    left_ufc: data.left_ufc,
   });
   return NextResponse.json({
     ok: true,
@@ -115,6 +118,9 @@ async function importCards(data: unknown) {
     unmatchedReleases: result.fighters.unmatchedReleases,
     skippedClasses: result.fighters.skippedClasses,
     activePoolByClass: result.fighters.activeByClass,
+    addedFromCards: result.addedFromCards,
+    reactivatedFromCards: result.reactivatedFromCards,
+    unclassifiedFromCards: result.unclassifiedFromCards,
     cardsUpserted: result.cards.upserted,
     cardsRemoved: result.cards.removed,
     cardsUnchanged: result.cards.unchanged,

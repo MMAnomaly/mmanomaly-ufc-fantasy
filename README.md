@@ -186,20 +186,20 @@ node scripts/push-afr.mjs --results vegas122-results.json edmonton-results.json
 node scripts/push-afr.mjs --cards /path/to/active-fighter-repository --results vegas122-results.json edmonton-results.json
 ```
 
-`scripts/push-afr.mjs` is Node 20 with built-in `fetch` and no dependencies. `--cards` reads `fighters_by_class.json` and `upcoming_card.json` from that folder, and also `released.json` and `cut.json` when those files are present (each one is a JSON array). `--results` takes one or more results files and posts them oldest `event.date` first. When both flags are present, the card reload is posted first so new fighters exist before scoring. The script prints each response body and does not print the secret.
+`scripts/push-afr.mjs` is Node 20 with built-in `fetch` and no dependencies. `--cards` reads `fighters_by_class.json` and `upcoming_card.json` from that folder, and also `released.json`, `cut.json`, `retired.json`, `inactive.json`, and `left_ufc.json` when those files are present (each one is a JSON array). `--results` takes one or more results files and posts them oldest `event.date` first. When both flags are present, the card reload is posted first so new fighters exist before scoring. The script prints each response body and does not print the secret.
 
 `POST /api/admin/import` is an App Router route handler on the Node.js runtime. Auth is `Authorization: Bearer <ADMIN_IMPORT_SECRET>`, compared in constant time. A mismatch is 401. If the env var is unset, the route returns 503 and does not read the body. The JSON body is `{ "kind": "results" | "cards", "data": ... }`. A full card reload is about 0.77 MB, under the platform body limit.
 
 - `kind: "results"` — `data` is one Active Fighter Repository results file (see `test/fixtures/afr-edmonton-results.json` and `test/fixtures/afr-vegas122-results.json`). Each bout's `fighters` array is mapped into the existing `ParsedEvent` shape and scored with `persistAndScoreEvent`. `fighters_listed_on_card` is ignored. `externalId` and `url` are `event.ufcstats_url`, or `event.ufc_url` when that is null. `name` is `event.short_name`. `date` is the event date at 12:00 UTC. `source` is `afr-ufcstats`. Stat lines use `total_strikes_landed`, `sig_strikes_landed`, `takedowns_landed`, `reversals`, `control_time_seconds`, and `knockdowns`. `method`, `end_round`, and `end_time` come from the bout. `isWinner` is `result === "W"`; a draw (`"D"`) is not a winner. Optional `tapology_url` on a bout fighter is kept and becomes the pool id when that fighter is new. Before stat lines are written, every fighter on the card is synced into the draft pool (`Fighter` rows only): a fighter who is not already in the pool is inserted `active: true` in the division of their first bout in file order (AFR files sort `bout_order` ascending, so the main event is first). Catchweight text in parentheses is ignored, so `Lightweight (catchweight 163.5 lb)` maps to lightweight and `Women's Strawweight (catchweight 117 lb)` maps to women's strawweight. A label that is not one of the eleven draft divisions is returned in `unclassifiedFighters` and that fighter is left unmatched. An inactive fighter on the card is set `active: true` again; when they are on no roster, their division is updated to that bout. An already-active fighter keeps their current division. This sync does not modify users, leagues, rosters, picks, or scores. If a `UfcEvent` with that `externalId` already has fantasy scores, the handler returns `{ "alreadyScored": true, "activePoolByClass": ... }` and leaves the event, fights, scores, and the pool alone. Otherwise the response lists scored fighters with points, the unmatched fighter names, `fightersAdded`, `fightersReactivated`, `unclassifiedFighters`, and `activePoolByClass`.
-- `kind: "cards"` — `data` is `{ "fightersByClass", "upcomingCard" }` in the shapes of `data/fighters_by_class.json` and `upcoming_card.json`, plus optional `released` and `cut` arrays. The fighter and `UfcCard` / `next_bout` upsert lives in `src/lib/afr-pool.ts` and is what `prisma/seed.ts` calls too. It writes fighters and upcoming-card rows only. It does not modify users, leagues, memberships, roster slots, draft picks, events, or scores. A fighter who is missing from the file keeps their current `active` flag and stays in the database. A fighter listed in `fightersByClass` is upserted `active: true` unless this same payload also releases them. The response returns `fightersUpserted`, `fightersDeactivated`, `rosteredFightersRetained`, `unmatchedReleases`, `skippedClasses`, `activePoolByClass`, and the card counts. `activePoolByClass` is the number of active fighters in each `class_key` after the import (every draft division is present, plus any other class key still active). Use it to confirm each division stays at or above 30; heavyweight may run thinner, and the seeded women's bantamweight list is under 30 on purpose. A card payload with no dated events leaves existing `UfcCard` rows unchanged.
+- `kind: "cards"` — `data` is `{ "fightersByClass", "upcomingCard" }` in the shapes of `data/fighters_by_class.json` and `upcoming_card.json`, plus optional removal arrays `released`, `cut`, `retired`, `inactive`, and `left_ufc` (`left_ufc` is an alias of `inactive`). The fighter and `UfcCard` / `next_bout` upsert lives in `src/lib/afr-pool.ts` and is what `prisma/seed.ts` calls too. It writes fighters and upcoming-card rows only. It does not modify users, leagues, memberships, roster slots, draft picks, events, or scores. A fighter who is missing from the file keeps their current `active` flag and stays in the database. A fighter listed in `fightersByClass` is upserted `active: true` unless this same payload also removes them. Every fighter on the upcoming card (top-level `bouts`, then each `next_events[].bouts`) is added in that bout's division or reactivated. Title notes such as `(title)`, `(interim title)`, and `(BMF title)` are ignored. A catchweight or unknown class is skipped and returned in `unclassifiedFromCards`. An already-active unrostered fighter moves to the upcoming division when it differs from the division already stored (the pool lists the most recent competed class unless the upcoming bout is a new class). Rostered fighters are not moved. A fighter who is also on this import's removal lists is not added or reactivated. The response returns `fightersUpserted`, `fightersDeactivated`, `rosteredFightersRetained`, `unmatchedReleases`, `skippedClasses`, `addedFromCards`, `reactivatedFromCards`, `unclassifiedFromCards`, `activePoolByClass`, and the card counts. `activePoolByClass` is the number of active fighters in each `class_key` after the import (every draft division is present, plus any other class key still active). Use it to confirm each division stays at or above 30; heavyweight may run thinner, and the seeded women's bantamweight list is under 30 on purpose. A card payload with no dated events leaves existing `UfcCard` rows unchanged. The first mapped bout in that file order wins when the same fighter is booked twice.
 
-### Release signal
+### Removal signal
 
-Send a release signal when a fighter is confirmed cut or released from the UFC. Leaving them out of `fighters_by_class.json` does not remove them from the draft pool. A later cards import that includes the fighter and omits the signal marks them active again, so keep sending the signal for as long as they should stay out, or include them again only when they are back.
+Send a removal signal when a fighter is cut, released, retired, or otherwise no longer active in the UFC. Leaving them out of `fighters_by_class.json` does not remove them from the draft pool. A later cards import that includes the fighter and omits the signal marks them active again, so keep sending the signal for as long as they should stay out, or include them again only when they are back.
 
-`released` and `cut` are optional string arrays. They can sit on the cards payload, on the `fightersByClass` document (next to `classes`), or both. The same arrays can be files named `released.json` and `cut.json` in the folder passed to `scripts/push-afr.mjs`. A fighter object inside a class may also set `"status": "released"` or `"status": "cut"`.
+`released`, `cut`, `retired`, `inactive`, and `left_ufc` are optional arrays. They can sit on the cards payload, on the `fightersByClass` document (next to `classes`), or both. The same arrays can be files named `released.json`, `cut.json`, `retired.json`, `inactive.json`, and `left_ufc.json` in the folder passed to `scripts/push-afr.mjs`. A fighter object inside a class may also set `status` to `released`, `cut`, `retired`, `retirement`, `release`, `inactive`, or `left_ufc` (any casing).
 
-Each entry is a fighter name, a Tapology fighter URL, or a UFC Stats fighter-details URL:
+Each entry is a fighter name, a Tapology fighter URL, a UFC Stats fighter-details URL, or an object `{ "name", "tapology_url", "type", "date", "source" }`. `type`, `date`, and `source` are stored by the provider and ignored here; the object is still a removal. An object matches `tapology_url` first and uses `name` when the URL matches nobody.
 
 ```json
 {
@@ -208,16 +208,31 @@ Each entry is a fighter name, a Tapology fighter URL, or a UFC Stats fighter-det
   "released": [
     "Some Cut Fighter",
     "https://www.tapology.com/fightcenter/fighters/12345-some-cut-fighter",
-    "http://ufcstats.com/fighter-details/0123456789abcdef"
+    {
+      "name": "Farid Basharat",
+      "tapology_url": null,
+      "type": "release",
+      "date": "2026-10-17",
+      "source": "Contract not renewed"
+    }
+  ],
+  "retired": [
+    {
+      "name": "Julian Erosa",
+      "tapology_url": "https://www.tapology.com/fightcenter/fighters/julian-erosa",
+      "type": "retirement",
+      "date": "2026-10-31",
+      "source": "Retired in the cage"
+    }
   ]
 }
 ```
 
-Names match the stored name with accents, case, and punctuation ignored. The match is the full name. A Tapology URL matches `Fighter.tapologyUrl` or the fighter id (the URL slug). A UFC Stats URL matches when its last path segment equals the fighter id. Fighter ids are Tapology slugs, so send the fighter's name or Tapology URL; a UFC Stats hex id matches only when that id is already the stored fighter id. Entries that match nobody are returned in `unmatchedReleases` and do not fail the import. Rostered fighters stay active (`rosteredFightersRetained`). Unrostered matches are set `active: false` (`fightersDeactivated` is how many of those were active before this import). Sending the same payload again leaves those flags as they are.
+Names match the stored name with accents, case, and punctuation ignored. The match is the full name. A Tapology URL matches `Fighter.tapologyUrl` or the fighter id (the URL slug). A UFC Stats URL matches when its last path segment equals the fighter id. Fighter ids are Tapology slugs, so send the fighter's name or Tapology URL; a UFC Stats hex id matches only when that id is already the stored fighter id. Entries that match nobody are returned in `unmatchedReleases` and do not fail the import. Rostered fighters stay active (`rosteredFightersRetained`). Unrostered matches are set `active: false` (`fightersDeactivated` is how many of those were active before this import). Sending the same payload again leaves those flags as they are. Manual picks and autodraft only accept an active pool fighter, in an open slot that fighter fills, who is not already drafted.
 
 ## Fighter seed
 
-`data/fighters_by_class.json` is an Active Fighter Repository export (640 fighters, 11 classes; snapshot `2026-09-21T09:38:06-07:00`). `prisma/seed.ts` upserts each fighter and maps `class_key` → roster slots through `src/lib/afr-pool.ts`, the same function the cards import uses. Fighters already stored but missing from the file keep their current `active` flag. A `released` or `cut` array on that file marks unrostered matches inactive. Rostered fighters stay active, and picks and scores stay on the same row. The seed log prints the active pool count per class.
+`data/fighters_by_class.json` is an Active Fighter Repository export (640 fighters, 11 classes; snapshot `2026-09-21T09:38:06-07:00`). `prisma/seed.ts` upserts each fighter and maps `class_key` → roster slots through `src/lib/afr-pool.ts`, the same function the cards import uses, then adds fighters from the upcoming-card file with the same rules. Fighters already stored but missing from the file keep their current `active` flag. A removal list on that file marks unrostered matches inactive. Rostered fighters stay active, and picks and scores stay on the same row. The seed log prints the active pool count per class.
 
 | `class_key` | Roster slot |
 | --- | --- |
@@ -277,7 +292,7 @@ Optional demo accounts (`SEED_DEMO=true` in `.env` before `npm run db:seed`):
 npm test
 ```
 
-Covers snake order (13 slots × N teams), the 2:00 autodraft (expiry, open slots, uniqueness, ranking, inactive and already-drafted fighters, and a manual-vs-autopick race), manual-pick rejection of an inactive fighter, a missing fighter, and a slot the fighter does not fill, the draft-pool import (absence keeps a fighter active, release signals, results-card additions), the DK Classic formula (SS = strike + additional, R1 quick-win, decision vs finish, loser move points), and the Active Fighter Repository results mapping against `test/fixtures`.
+Covers snake order (13 slots × N teams), the 2:00 autodraft (expiry, open slots, uniqueness, ranking, inactive and already-drafted fighters, and a manual-vs-autopick race), manual-pick rejection of an inactive fighter, a missing fighter, and a slot the fighter does not fill, the draft-pool import (absence keeps a fighter active, release/retirement/inactive signals, results-card and upcoming-card additions), the DK Classic formula (SS = strike + additional, R1 quick-win, decision vs finish, loser move points), and the Active Fighter Repository results mapping against `test/fixtures`.
 
 ## Out of scope for v1
 

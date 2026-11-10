@@ -1,0 +1,496 @@
+{
+  "generated_at": "2026-11-08T10:55:54-08:00",
+  "sources": [
+    "https://www.ufc.com/events",
+    "https://www.ufc.com/event/ufc-334",
+    "https://www.ufc.com/event/ufc-fight-night-november-21-2026",
+    "https://www.ufc.com/event/ufc-335",
+    "https://www.ufc.com/event/ufc-336",
+    "https://www.ufc.com/event/ufc-fight-night-january-16-2027 (UFC Dallas; no bouts yet, not listed)",
+    "https://www.ufc.com/event/ufc-fight-night-february-06-2027",
+    "https://en.wikipedia.org/wiki/2026_in_UFC",
+    "https://en.wikipedia.org/wiki/2027_in_UFC",
+    "https://en.wikipedia.org/wiki/UFC_334",
+    "https://en.wikipedia.org/wiki/UFC_Fight_Night:_Procházka_vs._Stirling",
+    "https://en.wikipedia.org/wiki/UFC_Fight_Night_295",
+    "https://en.wikipedia.org/wiki/UFC_335",
+    "https://en.wikipedia.org/wiki/UFC_Fight_Night_297",
+    "https://en.wikipedia.org/wiki/UFC_336",
+    "https://en.wikipedia.org/wiki/UFC_Fight_Night_296 (Dallas; no bouts)",
+    "https://en.wikipedia.org/wiki/UFC_Fight_Night:_Salkilld_vs._Saint_Denis",
+    "https://www.tapology.com/fightcenter?group=ufc (Cloudflare HTTP 403 from box on 2026-11-08; not used)",
+    "https://x.com/BigMarcel24 (X API get_users_posts Nov 2–Nov 8 PT, user id 164806073)",
+    "Heavy.com (Saudi main/co-main, Spivac/Pinto, Andrusca/Osmanli, Park/Tulio, UFC 334 late booking, Vegas 124 bonuses), MMA Junkie (Garry/Amosov move), MMA Mania (Yair/Garcia; Barber out; Calderon replacement)",
+    "https://en.wikipedia.org/wiki/UFC_Fight_Night:_Cortes-Acosta_vs._Walker (completed 2026-11-07; results in last_event_results.json)"
+  ],
+  "segment_legend": "card_segment null = segment not yet published; confirmed=true = on both the official UFC.com fight card and the Wikipedia fight-card table; confirmed=false = media-reported / Wikipedia \"announced\" bout not on both tables (UFC.com still shows some withdrawn/moved bouts e.g. Pyfer/Nickal on UFC 335, Yañez/Díaz on UFC 334 — those are dropped); ufc_url null = no UFC.com event page yet",
+  "event": "UFC 334",
+  "event_full_name": "UFC 334: Gane vs. Hokit (Polymarket UFC 334)",
+  "date": "2026-11-14",
+  "location": "Madison Square Garden, New York City, New York, USA",
+  "tapology_url": "https://www.tapology.com/fightcenter/events/147320-ufc-334",
+  "ufc_url": "https://www.ufc.com/event/ufc-334",
+  "bout_count": 13,
+  "bouts": [
+    {
+      "fighter_a": "Ciryl Gane",
+      "fighter_b": "Josh Hokit",
+      "weight_class": "Heavyweight (title)",
+      "card_segment": "main",
+      "confirmed": true
+    },
+    {
+      "fighter_a": "Kayla Harrison",
+      "fighter_b": "Amanda Nunes",
+      "weight_class": "Women's Bantamweight (title)",
+      "card_segment": "main",
+      "confirmed": true
+    },
+    {
+      "fighter_a": "Caio Borralho",
+      "fighter_b": "Yousri Belgaroui",
+      "weight_class": "Middleweight",
+      "card_segment": "main",
+      "confirmed": true
+    },
+    {
+      "fighter_a": "Uroš Medić",
+      "fighter_b": "Kevin Holland",
+      "weight_class": "Welterweight",
+      "card_segment": "main",
+      "confirmed": true
+    },
+    {
+      "fighter_a": "Bilal Hasan",
+      "fighter_b": "Luis Gurule",
+      "weight_class": "Flyweight",
+      "card_segment": "main",
+      "confirmed": true
+    },
+    {
+      "fighter_a": "Stephen Thompson",
+      "fighter_b": "Charles Radtke",
+      "weight_class": "Welterweight",
+      "card_segment": "prelims",
+      "confirmed": true
+    },
+    {
+      "fighter_a": "Drew Dober",
+      "fighter_b": "Chris Duncan",
+      "weight_class": "Lightweight",
+      "card_segment": "prelims",
+      "confirmed": true
+    },
+    {
+      "fighter_a": "Jim Miller",
+      "fighter_b": "Terrance McKinney",
+      "weight_class": "Lightweight",
+      "card_segment": "prelims",
+      "confirmed": true
+    },
+    {
+      "fighter_a": "Donte Johnson",
+      "fighter_b": "César Almeida",
+      "weight_class": "Middleweight",
+      "card_segment": "prelims",
+      "confirmed": true
+    },
+    {
+      "fighter_a": "Jared Gordon",
+      "fighter_b": "Melquizael Costa",
+      "weight_class": "Lightweight",
+      "card_segment": "early prelims",
+      "confirmed": true
+    },
+    {
+      "fighter_a": "Macy Chiasson",
+      "fighter_b": "Beatriz Mesquita",
+      "weight_class": "Women's Bantamweight",
+      "card_segment": "early prelims",
+      "confirmed": true
+    },
+    {
+      "fighter_a": "Evan Elder",
+      "fighter_b": "Samuel Sanches",
+      "weight_class": "Lightweight",
+      "card_segment": "early prelims",
+      "confirmed": true
+    },
+    {
+      "fighter_a": "Juan Díaz",
+      "fighter_b": "Alateng Heili",
+      "weight_class": "Bantamweight",
+      "card_segment": null,
+      "confirmed": false
+    }
+  ],
+  "notes": "Nov 8: Johnson/Almeida, Gordon/Costa and Elder/Sanches now on both UFC.com and the Wikipedia fight-card table → confirmed=true (segments: Johnson/Almeida prelims; Gordon/Costa and Elder/Sanches early prelims). Chiasson/Mesquita moved to early prelims per UFC.com+Wikipedia. Added Juan Díaz vs Alateng Heili (BW; BigMarcel24 X Nov 6 / Heavy “late booking”, card now 13; Wikipedia announced, not yet on Wikipedia fight-card table; UFC.com still lists stale Yañez/Díaz — dropped). Stephen Thompson will retire after vs Charles Radtke (BigMarcel24 RT of MMAdamMartin Nov 5).",
+  "next_events": [
+    {
+      "event": "UFC Fight Night Qatar",
+      "event_full_name": "UFC Fight Night: Procházka vs. Stirling (UFC Fight Night 294)",
+      "date": "2026-11-21",
+      "location": "ABHA Arena (Ali Bin Hamad al-Attiyah Arena), Al Rayyan/Doha, Qatar",
+      "tapology_url": "https://www.tapology.com/fightcenter/events/148467-ufc-fight-night",
+      "ufc_url": "https://www.ufc.com/event/ufc-fight-night-november-21-2026",
+      "bout_count": 11,
+      "bouts": [
+        {
+          "fighter_a": "Jiří Procházka",
+          "fighter_b": "Navajo Stirling",
+          "weight_class": "Light Heavyweight",
+          "card_segment": "main",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Aljamain Sterling",
+          "fighter_b": "Kevin Vallejos",
+          "weight_class": "Featherweight",
+          "card_segment": "main",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Dan Hooker",
+          "fighter_b": "Brian Ortega",
+          "weight_class": "Lightweight",
+          "card_segment": "main",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Kyoji Horiguchi",
+          "fighter_b": "Asu Almabayev",
+          "weight_class": "Flyweight",
+          "card_segment": "main",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Jared Cannonier",
+          "fighter_b": "Ikram Aliskerov",
+          "weight_class": "Middleweight",
+          "card_segment": "main",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Aleksandre Topuria",
+          "fighter_b": "Santiago Luna",
+          "weight_class": "Bantamweight",
+          "card_segment": "prelims",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Shamil Gaziev",
+          "fighter_b": "Tallison Teixeira",
+          "weight_class": "Heavyweight",
+          "card_segment": "prelims",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Amir Albazi",
+          "fighter_b": "Alessandro Costa",
+          "weight_class": "Flyweight",
+          "card_segment": "prelims",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Jake Matthews",
+          "fighter_b": "Tahir Abdullayev",
+          "weight_class": "Welterweight",
+          "card_segment": "prelims",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Nikolas Motta",
+          "fighter_b": "Dom Mar Fan",
+          "weight_class": "Lightweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Diyar Nurgozhay",
+          "fighter_b": "Alik Lorenz",
+          "weight_class": "Light Heavyweight",
+          "card_segment": null,
+          "confirmed": false
+        }
+      ],
+      "notes": "Nov 8: no bout-list change vs Nov 2 (9-bout card on UFC.com + Wikipedia). Segments now filled from UFC.com/Wikipedia (5 main, 4 prelims). Motta/Dom Mar Fan and Nurgozhay/Lorenz still Wikipedia announced only → confirmed=false. Manoel Sousa vs TBD not listed. Cavalcanti vs Montague remains at UFC 335."
+    },
+    {
+      "event": "UFC Fight Night Saudi Arabia",
+      "event_full_name": "UFC Fight Night 295 (Riyadh)",
+      "date": "2026-12-05",
+      "location": "anb Arena, Riyadh, Saudi Arabia",
+      "tapology_url": "https://www.tapology.com/fightcenter/events/148816-ufc-fight-night",
+      "ufc_url": null,
+      "bout_count": 12,
+      "bouts": [
+        {
+          "fighter_a": "Israel Adesanya",
+          "fighter_b": "Sharabutdin Magomedov",
+          "weight_class": "Middleweight",
+          "card_segment": "main",
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Ian Machado Garry",
+          "fighter_b": "Yaroslav Amosov",
+          "weight_class": "Welterweight",
+          "card_segment": "co-main",
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Serghei Spivac",
+          "fighter_b": "Mário Pinto",
+          "weight_class": "Heavyweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Ion Cuțelaba",
+          "fighter_b": "Magomed Tuchalov",
+          "weight_class": "Light Heavyweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Abdul Hussein",
+          "fighter_b": "Hecher Sosa",
+          "weight_class": "Bantamweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Matthieu Letho Duclos",
+          "fighter_b": "Modestino Rodrigues",
+          "weight_class": "Middleweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Islam Dulatov",
+          "fighter_b": "Levan Chokheli",
+          "weight_class": "Welterweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Ivan Gnizditskiy",
+          "fighter_b": "Uran Satybaldiev",
+          "weight_class": "Light Heavyweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Bruno Gustavo da Silva",
+          "fighter_b": "Jafel Filho",
+          "weight_class": "Flyweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Akbar Abdullaev",
+          "fighter_b": "Mairon Santos",
+          "weight_class": "Lightweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Park Jun-yong",
+          "fighter_b": "Marco Tulio",
+          "weight_class": "Middleweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Pavel Andrusca",
+          "fighter_b": "Mehemmedeli Osmanli",
+          "weight_class": "Bantamweight",
+          "card_segment": null,
+          "confirmed": false
+        }
+      ],
+      "notes": "Nov 8: Adesanya vs Sharabutdin Magomedov now the official main event (BigMarcel24 X Nov 7 / Heavy). Ian Machado Garry vs Yaroslav Amosov moved here from UFC 335 as the 5-round co-main (BigMarcel24 X Nov 7 / MMA Junkie / Wikipedia). Added (all Wikipedia announced + BigMarcel24; no UFC.com event page → confirmed=false): Serghei Spivac vs Mário Pinto (HW; BigMarcel24 X Nov 7), Akbar Abdullaev vs Mairon Santos (LW; BigMarcel24 X Nov 4, first rep. @AgFight), Park Jun-yong vs Marco Tulio (MW; BigMarcel24 X Nov 4, first rep. @AgFight / Heavy “Iron Turtle”), Pavel Andrusca vs Mehemmedeli Osmanli (BW; BigMarcel24 X Nov 5, first rep. @mma_kings / Heavy). No UFC.com event page yet; Wikipedia has announced bouts only (no fight-card table) → all confirmed=false. Date kept Dec 5."
+    },
+    {
+      "event": "UFC 335",
+      "event_full_name": "UFC 335: Oliveira vs. Lopes",
+      "date": "2026-12-12",
+      "location": "T-Mobile Arena, Las Vegas, Nevada, USA",
+      "tapology_url": "https://www.tapology.com/fightcenter/events/147321-ufc-335",
+      "ufc_url": "https://www.ufc.com/event/ufc-335",
+      "bout_count": 11,
+      "bouts": [
+        {
+          "fighter_a": "Charles Oliveira",
+          "fighter_b": "Diego Lopes",
+          "weight_class": "Lightweight (BMF title)",
+          "card_segment": "main",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Alex Pereira",
+          "fighter_b": "Sergei Pavlovich",
+          "weight_class": "Heavyweight",
+          "card_segment": null,
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Brandon Moreno",
+          "fighter_b": "Charles Johnson",
+          "weight_class": "Flyweight",
+          "card_segment": null,
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Quentin Pasley",
+          "fighter_b": "Junior Tafa",
+          "weight_class": "Light Heavyweight",
+          "card_segment": null,
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Chase Hooper",
+          "fighter_b": "Chris Padilla",
+          "weight_class": "Lightweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Ronald Humphrey",
+          "fighter_b": "Nikolay Veretennikov",
+          "weight_class": "Welterweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Roque Conceição",
+          "fighter_b": "Nilson Rojas",
+          "weight_class": "Flyweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Angela Hill",
+          "fighter_b": "Shanelle Dyer",
+          "weight_class": "Women's Strawweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Damian Pinas",
+          "fighter_b": "Baisangur Susurkaev",
+          "weight_class": "Middleweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Jacqueline Cavalcanti",
+          "fighter_b": "Michelle Montague",
+          "weight_class": "Women's Bantamweight",
+          "card_segment": null,
+          "confirmed": false
+        },
+        {
+          "fighter_a": "Yair Rodríguez",
+          "fighter_b": "Steve Garcia",
+          "weight_class": "Featherweight",
+          "card_segment": null,
+          "confirmed": false
+        }
+      ],
+      "notes": "Nov 8: Garry vs Amosov moved to UFC Fight Night Saudi Arabia (Dec 5 co-main). Maycee Barber withdrew from vs Carli Judice (Wikipedia/MMA Mania Nov 5) — both cleared (Judice vs TBD). Added Yair Rodríguez vs Steve Garcia (FW; Wikipedia announced, MMA Mania Nov 5; BigMarcel24 replied “Still verbal” Nov 5 → confirmed=false). UFC.com fight card still only Oliveira/Lopes, Pereira/Pavlovich, Moreno/Johnson, Pasley/Tafa (plus stale Pyfer/Nickal — dropped). Cavalcanti/Montague, Pinas/Susurkaev, Hooper/Padilla, Humphrey/Veretennikov, Conceição/Rojas, Hill/Dyer remain Wikipedia announced → confirmed=false."
+    },
+    {
+      "event": "UFC Fight Night 297",
+      "event_full_name": "UFC Fight Night 297",
+      "date": "2027-01-23",
+      "location": "TBA",
+      "tapology_url": null,
+      "ufc_url": null,
+      "bout_count": 1,
+      "bouts": [
+        {
+          "fighter_a": "Pat Sabatini",
+          "fighter_b": "Vinicius Oliveira",
+          "weight_class": "Featherweight",
+          "card_segment": null,
+          "confirmed": false
+        }
+      ],
+      "notes": "Nov 8: new listed event (Wikipedia UFC Fight Night 297, Jan 23 2027, venue TBA). Pat Sabatini vs Vinicius Oliveira (FW; BigMarcel24 X Nov 5, rumored UFC Vegas 125; Wikipedia announced / SI Nov 3). No UFC.com event page → confirmed=false. UFC Fight Night Dallas (2027-01-16, American Airlines Center) still has no announced bouts and is not listed."
+    },
+    {
+      "event": "UFC 336",
+      "event_full_name": "UFC 336: Van vs. Kape",
+      "date": "2027-01-30",
+      "location": "Scotiabank Arena, Toronto, Ontario, Canada",
+      "tapology_url": "https://www.tapology.com/fightcenter/events/149325-ufc-336",
+      "ufc_url": "https://www.ufc.com/event/ufc-336",
+      "bout_count": 3,
+      "bouts": [
+        {
+          "fighter_a": "Joshua Van",
+          "fighter_b": "Manel Kape",
+          "weight_class": "Flyweight (title)",
+          "card_segment": "main",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Carlos Prates",
+          "fighter_b": "Michael Morales",
+          "weight_class": "Welterweight (interim title)",
+          "card_segment": "main",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Daniel Rodriguez",
+          "fighter_b": "Roberto Soldic",
+          "weight_class": "Welterweight",
+          "card_segment": null,
+          "confirmed": false
+        }
+      ],
+      "notes": "Nov 8: added Daniel Rodriguez vs Roberto Soldić (WW; Wikipedia announced, citing net.hr Nov 1) confirmed=false. Van vs Kape (FLY title) and Prates vs Morales (interim WW title) unchanged and still on UFC.com + Wikipedia → confirmed=true."
+    },
+    {
+      "event": "UFC Fight Night Sydney",
+      "event_full_name": "UFC Fight Night: Salkilld vs. Saint Denis (UFC Fight Night 298)",
+      "date": "2027-02-06",
+      "location": "Afterpay Arena (Sydney SuperDome), Sydney, Australia",
+      "tapology_url": "https://www.tapology.com/fightcenter/events/148637-ufc-fight-night",
+      "ufc_url": "https://www.ufc.com/event/ufc-fight-night-february-06-2027",
+      "bout_count": 4,
+      "bouts": [
+        {
+          "fighter_a": "Quillan Salkilld",
+          "fighter_b": "Benoît Saint Denis",
+          "weight_class": "Lightweight",
+          "card_segment": "main",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Robert Whittaker",
+          "fighter_b": "Bogdan Guskov",
+          "weight_class": "Light Heavyweight",
+          "card_segment": "co-main",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Marwan Rahiki",
+          "fighter_b": "Yoo Joo-sang",
+          "weight_class": "Featherweight",
+          "card_segment": "main",
+          "confirmed": true
+        },
+        {
+          "fighter_a": "Kaan Ofli",
+          "fighter_b": "Joanderson Brito",
+          "weight_class": "Featherweight",
+          "card_segment": "main",
+          "confirmed": true
+        }
+      ],
+      "notes": "Nov 8: Wikipedia now numbers this UFC Fight Night 298 (was listed as 297 on Nov 2; FN 297 is the Jan 23 TBA card). Date is the US date per UFC.com (Feb 7 local per Wikipedia). Salkilld vs Saint Denis, Whittaker vs Guskov and Rahiki vs Yoo Joo-sang are now on both UFC.com and the Wikipedia fight-card table → confirmed=true. Added Kaan Ofli vs Joanderson Brito (FW; BigMarcel24 X Nov 2, first rep. @laertevianamma; now on UFC.com + Wikipedia table → confirmed=true). Road to UFC Season 5 finals remain on the prelims (not UFC-contracted, not listed as repo bouts)."
+    }
+  ]
+}

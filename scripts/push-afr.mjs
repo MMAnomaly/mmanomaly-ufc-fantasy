@@ -8,8 +8,9 @@
  *   node scripts/push-afr.mjs --cards <folder> --results <file>...
  *
  * The cards folder must contain fighters_by_class.json and upcoming_card.json.
- * Optional released.json and cut.json (JSON arrays of names or fighter URLs)
- * are forwarded as the release signal.
+ * Optional released.json, cut.json, retired.json, inactive.json, and
+ * left_ufc.json are forwarded as removal lists. Each file is a JSON array of
+ * names, URLs, or { name, tapology_url } objects.
  *
  * Reads APP_URL and ADMIN_IMPORT_SECRET from the environment.
  * Results files are posted oldest event date first. When both flags are
@@ -31,7 +32,7 @@ function usage() {
   console.log(`Usage:
   node scripts/push-afr.mjs --results <file>...
   node scripts/push-afr.mjs --cards <folder containing fighters_by_class.json and upcoming_card.json>
-                         optional released.json and cut.json in that folder are sent too
+                         optional released.json, cut.json, retired.json, inactive.json, left_ufc.json
   node scripts/push-afr.mjs --cards <folder> --results <file>...`);
 }
 
@@ -119,10 +120,16 @@ function loadCards(folder) {
     fightersByClass: readJson(fightersFile),
     upcomingCard: readJson(cardFile),
   };
-  const releasedFile = path.join(folder, "released.json");
-  const cutFile = path.join(folder, "cut.json");
-  if (existsSync(releasedFile)) payload.released = readJson(releasedFile);
-  if (existsSync(cutFile)) payload.cut = readJson(cutFile);
+  for (const [key, fileName] of [
+    ["released", "released.json"],
+    ["cut", "cut.json"],
+    ["retired", "retired.json"],
+    ["inactive", "inactive.json"],
+    ["left_ufc", "left_ufc.json"],
+  ]) {
+    const file = path.join(folder, fileName);
+    if (existsSync(file)) payload[key] = readJson(file);
+  }
   return payload;
 }
 
