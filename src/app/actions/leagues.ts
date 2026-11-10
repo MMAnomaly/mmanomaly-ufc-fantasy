@@ -15,6 +15,8 @@ import {
   shuffle,
 } from "@/lib/draft";
 import { prisma } from "@/lib/prisma";
+import { deleteStoredAvatar } from "@/lib/avatar-store";
+import { authorizeLeagueDelete } from "@/lib/delete-league";
 import { validateSeasonRange } from "@/lib/season";
 import { disambiguateTeamName, isTeamNameConflict, isTeamNameTaken, TEAM_NAME_TAKEN } from "@/lib/team-membership";
 
@@ -116,6 +118,61 @@ export async function revokeInviteAction(leagueId: string, inviteId: string) {
   if (!league || league.commissionerId !== user.id) return { error: "Commissioner only." };
   await prisma.invite.update({ where: { id: inviteId }, data: { revoked: true } });
   revalidatePath(`/leagues/${leagueId}/admin`);
+}
+
+export async function deleteLeagueAction(leagueId: string, confirmationName: string) {
+  const user = await requireUser();
+  const league = await prisma.league.findUnique({
+    where: { id: leagueId },
+    select: {
+      id: true,
+      name: true,
+      commissionerId: true,
+      memberships: { select: { id: true, avatarUrl: true } },
+    },
+  });
+  if (!league) return { error: "League not found." };
+  const allowed = authorizeLeagueDelete({
+    userId: user.id,
+    commissionerId: league.commissionerId,
+    leagueName: league.name,
+    confirmationName,
+  });
+  if (!allowed.ok) return { error: allowed.error };
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      const current = await tx.league.findUnique({
+        where: { id: leagueId },
+        select: { name: true, commissionerId: true },
+      });
+      if (!current) throw new Error("League not found.");
+      const stillAllowed = authorizeLeagueDelete({
+        userId: user.id,
+        commissionerId: current.commissionerId,
+        leagueName: current.name,
+        confirmationName,
+      });
+      if (!stillAllowed.ok) throw new Error(stillAllowed.error);
+
+      const memberships = await tx.membership.findMany({ where: { leagueId }, select: { id: true } });
+      const membershipIds = memberships.map((row) => row.id);
+      if (membershipIds.length > 0) {
+        await tx.rosterSlot.deleteMany({ where: { membershipId: { in: membershipIds } } });
+      }
+      await tx.draftPick.deleteMany({ where: { leagueId } });
+      await tx.invite.deleteMany({ where: { leagueId } });
+      await tx.membership.deleteMany({ where: { leagueId } });
+      await tx.league.delete({ where: { id: leagueId } });
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Could not delete the league.";
+    return { error: message };
+  }
+
+  await Promise.all(league.memberships.map((row) => deleteStoredAvatar(row.avatarUrl, row.id)));
+  revalidatePath("/");
+  redirect(`/?deleted=${encodeURIComponent(league.name)}`);
 }
 
 export async function updateLeagueSettingsAction(leagueId: string, formData: FormData) {

@@ -5,8 +5,14 @@ import { Footer, SiteHeader } from "@/components/site-chrome";
 import { TeamAvatar } from "@/components/team-avatar";
 import { StatusPill } from "@/components/ui";
 
-export default async function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ deleted?: string | string[] }>;
+}) {
   const user = await getSession();
+  const params = searchParams ? await searchParams : {};
+  const deleted = typeof params.deleted === "string" && params.deleted.trim() ? params.deleted : null;
   const leagues = user
     ? await prisma.membership.findMany({
         where: { userId: user.id },
@@ -19,6 +25,11 @@ export default async function HomePage() {
     <div className="flex min-h-screen flex-col">
       <SiteHeader user={user} />
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-10 px-4 py-10">
+        {deleted ? (
+          <p className="rounded-md border border-line bg-panel px-4 py-3 text-sm" role="status">
+            Deleted {deleted}. Rosters, picks, memberships, invites, and settings for that league are gone.
+          </p>
+        ) : null}
         <section className="max-w-3xl">
           <p className="text-[11px] uppercase tracking-[0.28em] text-amber">Fight week is a lifestyle</p>
           <h1 className="mt-3 font-display text-5xl leading-[0.95] tracking-wide sm:text-6xl">

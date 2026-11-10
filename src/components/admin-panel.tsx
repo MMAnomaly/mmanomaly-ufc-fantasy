@@ -8,6 +8,7 @@ import {
 } from "@/app/actions/scoring";
 import {
   createInviteAction,
+  deleteLeagueAction,
   pauseDraftAction,
   resumeDraftAction,
   revokeInviteAction,
@@ -253,6 +254,49 @@ export function AdminPanel({
         {error ? <pre className="mt-3 overflow-auto text-xs text-blood">{error}</pre> : null}
         {log ? <pre className="mt-3 max-h-64 overflow-auto text-xs text-mist">{log}</pre> : null}
       </section>
+
+      <DeleteLeague leagueId={leagueId} leagueName={leagueName} />
     </div>
+  );
+}
+
+function DeleteLeague({ leagueId, leagueName }: { leagueId: string; leagueName: string }) {
+  const [typed, setTyped] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+  const matches = typed === leagueName;
+
+  return (
+    <section className="rounded-md border border-blood/50 bg-panel p-5">
+      <h2 className="font-display text-2xl tracking-wide text-blood">Danger zone</h2>
+      <p className="mt-2 text-sm text-mist">
+        Deleting <span className="text-paper">{leagueName}</span> permanently removes its rosters, draft picks, memberships,
+        invites, and league settings. Fighter records, event scores, upcoming cards, and user accounts stay.
+      </p>
+      <label className="mt-4 block space-y-1.5">
+        <span className="text-xs uppercase tracking-[0.18em] text-mist">Type the league name to confirm</span>
+        <input
+          className="w-full rounded-sm border border-line bg-ink px-3 py-2 text-paper outline-none ring-blood focus:ring-2"
+          onChange={(event) => setTyped(event.target.value)}
+          value={typed}
+          autoComplete="off"
+        />
+      </label>
+      {error ? <p className="mt-3 text-sm text-blood">{error}</p> : null}
+      <button
+        className="mt-4 rounded-sm border border-blood px-4 py-2 font-semibold text-blood hover:bg-blood hover:text-white disabled:opacity-40"
+        disabled={!matches || pending}
+        onClick={() => {
+          if (!window.confirm(`Permanently delete “${leagueName}”? This cannot be undone.`)) return;
+          startTransition(async () => {
+            const result = await deleteLeagueAction(leagueId, typed);
+            if (result?.error) setError(result.error);
+          });
+        }}
+        type="button"
+      >
+        Delete league
+      </button>
+    </section>
   );
 }
