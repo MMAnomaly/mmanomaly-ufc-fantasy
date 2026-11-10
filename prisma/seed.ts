@@ -14,16 +14,19 @@ async function seedFighters() {
   const result = await upsertFighterPool(prisma, raw);
   console.log(`Seeded ${result.upserted} fighters`);
   if (result.deactivated > 0) {
-    console.log(`Marked ${result.deactivated} fighters inactive (absent from export, not on a roster)`);
+    console.log(`Marked ${result.deactivated} fighters inactive (explicit release, not on a roster)`);
   }
   if (result.rosteredRetained > 0) {
-    console.log(`Left ${result.rosteredRetained} rostered fighters unchanged (absent from export)`);
+    console.log(`Left ${result.rosteredRetained} rostered fighters active (release signal ignored)`);
+  }
+  for (const token of result.unmatchedReleases) {
+    console.warn(`Release signal matched no fighter: ${token}`);
   }
   for (const classKey of result.skippedClasses) {
     console.warn(`Skipping unknown class_key ${classKey}`);
   }
-  for (const [k, v] of Object.entries(result.classCounts)) {
-    console.log(`  ${k}: ${v}`);
+  for (const [k, v] of Object.entries(result.activeByClass)) {
+    console.log(`  ${k}: ${v} active`);
   }
 }
 

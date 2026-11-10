@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@prisma/client";
 import { AfrImportError } from "./afr-results";
-import { CLASS_TO_SLOT, type ClassKey } from "./slots";
+import { CLASS_LABELS, CLASS_TO_SLOT, type ClassKey } from "./slots";
 import {
   parseUpcomingCardDocument,
   serializeBouts,
@@ -47,8 +47,37 @@ export type FighterPoolResult = {
   upserted: number;
   deactivated: number;
   rosteredRetained: number;
+  unmatchedReleases: string[];
   classCounts: Record<string, number>;
+  /** Active fighters currently in the draft pool, keyed by class_key. Known divisions are always present. */
+  activeByClass: Record<string, number>;
   skippedClasses: string[];
+};
+
+export type FoughtFighterInput = {
+  name: string;
+  weightClass: string | null;
+  tapologyUrl?: string | null;
+  foughtAt?: Date | null;
+};
+
+export type FoughtSyncResult = {
+  added: string[];
+  reactivated: string[];
+  unclassified: string[];
+};
+
+type PoolIdentity = {
+  id: string;
+  name: string;
+  tapologyUrl: string | null;
+  active: boolean;
+  rostered: boolean;
+};
+
+type PreparedFighter = {
+  released: boolean;
+  write: FighterWrite;
 };
 
 export type UpcomingCardResult = {
@@ -86,9 +115,181 @@ function slugify(value: string) {
 }
 
 function fighterId(fighter: SeedFighter) {
-  const fromUrl = fighter.tapology_url?.split("/").filter(Boolean).pop();
+  const fromUrl = tapologySlug(fighter.tapology_url ?? null);
   if (fromUrl) return fromUrl;
   return `${fighter.class_key}-${slugify(fighter.name)}`;
+}
+
+/** Accents, case, and punctuation ignored. Shared with scoring's name match. */
+export function normalizeFighterName(name: string): string {
+  return name
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/[^a-z0-9]/g, "");
+}
+
+/**
+ * Exact normalized name, otherwise the unique fighter whose name contains the
+ * other. The same rule scoring uses, so a results row and a score attach to
+ * one pool fighter.
+ */
+export function matchFighterByName<T extends { name: string }>(fighters: T[], name: string): T | null {
+  const target = normalizeFighterName(name);
+  if (!target) return null;
+  const exact = fighters.find((fighter) => normalizeFighterName(fighter.name) === target);
+  if (exact) return exact;
+  const contains = fighters.filter((fighter) => {
+    const normalized = normalizeFighterName(fighter.name);
+    return normalized.includes(target) || target.includes(normalized);
+  });
+  return contains.length === 1 ? contains[0] : null;
+}
+
+function normalizeDivisionLabel(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[’‘]/g, "'")
+    .replace(/\([^)]*\)/g, " ")
+    .replace(/[^a-z']+/g, " ")
+    .trim()
+    .replace(/\s+/g, " ");
+}
+
+/**
+ * Map a bout's weight-class label onto a roster division.
+ * Catchweight notes in parentheses are ignored (`Lightweight (catchweight 163.5 lb)`).
+ * Returns null when the label is not one of the eleven draft divisions.
+ */
+export function classKeyForWeightClass(weightClass: string): ClassKey | null {
+  const normalized = normalizeDivisionLabel(weightClass);
+  if (!normalized) return null;
+  const labels = (Object.entries(CLASS_LABELS) as [ClassKey, string][]).sort(
+    (a, b) => normalizeDivisionLabel(b[1]).length - normalizeDivisionLabel(a[1]).length,
+  );
+  for (const [classKey, label] of labels) {
+    const needle = normalizeDivisionLabel(label);
+    if (normalized === needle || normalized.startsWith(`${needle} `)) return classKey;
+  }
+  const aliases: Record<string, ClassKey> = {
+    strawweight: "womens_strawweight",
+    "women strawweight": "womens_strawweight",
+    "womens strawweight": "womens_strawweight",
+  };
+  return aliases[normalized.replace(/'/g, "")] ?? null;
+}
+
+function sexForClass(classKey: ClassKey): string {
+  return classKey.startsWith("womens_") ? "women" : "men";
+}
+
+function canonicalUrl(value: string): string | null {
+  try {
+    const url = new URL(value.trim());
+    if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+    url.hash = "";
+    url.search = "";
+    url.hostname = url.hostname.toLowerCase();
+    url.pathname = url.pathname.replace(/\/+$/, "");
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
+function urlSlug(value: string): string | null {
+  const canonical = canonicalUrl(value);
+  if (!canonical) return null;
+  const slug = new URL(canonical).pathname.split("/").filter(Boolean).pop() ?? "";
+  if (!slug) return null;
+  try {
+    return decodeURIComponent(slug);
+  } catch {
+    return slug;
+  }
+}
+
+function tapologySlug(url: string | null): string | null {
+  if (!url) return null;
+  return urlSlug(url);
+}
+
+/**
+ * A release entry matches a stored fighter when:
+ * - the text is the fighter id (Tapology slug), or
+ * - the text is an http(s) URL whose slug or canonical form matches the id or `tapologyUrl`, or
+ * - the text is the fighter's full name (accents, case, and punctuation ignored).
+ * URL entries that do not match are not compared as names. UFC Stats fighter-details
+ * URLs match only when that last path segment is the stored fighter id.
+ */
+function releaseTokenMatches(
+  token: string,
+  fighter: { id: string; name: string; tapologyUrl: string | null },
+): boolean {
+  const trimmed = token.trim();
+  if (!trimmed) return false;
+  if (fighter.id.toLowerCase() === trimmed.toLowerCase()) return true;
+  const slug = urlSlug(trimmed);
+  if (slug) {
+    if (fighter.id.toLowerCase() === slug.toLowerCase()) return true;
+    if (fighter.tapologyUrl) {
+      const fighterSlug = urlSlug(fighter.tapologyUrl);
+      if (fighterSlug && fighterSlug.toLowerCase() === slug.toLowerCase()) return true;
+      const left = canonicalUrl(fighter.tapologyUrl);
+      const right = canonicalUrl(trimmed);
+      if (left && right && left === right) return true;
+    }
+    return false;
+  }
+  return normalizeFighterName(fighter.name) === normalizeFighterName(trimmed);
+}
+
+function matchesAnyToken(
+  fighter: { id: string; name: string; tapologyUrl: string | null },
+  tokens: string[],
+): boolean {
+  return tokens.some((token) => releaseTokenMatches(token, fighter));
+}
+
+function readReleaseList(value: unknown, label: string): string[] {
+  if (value == null) return [];
+  if (!Array.isArray(value)) {
+    throw new AfrImportError(`${label} must be an array of fighter names or URLs`);
+  }
+  return value.map((entry, index) => {
+    const text = readString(entry);
+    if (!text) throw new AfrImportError(`${label}[${index}] must be a name or URL`);
+    return text;
+  });
+}
+
+function dedupeTokens(tokens: string[]): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const token of tokens) {
+    const key = token.trim().toLowerCase();
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    out.push(token.trim());
+  }
+  return out;
+}
+
+function isReleasedStatus(value: unknown): boolean {
+  const text = readString(value);
+  if (!text) return false;
+  const normalized = text.toLowerCase();
+  return normalized === "released" || normalized === "cut";
+}
+
+function releaseListsFrom(raw: unknown, options?: { released?: unknown; cut?: unknown }): string[] {
+  const document = isRecord(raw) ? raw : {};
+  return dedupeTokens([
+    ...readReleaseList(document.released, "released"),
+    ...readReleaseList(document.cut, "cut"),
+    ...readReleaseList(options?.released, "released"),
+    ...readReleaseList(options?.cut, "cut"),
+  ]);
 }
 
 function asFighter(value: unknown, classKey: string): SeedFighter {
@@ -148,7 +349,7 @@ function fighterWrite(fighter: SeedFighter, classKey: ClassKey): FighterWrite {
 }
 
 function prepareFighters(raw: unknown): {
-  fighters: FighterWrite[];
+  fighters: PreparedFighter[];
   classCounts: Record<string, number>;
   skippedClasses: string[];
 } {
@@ -156,8 +357,7 @@ function prepareFighters(raw: unknown): {
     throw new AfrImportError("fightersByClass must include a classes object");
   }
 
-  const seen = new Set<string>();
-  const fighters: FighterWrite[] = [];
+  const fighters: PreparedFighter[] = [];
   const classCounts: Record<string, number> = {};
   const skippedClasses: string[] = [];
 
@@ -173,9 +373,13 @@ function prepareFighters(raw: unknown): {
     for (const entry of group.fighters) {
       const fighter = asFighter(entry, classKey);
       const row = fighterWrite(fighter, classKey);
-      if (seen.has(row.id)) continue;
-      seen.add(row.id);
-      fighters.push(row);
+      const released = isRecord(entry) && isReleasedStatus(entry.status);
+      const prior = fighters.find((item) => item.write.id === row.id);
+      if (prior) {
+        if (released) prior.released = true;
+        continue;
+      }
+      fighters.push({ released, write: row });
       classCounts[classKey] += 1;
     }
   }
@@ -189,56 +393,350 @@ function prepareFighters(raw: unknown): {
 
 /**
  * Upsert the draftable fighter pool and upcoming-card rows.
- * Touches `Fighter` and `UfcCard` only. Rostered fighters missing from the
- * file stay in place; unrostered absences are marked inactive and not deleted.
+ * Touches `Fighter` and `UfcCard` only. Absence from the file does not change
+ * `active`. An explicit release signal marks unrostered fighters inactive.
+ * Rostered fighters stay active. Users, leagues, rosters, picks, and scores
+ * are not modified.
+ *
+ * Release signal (either key, on this payload and/or inside `fightersByClass`):
+ * `released` / `cut` arrays of names, Tapology fighter URLs, or UFC Stats
+ * fighter-details URLs. A fighter object may also set `status` to `released`
+ * or `cut`. See the README section "Push Active Fighter Repository data".
  */
 export async function importAfrCards(
   db: PrismaClient,
-  data: { fightersByClass: unknown; upcomingCard: unknown },
+  data: { fightersByClass: unknown; upcomingCard: unknown; released?: unknown; cut?: unknown },
 ): Promise<AfrCardsResult> {
-  const fighters = await upsertFighterPool(db, data.fightersByClass);
+  const fighters = await upsertFighterPool(db, data.fightersByClass, {
+    released: data.released,
+    cut: data.cut,
+  });
   const cards = await upsertUpcomingCards(db, data.upcomingCard);
   return { fighters, cards };
 }
 
-export async function upsertFighterPool(db: PrismaClient, raw: unknown): Promise<FighterPoolResult> {
+function poolFields(fighter: FighterWrite, active: boolean) {
+  return {
+    name: fighter.name,
+    classKey: fighter.classKey,
+    slotKey: fighter.slotKey,
+    sex: fighter.sex,
+    weightClass: fighter.weightClass,
+    record: fighter.record,
+    rankingJson: fighter.rankingJson,
+    lastFightDate: fighter.lastFightDate,
+    lastFightClass: fighter.lastFightClass,
+    lastFightNote: fighter.lastFightNote,
+    upcomingFightClass: fighter.upcomingFightClass,
+    nextBoutJson: fighter.nextBoutJson,
+    tapologyUrl: fighter.tapologyUrl,
+    wikipediaUrl: fighter.wikipediaUrl,
+    active,
+    activityNotes: fighter.activityNotes,
+  };
+}
+
+function resolvePoolId(fighter: FighterWrite, rows: PoolIdentity[]): string {
+  const byId = rows.find((row) => row.id === fighter.id);
+  if (byId) return byId.id;
+  if (fighter.tapologyUrl) {
+    const wanted = canonicalUrl(fighter.tapologyUrl);
+    const byUrl = rows.filter((row) => row.tapologyUrl && wanted && canonicalUrl(row.tapologyUrl) === wanted);
+    if (byUrl.length === 1) return byUrl[0].id;
+  }
+  const nameKey = normalizeFighterName(fighter.name);
+  const placeholders = rows.filter((row) => !row.tapologyUrl && normalizeFighterName(row.name) === nameKey);
+  if (placeholders.length === 1) return placeholders[0].id;
+  return fighter.id;
+}
+
+export async function activePoolByClass(db: PrismaClient): Promise<Record<string, number>> {
+  const rows = await db.fighter.findMany({
+    where: { active: true },
+    select: { classKey: true },
+  });
+  const counts: Record<string, number> = {};
+  for (const classKey of Object.keys(CLASS_TO_SLOT)) counts[classKey] = 0;
+  for (const row of rows) {
+    counts[row.classKey] = (counts[row.classKey] ?? 0) + 1;
+  }
+  return counts;
+}
+
+/**
+ * Upsert fighters from an AFR class export.
+ * Fighters missing from the file keep their current `active` flag.
+ * `released` / `cut` (on the document or in `options`) and per-fighter
+ * `status: "released" | "cut"` are the only deactivation signals, and they
+ * never deactivate a fighter who is on a roster.
+ * A results-created row with no Tapology URL is adopted in place when this
+ * file later includes that same name, so scores stay on one id.
+ */
+export async function upsertFighterPool(
+  db: PrismaClient,
+  raw: unknown,
+  options?: { released?: unknown; cut?: unknown },
+): Promise<FighterPoolResult> {
   const prepared = prepareFighters(raw);
-  const ids = prepared.fighters.map((fighter) => fighter.id);
+  const releaseTokens = releaseListsFrom(raw, options);
+
+  const existingRows = await db.fighter.findMany({
+    select: {
+      id: true,
+      name: true,
+      tapologyUrl: true,
+      active: true,
+      rosterSlots: { select: { id: true }, take: 1 },
+    },
+  });
+  const original: PoolIdentity[] = existingRows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    tapologyUrl: row.tapologyUrl,
+    active: row.active,
+    rostered: row.rosterSlots.length > 0,
+  }));
+  const index = original.map((row) => ({ ...row }));
+
+  const planned: {
+    id: string;
+    write: FighterWrite;
+    released: boolean;
+    rostered: boolean;
+    previouslyActive: boolean | null;
+  }[] = [];
 
   for (const fighter of prepared.fighters) {
-    const { id, ...data } = fighter;
-    await db.fighter.upsert({
-      where: { id },
-      update: data,
-      create: { id, ...data },
+    const id = resolvePoolId(fighter.write, index);
+    const prior = index.find((row) => row.id === id);
+    const released =
+      fighter.released ||
+      matchesAnyToken(
+        { id, name: fighter.write.name, tapologyUrl: fighter.write.tapologyUrl },
+        releaseTokens,
+      ) ||
+      (prior ? matchesAnyToken(prior, releaseTokens) : false);
+    planned.push({
+      id,
+      write: fighter.write,
+      released,
+      rostered: prior?.rostered ?? false,
+      previouslyActive: prior ? prior.active : null,
     });
+    if (prior) {
+      prior.name = fighter.write.name;
+      prior.tapologyUrl = fighter.write.tapologyUrl;
+    } else {
+      index.push({
+        id,
+        name: fighter.write.name,
+        tapologyUrl: fighter.write.tapologyUrl,
+        active: true,
+        rostered: false,
+      });
+    }
   }
 
-  // Absent fighters leave the draft pool only when nobody has them rostered.
-  // A Tapology URL change inserts a new id; the previous unrostered id goes inactive.
-  const deactivated = await db.fighter.updateMany({
-    where: {
-      active: true,
-      id: { notIn: ids },
-      rosterSlots: { none: {} },
-    },
-    data: { active: false },
-  });
+  let deactivated = 0;
+  for (const row of planned) {
+    const active = row.released && !row.rostered ? false : true;
+    const data = poolFields(row.write, active);
+    await db.fighter.upsert({
+      where: { id: row.id },
+      update: data,
+      create: { id: row.id, ...data },
+    });
+    if (!active && row.previouslyActive !== false) deactivated += 1;
+  }
 
-  const rosteredRetained = await db.fighter.count({
-    where: {
-      id: { notIn: ids },
-      rosterSlots: { some: {} },
-    },
+  const touched = new Set(planned.map((row) => row.id));
+  const stale = original.filter((row) => !touched.has(row.id) && matchesAnyToken(row, releaseTokens));
+  const toDeactivate = stale.filter((row) => !row.rostered && row.active).map((row) => row.id);
+  if (toDeactivate.length > 0) {
+    const updated = await db.fighter.updateMany({
+      where: {
+        id: { in: toDeactivate },
+        active: true,
+        rosterSlots: { none: {} },
+      },
+      data: { active: false },
+    });
+    deactivated += updated.count;
+  }
+
+  const rosteredRetained =
+    planned.filter((row) => row.released && row.rostered).length + stale.filter((row) => row.rostered).length;
+
+  const unmatchedReleases = releaseTokens.filter((token) => {
+    const matchedPlanned = planned.some((row) =>
+      releaseTokenMatches(token, {
+        id: row.id,
+        name: row.write.name,
+        tapologyUrl: row.write.tapologyUrl,
+      }),
+    );
+    if (matchedPlanned) return false;
+    return !original.some((row) => releaseTokenMatches(token, row));
   });
 
   return {
     upserted: prepared.fighters.length,
-    deactivated: deactivated.count,
+    deactivated,
     rosteredRetained,
+    unmatchedReleases,
     classCounts: prepared.classCounts,
+    activeByClass: await activePoolByClass(db),
     skippedClasses: prepared.skippedClasses,
   };
+}
+
+function unusedFighterId(name: string, classKey: ClassKey, tapologyUrl: string | null, taken: Set<string>): string {
+  const fromUrl = tapologySlug(tapologyUrl);
+  if (fromUrl && !taken.has(fromUrl)) return fromUrl;
+  const base = `${classKey}-${slugify(name)}`;
+  if (!taken.has(base)) return base;
+  let suffix = 2;
+  while (taken.has(`${base}-${suffix}`)) suffix += 1;
+  return `${base}-${suffix}`;
+}
+
+/** First appearance of each fighter wins, so callers pass the most recent bout first. */
+export function foughtFightersFromEvent(event: {
+  date: Date;
+  fights: {
+    fighter1Name: string;
+    fighter2Name: string;
+    weightClass?: string | null;
+    stats: { fighterName: string; tapologyUrl?: string | null }[];
+  }[];
+}): FoughtFighterInput[] {
+  const appearances: FoughtFighterInput[] = [];
+  for (const fight of event.fights) {
+    const urls = new Map<string, string | null>();
+    for (const line of fight.stats) {
+      if (!urls.has(line.fighterName)) urls.set(line.fighterName, line.tapologyUrl ?? null);
+    }
+    if (!urls.has(fight.fighter1Name)) urls.set(fight.fighter1Name, null);
+    if (!urls.has(fight.fighter2Name)) urls.set(fight.fighter2Name, null);
+    for (const [name, tapologyUrl] of urls) {
+      appearances.push({
+        name,
+        weightClass: fight.weightClass ?? null,
+        tapologyUrl,
+        foughtAt: event.date,
+      });
+    }
+  }
+  return appearances;
+}
+
+/**
+ * Ensure every fighter on a scored card is in the draft pool.
+ * Inserts missing fighters into the bout's division and reactivates an
+ * inactive fighter who is on the card. Writes `Fighter` only.
+ */
+export async function syncFoughtFighters(
+  db: PrismaClient,
+  appearances: FoughtFighterInput[],
+): Promise<FoughtSyncResult> {
+  const added: string[] = [];
+  const reactivated: string[] = [];
+  const unclassified: string[] = [];
+
+  const existing = await db.fighter.findMany({
+    select: {
+      id: true,
+      name: true,
+      active: true,
+      tapologyUrl: true,
+      rosterSlots: { select: { id: true }, take: 1 },
+    },
+  });
+  const known: (PoolIdentity & { rostered: boolean })[] = existing.map((row) => ({
+    id: row.id,
+    name: row.name,
+    tapologyUrl: row.tapologyUrl,
+    active: row.active,
+    rostered: row.rosterSlots.length > 0,
+  }));
+  const taken = new Set(known.map((row) => row.id));
+  const seen = new Set<string>();
+
+  for (const appearance of appearances) {
+    const name = appearance.name.trim();
+    const nameKey = normalizeFighterName(name);
+    if (!nameKey || seen.has(nameKey)) continue;
+    seen.add(nameKey);
+
+    const classKey = appearance.weightClass ? classKeyForWeightClass(appearance.weightClass) : null;
+    const foughtAt =
+      appearance.foughtAt && !Number.isNaN(appearance.foughtAt.getTime()) ? appearance.foughtAt : null;
+    const match = matchFighterByName(known, name);
+
+    if (match) {
+      if (match.active) continue;
+      const data: {
+        active: true;
+        lastFightDate?: Date;
+        classKey?: string;
+        slotKey?: string;
+        sex?: string;
+        weightClass?: string;
+        lastFightClass?: string;
+      } = { active: true };
+      if (foughtAt) data.lastFightDate = foughtAt;
+      if (!match.rostered && classKey) {
+        data.classKey = classKey;
+        data.slotKey = CLASS_TO_SLOT[classKey];
+        data.sex = sexForClass(classKey);
+        data.weightClass = CLASS_LABELS[classKey];
+        data.lastFightClass = classKey;
+      }
+      await db.fighter.update({ where: { id: match.id }, data });
+      match.active = true;
+      reactivated.push(name);
+      continue;
+    }
+
+    if (!classKey) {
+      if (appearance.weightClass) unclassified.push(name);
+      continue;
+    }
+
+    const id = unusedFighterId(name, classKey, appearance.tapologyUrl ?? null, taken);
+    taken.add(id);
+    await db.fighter.create({
+      data: {
+        id,
+        name,
+        classKey,
+        slotKey: CLASS_TO_SLOT[classKey],
+        sex: sexForClass(classKey),
+        weightClass: CLASS_LABELS[classKey],
+        record: null,
+        rankingJson: null,
+        lastFightDate: foughtAt,
+        lastFightClass: classKey,
+        lastFightNote: null,
+        upcomingFightClass: null,
+        nextBoutJson: null,
+        tapologyUrl: appearance.tapologyUrl ?? null,
+        wikipediaUrl: null,
+        active: true,
+        activityNotes: "Added from fight results.",
+      },
+    });
+    known.push({
+      id,
+      name,
+      tapologyUrl: appearance.tapologyUrl ?? null,
+      active: true,
+      rostered: false,
+    });
+    added.push(name);
+  }
+
+  return { added, reactivated, unclassified };
 }
 
 export async function upsertUpcomingCards(db: PrismaClient, raw: unknown): Promise<UpcomingCardResult> {

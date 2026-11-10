@@ -108,6 +108,7 @@ function parseBout(bout: unknown): ParsedFight {
     reversals: readNumber(fighter.reversals),
     controlTimeSeconds: readNumber(fighter.control_time_seconds),
     isWinner: fighter.result === "W",
+    tapologyUrl: readString(fighter.tapology_url),
   }));
 
   const round =

@@ -7,13 +7,17 @@
  *   node scripts/push-afr.mjs --cards <folder>
  *   node scripts/push-afr.mjs --cards <folder> --results <file>...
  *
+ * The cards folder must contain fighters_by_class.json and upcoming_card.json.
+ * Optional released.json and cut.json (JSON arrays of names or fighter URLs)
+ * are forwarded as the release signal.
+ *
  * Reads APP_URL and ADMIN_IMPORT_SECRET from the environment.
  * Results files are posted oldest event date first. When both flags are
  * set, the card reload is posted first so new fighters exist before scoring.
  * Prints response bodies and never prints the secret.
  */
 
-import { readFileSync, statSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -27,6 +31,7 @@ function usage() {
   console.log(`Usage:
   node scripts/push-afr.mjs --results <file>...
   node scripts/push-afr.mjs --cards <folder containing fighters_by_class.json and upcoming_card.json>
+                         optional released.json and cut.json in that folder are sent too
   node scripts/push-afr.mjs --cards <folder> --results <file>...`);
 }
 
@@ -110,10 +115,15 @@ function loadCards(folder) {
   if (!stat.isDirectory()) fail("--cards must be a folder");
   const fightersFile = path.join(folder, "fighters_by_class.json");
   const cardFile = path.join(folder, "upcoming_card.json");
-  return {
+  const payload = {
     fightersByClass: readJson(fightersFile),
     upcomingCard: readJson(cardFile),
   };
+  const releasedFile = path.join(folder, "released.json");
+  const cutFile = path.join(folder, "cut.json");
+  if (existsSync(releasedFile)) payload.released = readJson(releasedFile);
+  if (existsSync(cutFile)) payload.cut = readJson(cutFile);
+  return payload;
 }
 
 async function postImport(endpoint, secret, kind, data, label) {

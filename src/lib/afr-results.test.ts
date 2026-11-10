@@ -141,6 +141,17 @@ describe("Active Fighter Repository results mapping", () => {
     assert.equal(parsed.url, parsed.externalId);
   });
 
+  it("keeps a bout fighter tapology url for the pool id", () => {
+    const raw = loadFixture("afr-edmonton-results.json");
+    const cloned = structuredClone(raw) as {
+      bouts: { fighters: { tapology_url?: string }[] }[];
+    };
+    cloned.bouts[0].fighters[0].tapology_url = "https://www.tapology.com/fightcenter/fighters/buckley";
+    const parsed = parseAfrResults(cloned);
+    assert.equal(parsed.fights[0].stats[0].tapologyUrl, "https://www.tapology.com/fightcenter/fighters/buckley");
+    assert.equal(parsed.fights[0].stats[1].tapologyUrl, null);
+  });
+
   it("rejects a results file with no event url or a bad date", () => {
     const raw = loadFixture("afr-edmonton-results.json");
     const noUrl = structuredClone(raw) as { event: { ufcstats_url: string | null; ufc_url: string | null } };
