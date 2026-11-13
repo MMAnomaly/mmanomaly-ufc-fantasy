@@ -1,3 +1,4 @@
+import { transliterateFighterName } from "./fighter-name";
 import { CLASS_TO_SLOT, CLASS_LABELS, SLOT_LABELS, type ClassKey } from "./slots";
 import { isIsoDate, losAngelesDateKey, normalizeMatchKey, parseNextBout } from "./upcoming-card";
 
@@ -16,6 +17,7 @@ export type PoolFighterInput = {
   active: boolean;
   activityNotes: string | null;
   draftedBy: string | null;
+  aliases?: string[];
 };
 
 export type PoolCardInput = {
@@ -37,6 +39,7 @@ export type PoolRow = {
   tapologyUrl: string | null;
   draftedBy: string | null;
   removalNote: string | null;
+  aliases: string[];
 };
 
 export type PoolSort = "name" | "lastFight";
@@ -91,14 +94,24 @@ export function buildFighterPool(args: {
   return { active, inactive };
 }
 
+function poolSearchText(row: PoolRow): string[] {
+  return [row.name, ...row.aliases].map((value) => normalizeMatchKey(transliterateFighterName(value)));
+}
+
+function sortedTokens(value: string): string {
+  return value.split(" ").filter(Boolean).sort().join(" ");
+}
+
 export function filterPoolRows(rows: PoolRow[], filter: PoolFilter): PoolRow[] {
-  const query = normalizeMatchKey(filter.query);
+  const query = normalizeMatchKey(transliterateFighterName(filter.query));
   const matched = rows.filter((row) => {
     if (filter.classKey === "other") {
       if ((POOL_CLASS_KEYS as string[]).includes(row.classKey)) return false;
     } else if (filter.classKey !== "all" && row.classKey !== filter.classKey) return false;
     if (filter.availableOnly && row.draftedBy) return false;
-    if (query && !normalizeMatchKey(row.name).includes(query)) return false;
+    if (query && !poolSearchText(row).some((value) => value.includes(query) || sortedTokens(value) === sortedTokens(query))) {
+      return false;
+    }
     return true;
   });
   const direction = filter.direction === "desc" ? -1 : 1;
@@ -128,6 +141,7 @@ function toRow(fighter: PoolFighterInput, cardsByName: Map<string, UpcomingCandi
     tapologyUrl: safeHttpUrl(fighter.tapologyUrl),
     draftedBy: fighter.draftedBy,
     removalNote: fighter.active ? null : blankToNull(fighter.activityNotes),
+    aliases: fighter.aliases ?? [],
   };
 }
 

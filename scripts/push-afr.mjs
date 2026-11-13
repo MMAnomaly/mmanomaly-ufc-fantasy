@@ -6,6 +6,7 @@
  *   node scripts/push-afr.mjs --results <file>...
  *   node scripts/push-afr.mjs --cards <folder>
  *   node scripts/push-afr.mjs --cards <folder> --results <file>...
+ *   node scripts/push-afr.mjs --pool-plan <file> [--dry-run]
  *
  * The cards folder must contain fighters_by_class.json and upcoming_card.json.
  * Optional released.json, cut.json, retired.json, inactive.json, and
@@ -33,7 +34,8 @@ function usage() {
   node scripts/push-afr.mjs --results <file>...
   node scripts/push-afr.mjs --cards <folder containing fighters_by_class.json and upcoming_card.json>
                          optional released.json, cut.json, retired.json, inactive.json, left_ufc.json
-  node scripts/push-afr.mjs --cards <folder> --results <file>...`);
+  node scripts/push-afr.mjs --cards <folder> --results <file>...
+  node scripts/push-afr.mjs --pool-plan <file> [--dry-run]`);
 }
 
 function parseArgs(argv) {
@@ -50,6 +52,9 @@ function parseArgs(argv) {
   const resultFiles = [];
   /** @type {string | null} */
   let cardsFolder = null;
+  /** @type {string | null} */
+  let poolPlan = null;
+  let dryRun = false;
 
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
@@ -66,16 +71,25 @@ function parseArgs(argv) {
       if (cardsFolder) fail("--cards was given more than once");
       cardsFolder = folder;
       i += 1;
+    } else if (arg === "--pool-plan") {
+      const file = argv[i + 1];
+      if (!file || file.startsWith("--")) fail("--pool-plan requires a file");
+      if (poolPlan) fail("--pool-plan was given more than once");
+      poolPlan = file;
+      i += 1;
+    } else if (arg === "--dry-run") {
+      dryRun = true;
     } else {
       fail(`Unknown argument ${arg}`);
     }
   }
 
-  if (!cardsFolder && resultFiles.length === 0) {
+  if (dryRun && !poolPlan) fail("--dry-run is only valid with --pool-plan");
+  if (!cardsFolder && resultFiles.length === 0 && !poolPlan) {
     usage();
     process.exit(1);
   }
-  return { resultFiles, cardsFolder };
+  return { resultFiles, cardsFolder, poolPlan, dryRun };
 }
 
 function readJson(file) {
@@ -133,7 +147,7 @@ function loadCards(folder) {
   return payload;
 }
 
-async function postImport(endpoint, secret, kind, data, label) {
+async function postImport(endpoint, secret, kind, data, label, dryRun = false) {
   console.log(`POST ${kind} ${label}`);
   let response;
   try {
@@ -143,7 +157,7 @@ async function postImport(endpoint, secret, kind, data, label) {
         "content-type": "application/json",
         authorization: `Bearer ${secret}`,
       },
-      body: JSON.stringify({ kind, data }),
+      body: JSON.stringify(dryRun ? { kind, data, dryRun: true } : { kind, data }),
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
@@ -157,7 +171,7 @@ async function postImport(endpoint, secret, kind, data, label) {
 }
 
 async function main() {
-  const { resultFiles, cardsFolder } = parseArgs(process.argv.slice(2));
+  const { resultFiles, cardsFolder, poolPlan, dryRun } = parseArgs(process.argv.slice(2));
 
   const appUrl = process.env.APP_URL;
   const secret = process.env.ADMIN_IMPORT_SECRET;
@@ -182,6 +196,9 @@ async function main() {
   }
   for (const entry of results) {
     await postImport(endpoint, secret, "results", entry.raw, `${entry.file} (${entry.date})`);
+  }
+  if (poolPlan) {
+    await postImport(endpoint, secret, "pool", readJson(poolPlan), poolPlan, dryRun);
   }
 }
 

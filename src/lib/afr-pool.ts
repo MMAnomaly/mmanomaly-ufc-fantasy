@@ -1,5 +1,6 @@
 import type { PrismaClient } from "@prisma/client";
 import { AfrImportError } from "./afr-results";
+import { transliterateFighterName } from "./fighter-name";
 import { CLASS_LABELS, CLASS_TO_SLOT, type ClassKey } from "./slots";
 import {
   parseUpcomingCardDocument,
@@ -73,6 +74,7 @@ type PoolIdentity = {
   tapologyUrl: string | null;
   active: boolean;
   rostered: boolean;
+  aliases: string[];
 };
 
 type PreparedFighter = {
@@ -144,8 +146,14 @@ function isClassKey(value: string): value is ClassKey {
   return Object.prototype.hasOwnProperty.call(CLASS_TO_SLOT, value);
 }
 
+export { transliterateFighterName } from "./fighter-name";
+
+export function slugifyFighterName(value: string): string {
+  return slugify(value);
+}
+
 function slugify(value: string) {
-  return value
+  return transliterateFighterName(value)
     .toLowerCase()
     .normalize("NFD")
     .replace(/\p{Diacritic}/gu, "")
@@ -161,28 +169,128 @@ function fighterId(fighter: SeedFighter) {
 
 /** Accents, case, and punctuation ignored. Shared with scoring's name match. */
 export function normalizeFighterName(name: string): string {
-  return name
+  return transliterateFighterName(name)
     .toLowerCase()
     .normalize("NFD")
     .replace(/\p{Diacritic}/gu, "")
     .replace(/[^a-z0-9]/g, "");
 }
 
+/** Token-sorted key so "Lee Jeong-yeong" and "Jeong Yeong Lee" are the same person. */
+export function nameMatchKey(name: string): string {
+  return transliterateFighterName(name)
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .split(/[^a-z0-9]+/)
+    .filter(Boolean)
+    .sort()
+    .join(" ");
+}
+
+/** Path slug, including a leading numeric id. Class-key ids (they contain `_`) are not Tapology slugs. */
+export function tapologyFullSlug(urlOrId: string | null | undefined): string | null {
+  if (!urlOrId) return null;
+  const slug = urlOrId.includes("/") ? urlSlug(urlOrId) : urlOrId.trim();
+  if (!slug || slug.includes("_")) return null;
+  return slug;
+}
+
+/** `86018-aaron-pico` and `aaron-pico` share the slug `aaron-pico`. */
+export function tapologyNameSlug(urlOrId: string | null | undefined): string | null {
+  const slug = tapologyFullSlug(urlOrId);
+  if (!slug) return null;
+  return slug.replace(/^\d+-/, "") || null;
+}
+
+export function hasNumericTapology(urlOrId: string | null | undefined): boolean {
+  if (!urlOrId) return false;
+  return /(?:fighters\/|^)\d+-/.test(urlOrId);
+}
+
+export function preferTapologyUrl(current: string | null, incoming: string | null): string | null {
+  if (hasNumericTapology(incoming) && !hasNumericTapology(current)) return incoming;
+  return current ?? incoming;
+}
+
+type PreferableFighter = {
+  id?: string;
+  name?: string;
+  active?: boolean;
+  rostered?: boolean;
+  tapologyUrl?: string | null;
+};
+
+/** Rostered, then active, then a numeric Tapology id. */
+export function preferFighterCopy<T extends PreferableFighter>(rows: T[]): T {
+  return [...rows].sort((a, b) => {
+    const score = (row: T) =>
+      (row.rostered ? 4 : 0) +
+      (row.active ? 2 : 0) +
+      (hasNumericTapology(row.tapologyUrl) || hasNumericTapology(row.id) ? 1 : 0);
+    const left = a.id ?? a.name ?? "";
+    const right = b.id ?? b.name ?? "";
+    return score(b) - score(a) || left.localeCompare(right);
+  })[0]!;
+}
+
+export function aliasNames(fighter: { aliases?: Array<string | { alias: string }> | null }): string[] {
+  if (!fighter.aliases) return [];
+  const names: string[] = [];
+  for (const entry of fighter.aliases) {
+    const alias = typeof entry === "string" ? entry : entry.alias;
+    const trimmed = alias.trim();
+    if (trimmed) names.push(trimmed);
+  }
+  return names;
+}
+
+export function fighterNames(fighter: { name: string; aliases?: Array<string | { alias: string }> | null }): string[] {
+  return [fighter.name, ...aliasNames(fighter)];
+}
+
+/** True when accents, case, punctuation, or given/family order are the only differences. */
+export function fighterMatchesName(
+  fighter: { name: string; aliases?: Array<string | { alias: string }> | null },
+  raw: string,
+): boolean {
+  const targetExact = normalizeFighterName(raw);
+  const targetTokens = nameMatchKey(raw);
+  if (!targetExact && !targetTokens) return false;
+  return fighterNames(fighter).some((value) => {
+    const exact = normalizeFighterName(value);
+    return (targetExact.length > 0 && exact === targetExact) || (targetTokens.length > 0 && nameMatchKey(value) === targetTokens);
+  });
+}
+
 /**
- * Exact normalized name, otherwise the unique fighter whose name contains the
- * other. The same rule scoring uses, so a results row and a score attach to
- * one pool fighter.
+ * Exact normalized name (or the same tokens in another order, or an alias).
+ * Several exact hits resolve to the rostered, then active, then numeric-URL row.
+ * Otherwise the unique fighter whose name contains the other. Scoring uses this
+ * so a results row and a score attach to one pool fighter.
  */
-export function matchFighterByName<T extends { name: string }>(fighters: T[], name: string): T | null {
+export function matchFighterByName<
+  T extends {
+    name: string;
+    id?: string;
+    active?: boolean;
+    rostered?: boolean;
+    tapologyUrl?: string | null;
+    aliases?: Array<string | { alias: string }> | null;
+  },
+>(fighters: T[], name: string): T | null {
   const target = normalizeFighterName(name);
   if (!target) return null;
-  const exact = fighters.find((fighter) => normalizeFighterName(fighter.name) === target);
-  if (exact) return exact;
-  const contains = fighters.filter((fighter) => {
-    const normalized = normalizeFighterName(fighter.name);
-    return normalized.includes(target) || target.includes(normalized);
-  });
-  return contains.length === 1 ? contains[0] : null;
+  const exact = fighters.filter((fighter) => fighterMatchesName(fighter, name));
+  if (exact.length === 1) return exact[0] ?? null;
+  if (exact.length > 1) return preferFighterCopy(exact);
+  const contains = fighters.filter((fighter) =>
+    fighterNames(fighter).some((value) => {
+      const normalized = normalizeFighterName(value);
+      return normalized.includes(target) || target.includes(normalized);
+    }),
+  );
+  return contains.length === 1 ? (contains[0] ?? null) : null;
 }
 
 function normalizeDivisionLabel(value: string): string {
@@ -280,16 +388,17 @@ function releaseTokenMatches(
   const slug = urlSlug(trimmed);
   if (slug) {
     if (fighter.id.toLowerCase() === slug.toLowerCase()) return true;
+    const wanted = tapologyNameSlug(slug);
+    const fighterSlug = tapologyNameSlug(fighter.tapologyUrl) ?? tapologyNameSlug(fighter.id);
+    if (wanted && fighterSlug && wanted === fighterSlug) return true;
     if (fighter.tapologyUrl) {
-      const fighterSlug = urlSlug(fighter.tapologyUrl);
-      if (fighterSlug && fighterSlug.toLowerCase() === slug.toLowerCase()) return true;
       const left = canonicalUrl(fighter.tapologyUrl);
       const right = canonicalUrl(trimmed);
       if (left && right && left === right) return true;
     }
     return false;
   }
-  return normalizeFighterName(fighter.name) === normalizeFighterName(trimmed);
+  return fighterMatchesName(fighter, trimmed);
 }
 
 function removalTokenFrom(entry: unknown, label: string, index: number): RemovalToken {
@@ -367,22 +476,24 @@ function identitiesMatchingToken<T extends { id: string; name: string; tapologyU
     if (byUrl.length > 0) return byUrl;
   }
   if (token.name) {
-    const nameKey = normalizeFighterName(token.name);
-    return roster.filter((fighter) => normalizeFighterName(fighter.name) === nameKey);
+    const name = token.name;
+    return roster.filter((fighter) => fighterMatchesName(fighter, name));
   }
   return [];
 }
 
 function sameBookedFighter(
-  hit: { id: string; name: string; tapologyUrl: string | null },
+  hit: { id: string; name: string; tapologyUrl: string | null; aliases?: string[] },
   person: { name: string; tapologyUrl: string | null },
 ): boolean {
-  if (normalizeFighterName(hit.name) === normalizeFighterName(person.name)) return true;
+  if (fighterMatchesName(hit, person.name)) return true;
+  const left = tapologyNameSlug(person.tapologyUrl);
+  const right = tapologyNameSlug(hit.tapologyUrl) ?? tapologyNameSlug(hit.id);
+  if (left && right && left === right) return true;
   if (person.tapologyUrl && hit.tapologyUrl && canonicalUrl(person.tapologyUrl) === canonicalUrl(hit.tapologyUrl)) {
     return true;
   }
-  const slug = tapologySlug(person.tapologyUrl);
-  return Boolean(slug && hit.id.toLowerCase() === slug.toLowerCase());
+  return false;
 }
 
 /** True when this import's removal lists name the booked fighter. URL matches win over a different name. */
@@ -402,7 +513,7 @@ function removalAppliesTo(
     if (token.tapologyUrl && hits.length > 0) return false;
     if (token.raw) return releaseTokenMatches(token.raw, probe);
     if (token.tapologyUrl && releaseTokenMatches(token.tapologyUrl, probe)) return true;
-    if (token.name && normalizeFighterName(token.name) === normalizeFighterName(person.name)) return true;
+    if (token.name && fighterMatchesName(person, token.name)) return true;
     return false;
   });
 }
@@ -489,9 +600,20 @@ function prepareFighters(raw: unknown): {
       const fighter = asFighter(entry, classKey);
       const row = fighterWrite(fighter, classKey);
       const released = isRecord(entry) && isRemovalStatus(entry.status);
-      const prior = fighters.find((item) => item.write.id === row.id);
+      const nameKey = nameMatchKey(row.name);
+      const prior = fighters.find((item) => item.write.id === row.id || nameMatchKey(item.write.name) === nameKey);
       if (prior) {
         if (released) prior.released = true;
+        const incomingNumeric = hasNumericTapology(row.tapologyUrl);
+        const priorNumeric = hasNumericTapology(prior.write.tapologyUrl);
+        const distinctPeople = incomingNumeric && priorNumeric && tapologyFullSlug(row.tapologyUrl) !== tapologyFullSlug(prior.write.tapologyUrl);
+        if (distinctPeople) {
+          fighters.push({ released, write: row });
+          classCounts[classKey] += 1;
+          continue;
+        }
+        if (incomingNumeric && !priorNumeric) prior.write = row;
+        else prior.write.tapologyUrl = preferTapologyUrl(prior.write.tapologyUrl, row.tapologyUrl);
         continue;
       }
       fighters.push({ released, write: row });
@@ -570,18 +692,47 @@ function poolFields(fighter: FighterWrite, active: boolean) {
   };
 }
 
+function sameTapologyIdentity(
+  row: { id: string; tapologyUrl: string | null },
+  incoming: { id: string; tapologyUrl: string | null },
+): boolean {
+  const incomingFull = tapologyFullSlug(incoming.tapologyUrl) ?? tapologyFullSlug(incoming.id);
+  const incomingName = tapologyNameSlug(incoming.tapologyUrl) ?? tapologyNameSlug(incoming.id);
+  if (!incomingFull && !incomingName) return false;
+  const rowFull = tapologyFullSlug(row.tapologyUrl) ?? tapologyFullSlug(row.id);
+  const rowName = tapologyNameSlug(row.tapologyUrl) ?? tapologyNameSlug(row.id);
+  if (incomingFull && rowFull && incomingFull === rowFull) return true;
+  return Boolean(incomingName && rowName && incomingName === rowName);
+}
+
 function resolvePoolId(fighter: FighterWrite, rows: PoolIdentity[]): string {
-  const byId = rows.find((row) => row.id === fighter.id);
-  if (byId) return byId.id;
-  if (fighter.tapologyUrl) {
-    const wanted = canonicalUrl(fighter.tapologyUrl);
-    const byUrl = rows.filter((row) => row.tapologyUrl && wanted && canonicalUrl(row.tapologyUrl) === wanted);
-    if (byUrl.length === 1) return byUrl[0].id;
+  const incomingFull = tapologyFullSlug(fighter.tapologyUrl) ?? tapologyFullSlug(fighter.id);
+  const hits: PoolIdentity[] = [];
+  for (const row of rows) {
+    if (row.id === fighter.id) {
+      hits.push(row);
+      continue;
+    }
+    const rowFull = tapologyFullSlug(row.tapologyUrl) ?? tapologyFullSlug(row.id);
+    const sameSlug = sameTapologyIdentity(row, { id: fighter.id, tapologyUrl: fighter.tapologyUrl });
+    const sameName = fighterMatchesName(row, fighter.name);
+    if (!sameSlug && !sameName) continue;
+    if (hasNumericTapology(incomingFull) && hasNumericTapology(rowFull) && incomingFull !== rowFull) continue;
+    hits.push(row);
   }
-  const nameKey = normalizeFighterName(fighter.name);
-  const placeholders = rows.filter((row) => !row.tapologyUrl && normalizeFighterName(row.name) === nameKey);
-  if (placeholders.length === 1) return placeholders[0].id;
-  return fighter.id;
+  const unique = [...new Map(hits.map((row) => [row.id, row])).values()];
+  if (unique.length === 0) return fighter.id;
+  const exact = unique.filter(
+    (row) => row.id === fighter.id || tapologyFullSlug(row.tapologyUrl) === incomingFull || tapologyFullSlug(row.id) === incomingFull,
+  );
+  const live = unique.filter((row) => row.rostered || row.active);
+  // An inactive slug row and a live numeric row are the same person. Write the live
+  // row so the import cannot turn the second copy back on.
+  if (exact.length > 0 && live.length > 0 && exact.every((row) => !row.active && !row.rostered)) {
+    return preferFighterCopy(live).id;
+  }
+  if (exact.length > 0) return preferFighterCopy(exact).id;
+  return preferFighterCopy(unique).id;
 }
 
 export async function activePoolByClass(db: PrismaClient): Promise<Record<string, number>> {
@@ -619,6 +770,7 @@ export async function upsertFighterPool(
       name: true,
       tapologyUrl: true,
       active: true,
+      aliases: { select: { alias: true } },
       rosterSlots: { select: { id: true }, take: 1 },
     },
   });
@@ -628,6 +780,7 @@ export async function upsertFighterPool(
     tapologyUrl: row.tapologyUrl,
     active: row.active,
     rostered: row.rosterSlots.length > 0,
+    aliases: aliasNames(row),
   }));
   const index = original.map((row) => ({ ...row }));
 
@@ -642,6 +795,16 @@ export async function upsertFighterPool(
   for (const fighter of prepared.fighters) {
     const id = resolvePoolId(fighter.write, index);
     const prior = index.find((row) => row.id === id);
+    fighter.write.tapologyUrl = preferTapologyUrl(prior?.tapologyUrl ?? null, fighter.write.tapologyUrl);
+    const already = planned.find((row) => row.id === id);
+    if (already) {
+      if (fighter.released) already.released = true;
+      already.write.tapologyUrl = preferTapologyUrl(already.write.tapologyUrl, fighter.write.tapologyUrl);
+      if (hasNumericTapology(fighter.write.tapologyUrl) && !hasNumericTapology(already.write.tapologyUrl)) {
+        already.write = fighter.write;
+      }
+      continue;
+    }
     planned.push({
       id,
       write: fighter.write,
@@ -659,6 +822,7 @@ export async function upsertFighterPool(
         tapologyUrl: fighter.write.tapologyUrl,
         active: true,
         rostered: false,
+        aliases: [],
       });
     }
   }
@@ -715,7 +879,7 @@ export async function upsertFighterPool(
     planned.filter((row) => row.released && row.rostered).length + stale.filter((row) => row.rostered).length;
 
   return {
-    upserted: prepared.fighters.length,
+    upserted: planned.length,
     deactivated,
     rosteredRetained,
     unmatchedReleases,
@@ -800,6 +964,7 @@ export async function syncUpcomingCardFighters(
       active: true,
       classKey: true,
       tapologyUrl: true,
+      aliases: { select: { alias: true } },
       rosterSlots: { select: { id: true }, take: 1 },
     },
   });
@@ -810,21 +975,22 @@ export async function syncUpcomingCardFighters(
     active: row.active,
     classKey: row.classKey,
     rostered: row.rosterSlots.length > 0,
+    aliases: aliasNames(row),
   }));
   const roster = known.map((row) => ({ id: row.id, name: row.name, tapologyUrl: row.tapologyUrl }));
   const taken = new Set(known.map((row) => row.id));
   const seen = new Map<string, { classified: boolean }>();
 
   const dropUnclassified = (name: string) => {
-    const key = normalizeFighterName(name);
+    const key = nameMatchKey(name);
     for (let index = unclassified.length - 1; index >= 0; index -= 1) {
-      if (normalizeFighterName(unclassified[index] ?? "") === key) unclassified.splice(index, 1);
+      if (nameMatchKey(unclassified[index] ?? "") === key) unclassified.splice(index, 1);
     }
   };
 
   for (const appearance of upcomingFightersFromCard(rawCard)) {
     const name = appearance.name.trim();
-    const nameKey = normalizeFighterName(name);
+    const nameKey = nameMatchKey(name);
     if (!nameKey) continue;
     const prior = seen.get(nameKey);
     if (prior?.classified) continue;
@@ -870,10 +1036,17 @@ export async function syncUpcomingCardFighters(
         active: true,
         classKey,
         rostered: false,
+        aliases: [],
       });
       roster.push({ id, name, tapologyUrl: appearance.tapologyUrl });
       added.push(name);
       continue;
+    }
+
+    const betterUrl = preferTapologyUrl(match.tapologyUrl, appearance.tapologyUrl);
+    if (betterUrl !== match.tapologyUrl) {
+      await db.fighter.update({ where: { id: match.id }, data: { tapologyUrl: betterUrl } });
+      match.tapologyUrl = betterUrl;
     }
 
     if (!match.active) {
@@ -968,22 +1141,24 @@ export async function syncFoughtFighters(
       name: true,
       active: true,
       tapologyUrl: true,
+      aliases: { select: { alias: true } },
       rosterSlots: { select: { id: true }, take: 1 },
     },
   });
-  const known: (PoolIdentity & { rostered: boolean })[] = existing.map((row) => ({
+  const known: PoolIdentity[] = existing.map((row) => ({
     id: row.id,
     name: row.name,
     tapologyUrl: row.tapologyUrl,
     active: row.active,
     rostered: row.rosterSlots.length > 0,
+    aliases: aliasNames(row),
   }));
   const taken = new Set(known.map((row) => row.id));
   const seen = new Set<string>();
 
   for (const appearance of appearances) {
     const name = appearance.name.trim();
-    const nameKey = normalizeFighterName(name);
+    const nameKey = nameMatchKey(name);
     if (!nameKey || seen.has(nameKey)) continue;
     seen.add(nameKey);
 
@@ -993,6 +1168,11 @@ export async function syncFoughtFighters(
     const match = matchFighterByName(known, name);
 
     if (match) {
+      const betterUrl = preferTapologyUrl(match.tapologyUrl, appearance.tapologyUrl ?? null);
+      if (betterUrl !== match.tapologyUrl) {
+        await db.fighter.update({ where: { id: match.id }, data: { tapologyUrl: betterUrl } });
+        match.tapologyUrl = betterUrl;
+      }
       if (match.active) continue;
       const data: {
         active: true;
@@ -1051,6 +1231,7 @@ export async function syncFoughtFighters(
       tapologyUrl: appearance.tapologyUrl ?? null,
       active: true,
       rostered: false,
+      aliases: [],
     });
     added.push(name);
   }

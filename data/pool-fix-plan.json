@@ -1,0 +1,2452 @@
+{
+  "generatedAt": "2026-11-12T19:30:00-08:00",
+  "scope": "Read-only research. No production data or code was changed.",
+  "sources": {
+    "prodPoolUrl": "https://mmanomaly-ufc-fantasy.vercel.app/leagues/cmubqkjbl00079qhphx4v4xn7/pool",
+    "prodActive": 675,
+    "prodInactive": 71,
+    "afrGeneratedAt": "2026-11-08T10:55:54-08:00",
+    "afrFightersByClass": 669,
+    "nov10Import": "POST cards /home/box/shared/active-fighter-repository\nHTTP 200\n{\"ok\":true,\"fightersUpserted\":669,\"fightersDeactivated\":1,\"rosteredFightersRetained\":0,\"unmatchedReleases\":[],\"skippedClasses\":[],\"activePoolByClass\":{\"mens_flyweight\":48,\"mens_bantamweight\":79,\"mens_featherweight\":89,\"mens_lightweight\":101,\"mens_welterweight\":79,\"mens_middleweight\":76,\"mens_light_heavyweight\":48,\"mens_heavyweight\":52,\"womens_strawweight\":44,\"womens_flyweight\":32,\"womens_bantamweight\":27},\"addedFromCards\":[],\"reactivatedFromCards\":[\"Samuel Sanches\",\"Alik Lorenz\",\"Modestino Rodrigues\",\"Akbar Abdullaev\",\"Mehemmedeli Osmanli\",\"Quentin Pasley\",\"Roberto Soldic\"],\"unclassifiedFromCards\":[],\"cardsUpserted\":7,\"cardsRemoved\":0,\"cardsUnchanged\":false}",
+    "wikipediaCurrentListLastEdited": "2026-11-13T01:16:00Z"
+  },
+  "rootCause": {
+    "summary": "Duplicates are created because fighter identity is the Tapology slug or, when the URL is missing, classKey-slugify(name). resolvePoolId only adopts an existing row by exact id, exact canonical URL, or exact normalized name when that row has NO tapologyUrl. A slug-only URL and a numeric URL are treated as different people, and a null-URL AFR/card row cannot attach to an existing slug-URL row. upsertFighterPool therefore inserts a second id. Fighters missing from fightersByClass are not deactivated, so the old row remains. syncUpcomingCardFighters then matches by normalizeFighterName and .find()s the first hit; if that hit is the old inactive row, it gets reactivated, and both copies end up active. The Nov 10 cards import is the smoking gun: reactivatedFromCards listed Samuel Sanches, Alik Lorenz, Modestino Rodrigues, Akbar Abdullaev, Mehemmedeli Osmanli, Quentin Pasley, and Roberto Soldic — exactly seven of the eight both-active pairs Olin reported (Juan Díaz was already a double-active AFR self-duplicate and was not in that list). AFR itself currently lists both 'Juan Diaz' (null URL) and 'Juan Díaz' (slug URL), and both 'Jeong Yeong Lee' and 'Lee Jeong-yeong'. slugify also fails to transliterate ł, which is why Mary's drafted Jan Błachowicz is stuck on id jan-b-achowicz while AFR created jan-blachowicz.",
+    "files": [
+      {
+        "file": "src/lib/afr-pool.ts",
+        "functions": [
+          "fighterId",
+          "slugify",
+          "resolvePoolId",
+          "upsertFighterPool",
+          "syncUpcomingCardFighters",
+          "matchFighterByName",
+          "unusedFighterId",
+          "normalizeFighterName",
+          "importAfrCards"
+        ]
+      },
+      {
+        "file": "src/app/api/admin/import/route.ts",
+        "functions": [
+          "importCards"
+        ]
+      }
+    ],
+    "suggestedFix": [
+      "In resolvePoolId, match by normalizeFighterName even when the existing row already has a Tapology URL, and treat numeric vs slug-only URLs as the same fighter (compare the trailing name slug, not only the full canonical URL).",
+      "Deduplicate the incoming AFR fightersByClass list by normalized name (and token-sort / family-name-first variants) before upsert, so Juan Diaz / Juan Díaz and Jeong Yeong Lee / Lee Jeong-yeong cannot both be inserted.",
+      "When matchFighterByName has more than one exact normalized-name hit, prefer a rostered or already-active row and never reactivate a second copy.",
+      "When adopting, copy the better (numeric) Tapology URL onto the kept id; never mint classKey-slugify(name) if a normalized-name match exists.",
+      "Transliterate crossed letters in slugify (ł→l, đ→d, ø→o) so Jan Błachowicz cannot get a second id jan-b-achowicz.",
+      "Add a searchable alias / display-name field so Tina Black, Ozzy Diaz, Chapolin, Bia Mesquita, and Tommy Gantt are findable under the names players actually type."
+    ]
+  },
+  "merges": [
+    {
+      "keep": {
+        "id": "ailin-perez",
+        "name": "Ailín Pérez",
+        "classKey": "womens_bantamweight",
+        "active": false,
+        "draftedBy": "Ninos",
+        "seasonPoints": 58.4,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/ailin-perez",
+        "record": "13-2-0",
+        "lastFightDate": null,
+        "hasNumericTapology": false
+      },
+      "remove": [
+        {
+          "id": "143238-ailin-luciana-perez",
+          "name": "Ailín Pérez",
+          "classKey": "womens_bantamweight",
+          "active": true,
+          "draftedBy": null,
+          "seasonPoints": 58.4,
+          "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/143238-ailin-luciana-perez",
+          "record": "13-2",
+          "lastFightDate": "2026-09-25",
+          "hasNumericTapology": true
+        }
+      ],
+      "reason": "Drafted by Ninos (season points 58.4). Prefer the drafted record so roster, picks, and scores stay on one id.",
+      "copyTapologyUrl": "https://www.tapology.com/fightcenter/fighters/143238-ailin-luciana-perez",
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "akbar-abdullaev",
+        "name": "Akbar Abdullaev",
+        "classKey": "mens_lightweight",
+        "active": true,
+        "draftedBy": null,
+        "seasonPoints": 0,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/akbar-abdullaev",
+        "record": "14-0-0",
+        "lastFightDate": null,
+        "hasNumericTapology": false
+      },
+      "remove": [
+        {
+          "id": "mens_lightweight-akbar-abdullaev",
+          "name": "Akbar Abdullaev",
+          "classKey": "mens_lightweight",
+          "active": true,
+          "draftedBy": null,
+          "seasonPoints": 0,
+          "tapologyUrl": null,
+          "record": null,
+          "lastFightDate": null,
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Not drafted and no numeric URL. Keep the already-active record that has a Tapology URL.",
+      "copyTapologyUrl": null,
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "68972-alexa-grasso",
+        "name": "Alexa Grasso",
+        "classKey": "womens_flyweight",
+        "active": true,
+        "draftedBy": "Hiram",
+        "seasonPoints": 76.9,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/68972-alexa-grasso",
+        "record": "18-5-1",
+        "lastFightDate": null,
+        "hasNumericTapology": true
+      },
+      "remove": [
+        {
+          "id": "alexa-grasso",
+          "name": "Alexa Grasso",
+          "classKey": "womens_flyweight",
+          "active": false,
+          "draftedBy": null,
+          "seasonPoints": 76.9,
+          "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/alexa-grasso",
+          "record": "18-5-1",
+          "lastFightDate": null,
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Drafted by Hiram (season points 76.9). Prefer the drafted record so roster, picks, and scores stay on one id.",
+      "copyTapologyUrl": null,
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "alik-lorenz",
+        "name": "Alik Lorenz",
+        "classKey": "mens_light_heavyweight",
+        "active": true,
+        "draftedBy": null,
+        "seasonPoints": 0,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/alik-lorenz",
+        "record": "8-2-0",
+        "lastFightDate": null,
+        "hasNumericTapology": false
+      },
+      "remove": [
+        {
+          "id": "mens_light_heavyweight-alik-lorenz",
+          "name": "Alik Lorenz",
+          "classKey": "mens_light_heavyweight",
+          "active": true,
+          "draftedBy": null,
+          "seasonPoints": 0,
+          "tapologyUrl": null,
+          "record": null,
+          "lastFightDate": null,
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Not drafted and no numeric URL. Keep the already-active record that has a Tapology URL.",
+      "copyTapologyUrl": null,
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "charles-oliveira-do-bronx",
+        "name": "Charles Oliveira",
+        "classKey": "mens_lightweight",
+        "active": true,
+        "draftedBy": "Drew",
+        "seasonPoints": 0.0,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/charles-oliveira-do-bronx",
+        "record": "37-11",
+        "lastFightDate": null,
+        "hasNumericTapology": false
+      },
+      "remove": [
+        {
+          "id": "charles-oliveira",
+          "name": "Charles Oliveira",
+          "classKey": "mens_lightweight",
+          "active": false,
+          "draftedBy": null,
+          "seasonPoints": 0.0,
+          "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/charles-oliveira",
+          "record": "37-11-0",
+          "lastFightDate": null,
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Drafted by Drew (season points 0.0). Prefer the drafted record so roster, picks, and scores stay on one id.",
+      "copyTapologyUrl": "https://www.tapology.com/fightcenter/fighters/charles-oliveira",
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "cody-chovancek",
+        "name": "Cody Chovancek",
+        "classKey": "mens_bantamweight",
+        "active": false,
+        "draftedBy": null,
+        "seasonPoints": 0,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/cody-chovancek",
+        "record": "9-0-0",
+        "lastFightDate": null,
+        "hasNumericTapology": false
+      },
+      "remove": [
+        {
+          "id": "mens_bantamweight-cody-chovancek",
+          "name": "Cody Chovancek",
+          "classKey": "mens_bantamweight",
+          "active": true,
+          "draftedBy": null,
+          "seasonPoints": 0,
+          "tapologyUrl": null,
+          "record": null,
+          "lastFightDate": "2026-10-16",
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Not drafted and no numeric URL. Keep the record that already has a Tapology URL (the other is a class-slug placeholder with url=null).",
+      "copyTapologyUrl": null,
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "165655-denise-gomes",
+        "name": "Denise Gomes",
+        "classKey": "womens_strawweight",
+        "active": true,
+        "draftedBy": null,
+        "seasonPoints": 0,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/165655-denise-gomes",
+        "record": "13-3",
+        "lastFightDate": null,
+        "hasNumericTapology": true
+      },
+      "remove": [
+        {
+          "id": "denise-gomes",
+          "name": "Denise Gomes",
+          "classKey": "womens_strawweight",
+          "active": false,
+          "draftedBy": null,
+          "seasonPoints": 0,
+          "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/denise-gomes",
+          "record": "13-3-0",
+          "lastFightDate": null,
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Not drafted. Prefer the record with a numeric Tapology URL/id.",
+      "copyTapologyUrl": null,
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "erin-blanchfield",
+        "name": "Erin Blanchfield",
+        "classKey": "womens_flyweight",
+        "active": false,
+        "draftedBy": "Ninos",
+        "seasonPoints": 36.0,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/erin-blanchfield",
+        "record": "14-2-0",
+        "lastFightDate": null,
+        "hasNumericTapology": false
+      },
+      "remove": [
+        {
+          "id": "167460-erin-blanchfield",
+          "name": "Erin Blanchfield",
+          "classKey": "womens_flyweight",
+          "active": true,
+          "draftedBy": null,
+          "seasonPoints": 36.0,
+          "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/167460-erin-blanchfield",
+          "record": "14-2",
+          "lastFightDate": "2026-10-16",
+          "hasNumericTapology": true
+        }
+      ],
+      "reason": "Drafted by Ninos (season points 36.0). Prefer the drafted record so roster, picks, and scores stay on one id.",
+      "copyTapologyUrl": "https://www.tapology.com/fightcenter/fighters/167460-erin-blanchfield",
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "gabriel-lorenco",
+        "name": "Gabriel Lorenço",
+        "classKey": "mens_heavyweight",
+        "active": false,
+        "draftedBy": null,
+        "seasonPoints": 0,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/gabriel-lorenco",
+        "record": "8-1-0",
+        "lastFightDate": null,
+        "hasNumericTapology": false
+      },
+      "remove": [
+        {
+          "id": "mens_heavyweight-gabriel-lorenco",
+          "name": "Gabriel Lorenço",
+          "classKey": "mens_heavyweight",
+          "active": true,
+          "draftedBy": null,
+          "seasonPoints": 0,
+          "tapologyUrl": null,
+          "record": null,
+          "lastFightDate": "2026-11-06",
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Not drafted and no numeric URL. Keep the record that already has a Tapology URL (the other is a class-slug placeholder with url=null).",
+      "copyTapologyUrl": null,
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "73142-gillian-robertson",
+        "name": "Gillian Robertson",
+        "classKey": "womens_strawweight",
+        "active": true,
+        "draftedBy": null,
+        "seasonPoints": 0,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/73142-gillian-robertson",
+        "record": "17-9",
+        "lastFightDate": null,
+        "hasNumericTapology": true
+      },
+      "remove": [
+        {
+          "id": "gillian-robertson",
+          "name": "Gillian Robertson",
+          "classKey": "womens_strawweight",
+          "active": false,
+          "draftedBy": null,
+          "seasonPoints": 0,
+          "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/gillian-robertson",
+          "record": "17-9-0",
+          "lastFightDate": null,
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Not drafted. Prefer the record with a numeric Tapology URL/id.",
+      "copyTapologyUrl": null,
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "171377-ian-garry",
+        "name": "Ian Machado Garry",
+        "classKey": "mens_welterweight",
+        "active": true,
+        "draftedBy": "Mary",
+        "seasonPoints": 24.6,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/171377-ian-garry",
+        "record": "17-2",
+        "lastFightDate": null,
+        "hasNumericTapology": true
+      },
+      "remove": [
+        {
+          "id": "ian-machado-garry",
+          "name": "Ian Machado Garry",
+          "classKey": "mens_welterweight",
+          "active": false,
+          "draftedBy": null,
+          "seasonPoints": 24.6,
+          "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/ian-machado-garry",
+          "record": "17-2-0",
+          "lastFightDate": null,
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Drafted by Mary (season points 24.6). Prefer the drafted record so roster, picks, and scores stay on one id.",
+      "copyTapologyUrl": null,
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "166360-iasmin-lucindo",
+        "name": "Iasmin Lucindo",
+        "classKey": "womens_strawweight",
+        "active": true,
+        "draftedBy": null,
+        "seasonPoints": 0,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/166360-iasmin-lucindo",
+        "record": "19-6",
+        "lastFightDate": "2026-10-23",
+        "hasNumericTapology": true
+      },
+      "remove": [
+        {
+          "id": "iasmin-lucindo",
+          "name": "Iasmin Lucindo",
+          "classKey": "womens_strawweight",
+          "active": false,
+          "draftedBy": null,
+          "seasonPoints": 0,
+          "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/iasmin-lucindo",
+          "record": "18-6-0",
+          "lastFightDate": null,
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Not drafted. Prefer the record with a numeric Tapology URL/id.",
+      "copyTapologyUrl": null,
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "196666-jaqueline-cavalcanti",
+        "name": "Jacqueline Cavalcanti",
+        "classKey": "womens_bantamweight",
+        "active": true,
+        "draftedBy": null,
+        "seasonPoints": 0,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/196666-jaqueline-cavalcanti",
+        "record": "10-2",
+        "lastFightDate": null,
+        "hasNumericTapology": true
+      },
+      "remove": [
+        {
+          "id": "jacqueline-cavalcanti",
+          "name": "Jacqueline Cavalcanti",
+          "classKey": "womens_bantamweight",
+          "active": false,
+          "draftedBy": null,
+          "seasonPoints": 0,
+          "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/jacqueline-cavalcanti",
+          "record": "10-2-0",
+          "lastFightDate": null,
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Not drafted. Prefer the record with a numeric Tapology URL/id.",
+      "copyTapologyUrl": null,
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "jan-b-achowicz",
+        "name": "Jan Błachowicz",
+        "classKey": "mens_light_heavyweight",
+        "active": false,
+        "draftedBy": "Mary",
+        "seasonPoints": 0.0,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/jan-b-achowicz",
+        "record": "29-12-2",
+        "lastFightDate": null,
+        "hasNumericTapology": false
+      },
+      "remove": [
+        {
+          "id": "jan-blachowicz",
+          "name": "Jan Błachowicz",
+          "classKey": "mens_light_heavyweight",
+          "active": true,
+          "draftedBy": null,
+          "seasonPoints": 0.0,
+          "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/jan-blachowicz",
+          "record": "29-12-2",
+          "lastFightDate": "2026-07-31",
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Drafted by Mary (season points 0.0). Prefer the drafted record so roster, picks, and scores stay on one id.",
+      "copyTapologyUrl": "https://www.tapology.com/fightcenter/fighters/jan-blachowicz",
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "jasmine-jasudavicius",
+        "name": "Jasmine Jasudavicius",
+        "classKey": "womens_flyweight",
+        "active": false,
+        "draftedBy": "Mary",
+        "seasonPoints": 97.8,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/jasmine-jasudavicius",
+        "record": "15-4-0",
+        "lastFightDate": null,
+        "hasNumericTapology": false
+      },
+      "remove": [
+        {
+          "id": "171056-jasmine-jasdavicious",
+          "name": "Jasmine Jasudavicius",
+          "classKey": "womens_flyweight",
+          "active": true,
+          "draftedBy": null,
+          "seasonPoints": 97.8,
+          "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/171056-jasmine-jasdavicious",
+          "record": "15-4",
+          "lastFightDate": "2026-10-16",
+          "hasNumericTapology": true
+        }
+      ],
+      "reason": "Drafted by Mary (season points 97.8). Prefer the drafted record so roster, picks, and scores stay on one id.",
+      "copyTapologyUrl": "https://www.tapology.com/fightcenter/fighters/171056-jasmine-jasdavicious",
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "javad-mahjoub",
+        "name": "Javad Mahjoub",
+        "classKey": "mens_heavyweight",
+        "active": false,
+        "draftedBy": null,
+        "seasonPoints": 0,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/javad-mahjoub",
+        "record": "5-0-0",
+        "lastFightDate": null,
+        "hasNumericTapology": false
+      },
+      "remove": [
+        {
+          "id": "mens_heavyweight-javad-mahjoub",
+          "name": "Javad Mahjoub",
+          "classKey": "mens_heavyweight",
+          "active": true,
+          "draftedBy": null,
+          "seasonPoints": 0,
+          "tapologyUrl": null,
+          "record": null,
+          "lastFightDate": "2026-10-16",
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Not drafted and no numeric URL. Keep the record that already has a Tapology URL (the other is a class-slug placeholder with url=null).",
+      "copyTapologyUrl": null,
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "jonny-parsons",
+        "name": "Jonny Parsons",
+        "classKey": "mens_welterweight",
+        "active": false,
+        "draftedBy": null,
+        "seasonPoints": 0,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/jonny-parsons",
+        "record": "9-3-0",
+        "lastFightDate": null,
+        "hasNumericTapology": false
+      },
+      "remove": [
+        {
+          "id": "mens_welterweight-jonny-parsons",
+          "name": "Jonny Parsons",
+          "classKey": "mens_welterweight",
+          "active": true,
+          "draftedBy": null,
+          "seasonPoints": 0,
+          "tapologyUrl": null,
+          "record": null,
+          "lastFightDate": "2026-11-06",
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Not drafted and no numeric URL. Keep the record that already has a Tapology URL (the other is a class-slug placeholder with url=null).",
+      "copyTapologyUrl": null,
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "98366-yoselin-edwards",
+        "name": "Joselyne Edwards",
+        "classKey": "womens_bantamweight",
+        "active": true,
+        "draftedBy": "Hiram",
+        "seasonPoints": 0.0,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/98366-yoselin-edwards",
+        "record": "18-6",
+        "lastFightDate": null,
+        "hasNumericTapology": true
+      },
+      "remove": [
+        {
+          "id": "joselyne-edwards",
+          "name": "Joselyne Edwards",
+          "classKey": "womens_bantamweight",
+          "active": false,
+          "draftedBy": null,
+          "seasonPoints": 0.0,
+          "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/joselyne-edwards",
+          "record": "18-6-0",
+          "lastFightDate": null,
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Drafted by Hiram (season points 0.0). Prefer the drafted record so roster, picks, and scores stay on one id.",
+      "copyTapologyUrl": null,
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "joseph-kropschot",
+        "name": "Joseph Kropschot",
+        "classKey": "mens_middleweight",
+        "active": false,
+        "draftedBy": null,
+        "seasonPoints": 0,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/joseph-kropschot",
+        "record": "9-3-0",
+        "lastFightDate": null,
+        "hasNumericTapology": false
+      },
+      "remove": [
+        {
+          "id": "mens_middleweight-joseph-kropschot",
+          "name": "Joseph Kropschot",
+          "classKey": "mens_middleweight",
+          "active": true,
+          "draftedBy": null,
+          "seasonPoints": 0,
+          "tapologyUrl": null,
+          "record": null,
+          "lastFightDate": "2026-10-30",
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Not drafted and no numeric URL. Keep the record that already has a Tapology URL (the other is a class-slug placeholder with url=null).",
+      "copyTapologyUrl": null,
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "juan-diaz",
+        "name": "Juan Díaz",
+        "classKey": "mens_bantamweight",
+        "active": true,
+        "draftedBy": null,
+        "seasonPoints": 0,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/juan-diaz",
+        "record": "16-1-1",
+        "lastFightDate": null,
+        "hasNumericTapology": false
+      },
+      "remove": [
+        {
+          "id": "mens_bantamweight-juan-diaz",
+          "name": "Juan Diaz",
+          "classKey": "mens_bantamweight",
+          "active": true,
+          "draftedBy": null,
+          "seasonPoints": 0,
+          "tapologyUrl": null,
+          "record": null,
+          "lastFightDate": null,
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Not drafted and no numeric URL. Keep the already-active record that has a Tapology URL.",
+      "copyTapologyUrl": null,
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "julianna-pena-the-venezuelan-vixen",
+        "name": "Julianna Peña",
+        "classKey": "womens_bantamweight",
+        "active": true,
+        "draftedBy": null,
+        "seasonPoints": 0,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/julianna-pena-the-venezuelan-vixen",
+        "record": "12-6",
+        "lastFightDate": null,
+        "hasNumericTapology": false
+      },
+      "remove": [
+        {
+          "id": "julianna-pena",
+          "name": "Julianna Peña",
+          "classKey": "womens_bantamweight",
+          "active": false,
+          "draftedBy": null,
+          "seasonPoints": 0,
+          "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/julianna-pena",
+          "record": "12-6-0",
+          "lastFightDate": null,
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Not drafted and no numeric URL. Keep the already-active record that has a Tapology URL.",
+      "copyTapologyUrl": "https://www.tapology.com/fightcenter/fighters/julianna-pena",
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "39265-kamarudeen-usman",
+        "name": "Kamaru Usman",
+        "classKey": "mens_middleweight",
+        "active": true,
+        "draftedBy": null,
+        "seasonPoints": 0,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/39265-kamarudeen-usman",
+        "record": "21-5",
+        "lastFightDate": null,
+        "hasNumericTapology": true
+      },
+      "remove": [
+        {
+          "id": "kamaru-usman",
+          "name": "Kamaru Usman",
+          "classKey": "mens_middleweight",
+          "active": false,
+          "draftedBy": null,
+          "seasonPoints": 0,
+          "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/kamaru-usman",
+          "record": "21-5-0",
+          "lastFightDate": null,
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Not drafted. Prefer the record with a numeric Tapology URL/id.",
+      "copyTapologyUrl": null,
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "katlyn-cerminara",
+        "name": "Katlyn Cerminara",
+        "classKey": "womens_flyweight",
+        "active": false,
+        "draftedBy": null,
+        "seasonPoints": 0,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/katlyn-cerminara",
+        "record": "18-6-0",
+        "lastFightDate": null,
+        "hasNumericTapology": false
+      },
+      "remove": [
+        {
+          "id": "womens_flyweight-katlyn-cerminara",
+          "name": "Katlyn Cerminara",
+          "classKey": "womens_flyweight",
+          "active": true,
+          "draftedBy": null,
+          "seasonPoints": 0,
+          "tapologyUrl": null,
+          "record": null,
+          "lastFightDate": "2026-10-16",
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Not drafted and no numeric URL. Keep the record that already has a Tapology URL (the other is a class-slug placeholder with url=null).",
+      "copyTapologyUrl": null,
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "34265-kayla-harrison",
+        "name": "Kayla Harrison",
+        "classKey": "womens_bantamweight",
+        "active": true,
+        "draftedBy": null,
+        "seasonPoints": 0,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/34265-kayla-harrison",
+        "record": "19-1",
+        "lastFightDate": null,
+        "hasNumericTapology": true
+      },
+      "remove": [
+        {
+          "id": "kayla-harrison",
+          "name": "Kayla Harrison",
+          "classKey": "womens_bantamweight",
+          "active": false,
+          "draftedBy": null,
+          "seasonPoints": 0,
+          "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/kayla-harrison",
+          "record": "19-1-0",
+          "lastFightDate": null,
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Not drafted. Prefer the record with a numeric Tapology URL/id.",
+      "copyTapologyUrl": null,
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "84753-lerone-murphy",
+        "name": "Lerone Murphy",
+        "classKey": "mens_featherweight",
+        "active": true,
+        "draftedBy": null,
+        "seasonPoints": 0,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/84753-lerone-murphy",
+        "record": "17-1-1",
+        "lastFightDate": null,
+        "hasNumericTapology": true
+      },
+      "remove": [
+        {
+          "id": "lerone-murphy",
+          "name": "Lerone Murphy",
+          "classKey": "mens_featherweight",
+          "active": false,
+          "draftedBy": null,
+          "seasonPoints": 0,
+          "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/lerone-murphy",
+          "record": "17-1-1",
+          "lastFightDate": null,
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Not drafted. Prefer the record with a numeric Tapology URL/id.",
+      "copyTapologyUrl": null,
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "louis-jourdain",
+        "name": "Louis Jourdain",
+        "classKey": "mens_bantamweight",
+        "active": false,
+        "draftedBy": null,
+        "seasonPoints": 0,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/louis-jourdain",
+        "record": "9-3-0",
+        "lastFightDate": null,
+        "hasNumericTapology": false
+      },
+      "remove": [
+        {
+          "id": "mens_bantamweight-louis-jourdain",
+          "name": "Louis Jourdain",
+          "classKey": "mens_bantamweight",
+          "active": true,
+          "draftedBy": null,
+          "seasonPoints": 0,
+          "tapologyUrl": null,
+          "record": null,
+          "lastFightDate": "2026-10-16",
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Not drafted and no numeric URL. Keep the record that already has a Tapology URL (the other is a class-slug placeholder with url=null).",
+      "copyTapologyUrl": null,
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "223129-luana-santos",
+        "name": "Luana Santos",
+        "classKey": "womens_bantamweight",
+        "active": true,
+        "draftedBy": null,
+        "seasonPoints": 0,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/223129-luana-santos",
+        "record": "12-2",
+        "lastFightDate": "2026-10-30",
+        "hasNumericTapology": true
+      },
+      "remove": [
+        {
+          "id": "luana-santos",
+          "name": "Luana Santos",
+          "classKey": "womens_bantamweight",
+          "active": false,
+          "draftedBy": null,
+          "seasonPoints": 0,
+          "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/luana-santos",
+          "record": "11-2-0",
+          "lastFightDate": null,
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Not drafted. Prefer the record with a numeric Tapology URL/id.",
+      "copyTapologyUrl": null,
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "lucia-szabova",
+        "name": "Lucia Szabová",
+        "classKey": "womens_flyweight",
+        "active": false,
+        "draftedBy": null,
+        "seasonPoints": 0,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/lucia-szabova",
+        "record": "10-0-0",
+        "lastFightDate": null,
+        "hasNumericTapology": false
+      },
+      "remove": [
+        {
+          "id": "womens_bantamweight-lucia-szabova",
+          "name": "Lucia Szabová",
+          "classKey": "womens_bantamweight",
+          "active": true,
+          "draftedBy": null,
+          "seasonPoints": 0,
+          "tapologyUrl": null,
+          "record": null,
+          "lastFightDate": "2026-10-30",
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Not drafted and no numeric URL. Keep the record that already has a Tapology URL (the other is a class-slug placeholder with url=null). Last UFC bout was Women's Flyweight vs Tainara Lisboa at UFC Vegas 123 on Oct 31, 2026 (AFR last_fight_note); the WBW class-slug row is a mis-class from that import. Upcoming listing vs Lisboa is stale.",
+      "copyTapologyUrl": null,
+      "setActive": true,
+      "setClassKey": "womens_flyweight"
+    },
+    {
+      "keep": {
+        "id": "134267",
+        "name": "Mackenzie Dern",
+        "classKey": "womens_strawweight",
+        "active": true,
+        "draftedBy": "Ninos",
+        "seasonPoints": 106.8,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/134267",
+        "record": "17-5",
+        "lastFightDate": null,
+        "hasNumericTapology": false
+      },
+      "remove": [
+        {
+          "id": "mackenzie-dern",
+          "name": "Mackenzie Dern",
+          "classKey": "womens_strawweight",
+          "active": false,
+          "draftedBy": null,
+          "seasonPoints": 106.8,
+          "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/mackenzie-dern",
+          "record": "17-5-0",
+          "lastFightDate": null,
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Drafted by Ninos (season points 106.8). Prefer the drafted record so roster, picks, and scores stay on one id.",
+      "copyTapologyUrl": null,
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "136168-manon-fiorot",
+        "name": "Manon Fiorot",
+        "classKey": "womens_flyweight",
+        "active": true,
+        "draftedBy": "Drew",
+        "seasonPoints": 29.1,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/136168-manon-fiorot",
+        "record": "13-3",
+        "lastFightDate": null,
+        "hasNumericTapology": true
+      },
+      "remove": [
+        {
+          "id": "manon-fiorot",
+          "name": "Manon Fiorot",
+          "classKey": "womens_flyweight",
+          "active": false,
+          "draftedBy": null,
+          "seasonPoints": 29.1,
+          "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/manon-fiorot",
+          "record": "13-3-0",
+          "lastFightDate": null,
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Drafted by Drew (season points 29.1). Prefer the drafted record so roster, picks, and scores stay on one id.",
+      "copyTapologyUrl": null,
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "max-holloway",
+        "name": "Max Holloway",
+        "classKey": "mens_welterweight",
+        "active": false,
+        "draftedBy": "Jive Turkey",
+        "seasonPoints": 96.3,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/max-holloway",
+        "record": "28-9-0",
+        "lastFightDate": null,
+        "hasNumericTapology": false
+      },
+      "remove": [
+        {
+          "id": "12723-max-holloway-lil-evil",
+          "name": "Max Holloway",
+          "classKey": "mens_welterweight",
+          "active": true,
+          "draftedBy": null,
+          "seasonPoints": 96.3,
+          "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/12723-max-holloway-lil-evil",
+          "record": "28-9",
+          "lastFightDate": null,
+          "hasNumericTapology": true
+        }
+      ],
+      "reason": "Drafted by Jive Turkey (season points 96.3). Prefer the drafted record so roster, picks, and scores stay on one id.",
+      "copyTapologyUrl": "https://www.tapology.com/fightcenter/fighters/12723-max-holloway-lil-evil",
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "mehemmedeli-osmanli",
+        "name": "Mehemmedeli Osmanli",
+        "classKey": "mens_bantamweight",
+        "active": true,
+        "draftedBy": null,
+        "seasonPoints": 0,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/mehemmedeli-osmanli",
+        "record": "11-1-0",
+        "lastFightDate": null,
+        "hasNumericTapology": false
+      },
+      "remove": [
+        {
+          "id": "mens_bantamweight-mehemmedeli-osmanli",
+          "name": "Mehemmedeli Osmanli",
+          "classKey": "mens_bantamweight",
+          "active": true,
+          "draftedBy": null,
+          "seasonPoints": 0,
+          "tapologyUrl": null,
+          "record": null,
+          "lastFightDate": null,
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Not drafted and no numeric URL. Keep the already-active record that has a Tapology URL.",
+      "copyTapologyUrl": null,
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "modestino-rodrigues",
+        "name": "Modestino Rodrigues",
+        "classKey": "mens_middleweight",
+        "active": true,
+        "draftedBy": null,
+        "seasonPoints": 0,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/modestino-rodrigues",
+        "record": "8-1-0",
+        "lastFightDate": null,
+        "hasNumericTapology": false
+      },
+      "remove": [
+        {
+          "id": "mens_middleweight-modestino-rodrigues",
+          "name": "Modestino Rodrigues",
+          "classKey": "mens_middleweight",
+          "active": true,
+          "draftedBy": null,
+          "seasonPoints": 0,
+          "tapologyUrl": null,
+          "record": null,
+          "lastFightDate": null,
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Not drafted and no numeric URL. Keep the already-active record that has a Tapology URL.",
+      "copyTapologyUrl": null,
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "99885-natalia-silva",
+        "name": "Natália Silva",
+        "classKey": "womens_flyweight",
+        "active": true,
+        "draftedBy": null,
+        "seasonPoints": 0,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/99885-natalia-silva",
+        "record": "20-5-1",
+        "lastFightDate": "2026-10-02",
+        "hasNumericTapology": true
+      },
+      "remove": [
+        {
+          "id": "natalia-silva",
+          "name": "Natália Silva",
+          "classKey": "womens_flyweight",
+          "active": false,
+          "draftedBy": null,
+          "seasonPoints": 0,
+          "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/natalia-silva",
+          "record": "20-5-1",
+          "lastFightDate": null,
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Not drafted. Prefer the record with a numeric Tapology URL/id.",
+      "copyTapologyUrl": null,
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "nick-galanti",
+        "name": "Nick Galanti",
+        "classKey": "mens_middleweight",
+        "active": false,
+        "draftedBy": null,
+        "seasonPoints": 0,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/nick-galanti",
+        "record": "9-1-0",
+        "lastFightDate": null,
+        "hasNumericTapology": false
+      },
+      "remove": [
+        {
+          "id": "mens_middleweight-nick-galanti",
+          "name": "Nick Galanti",
+          "classKey": "mens_middleweight",
+          "active": true,
+          "draftedBy": null,
+          "seasonPoints": 0,
+          "tapologyUrl": null,
+          "record": null,
+          "lastFightDate": "2026-10-16",
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Not drafted and no numeric URL. Keep the record that already has a Tapology URL (the other is a class-slug placeholder with url=null).",
+      "copyTapologyUrl": null,
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "niko-price",
+        "name": "Niko Price",
+        "classKey": "mens_welterweight",
+        "active": false,
+        "draftedBy": null,
+        "seasonPoints": 0,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/niko-price",
+        "record": "16-11-0",
+        "lastFightDate": null,
+        "hasNumericTapology": false
+      },
+      "remove": [
+        {
+          "id": "mens_welterweight-niko-price",
+          "name": "Niko Price",
+          "classKey": "mens_welterweight",
+          "active": true,
+          "draftedBy": null,
+          "seasonPoints": 0,
+          "tapologyUrl": null,
+          "record": null,
+          "lastFightDate": "2026-10-09",
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Not drafted and no numeric URL. Keep the record that already has a Tapology URL (the other is a class-slug placeholder with url=null).",
+      "copyTapologyUrl": null,
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "139271-norma-dumont-viana",
+        "name": "Norma Dumont",
+        "classKey": "womens_bantamweight",
+        "active": true,
+        "draftedBy": "Drew",
+        "seasonPoints": 35.8,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/139271-norma-dumont-viana",
+        "record": "13-3",
+        "lastFightDate": "2026-09-25",
+        "hasNumericTapology": true
+      },
+      "remove": [
+        {
+          "id": "norma-dumont",
+          "name": "Norma Dumont",
+          "classKey": "womens_bantamweight",
+          "active": false,
+          "draftedBy": null,
+          "seasonPoints": 35.8,
+          "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/norma-dumont",
+          "record": "13-3-0",
+          "lastFightDate": null,
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Drafted by Drew (season points 35.8). Prefer the drafted record so roster, picks, and scores stay on one id. Confirmed released Nov 10, 2026 (see dumont). Keep Drew's drafted numeric record so 35.8 season points stay attached. Do not delete the roster slot. Add her to released.json; current importer will rosteredRetain and leave her active while drafted. The leftover slug row must still be merged away.",
+      "copyTapologyUrl": null,
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "quentin-pasley",
+        "name": "Quentin Pasley",
+        "classKey": "mens_light_heavyweight",
+        "active": true,
+        "draftedBy": null,
+        "seasonPoints": 0,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/quentin-pasley",
+        "record": "4-0-0",
+        "lastFightDate": null,
+        "hasNumericTapology": false
+      },
+      "remove": [
+        {
+          "id": "mens_light_heavyweight-quentin-pasley",
+          "name": "Quentin Pasley",
+          "classKey": "mens_light_heavyweight",
+          "active": true,
+          "draftedBy": null,
+          "seasonPoints": 0,
+          "tapologyUrl": null,
+          "record": null,
+          "lastFightDate": null,
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Not drafted and no numeric URL. Keep the already-active record that has a Tapology URL.",
+      "copyTapologyUrl": null,
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "roberto-soldic",
+        "name": "Roberto Soldić",
+        "classKey": "mens_welterweight",
+        "active": true,
+        "draftedBy": null,
+        "seasonPoints": 0,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/roberto-soldic",
+        "record": "21-4-0",
+        "lastFightDate": null,
+        "hasNumericTapology": false
+      },
+      "remove": [
+        {
+          "id": "mens_welterweight-roberto-soldic",
+          "name": "Roberto Soldic",
+          "classKey": "mens_welterweight",
+          "active": true,
+          "draftedBy": null,
+          "seasonPoints": 0,
+          "tapologyUrl": null,
+          "record": null,
+          "lastFightDate": "2026-10-02",
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Not drafted and no numeric URL. Keep the already-active record that has a Tapology URL.",
+      "copyTapologyUrl": null,
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "ronald-humphrey",
+        "name": "Ronald Humphrey",
+        "classKey": "mens_welterweight",
+        "active": false,
+        "draftedBy": null,
+        "seasonPoints": 0,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/ronald-humphrey",
+        "record": "5-0-0",
+        "lastFightDate": null,
+        "hasNumericTapology": false
+      },
+      "remove": [
+        {
+          "id": "mens_welterweight-ronald-humphrey",
+          "name": "Ronald Humphrey",
+          "classKey": "mens_welterweight",
+          "active": true,
+          "draftedBy": null,
+          "seasonPoints": 0,
+          "tapologyUrl": null,
+          "record": null,
+          "lastFightDate": null,
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Not drafted and no numeric URL. Keep the record that already has a Tapology URL (the other is a class-slug placeholder with url=null).",
+      "copyTapologyUrl": null,
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "samuel-sanches",
+        "name": "Samuel Sanches",
+        "classKey": "mens_lightweight",
+        "active": true,
+        "draftedBy": null,
+        "seasonPoints": 0,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/samuel-sanches",
+        "record": "11-1-0",
+        "lastFightDate": null,
+        "hasNumericTapology": false
+      },
+      "remove": [
+        {
+          "id": "mens_lightweight-samuel-sanches",
+          "name": "Samuel Sanches",
+          "classKey": "mens_lightweight",
+          "active": true,
+          "draftedBy": null,
+          "seasonPoints": 0,
+          "tapologyUrl": null,
+          "record": null,
+          "lastFightDate": null,
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Not drafted and no numeric URL. Keep the already-active record that has a Tapology URL.",
+      "copyTapologyUrl": null,
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "68186-sean-omalley",
+        "name": "Sean O'Malley",
+        "classKey": "mens_bantamweight",
+        "active": true,
+        "draftedBy": "Mary",
+        "seasonPoints": 0.0,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/68186-sean-omalley",
+        "record": "20-3",
+        "lastFightDate": null,
+        "hasNumericTapology": true
+      },
+      "remove": [
+        {
+          "id": "sean-omalley",
+          "name": "Sean O'Malley",
+          "classKey": "mens_bantamweight",
+          "active": false,
+          "draftedBy": null,
+          "seasonPoints": 0.0,
+          "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/sean-omalley",
+          "record": "20-3-0",
+          "lastFightDate": null,
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Drafted by Mary (season points 0.0). Prefer the drafted record so roster, picks, and scores stay on one id.",
+      "copyTapologyUrl": null,
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "steven-koslow",
+        "name": "Steven Koslow",
+        "classKey": "mens_bantamweight",
+        "active": false,
+        "draftedBy": null,
+        "seasonPoints": 0,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/steven-koslow",
+        "record": "6-1-0",
+        "lastFightDate": null,
+        "hasNumericTapology": false
+      },
+      "remove": [
+        {
+          "id": "mens_bantamweight-steven-koslow",
+          "name": "Steven Koslow",
+          "classKey": "mens_bantamweight",
+          "active": true,
+          "draftedBy": null,
+          "seasonPoints": 0,
+          "tapologyUrl": null,
+          "record": null,
+          "lastFightDate": "2026-10-16",
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Not drafted and no numeric URL. Keep the record that already has a Tapology URL (the other is a class-slug placeholder with url=null).",
+      "copyTapologyUrl": null,
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "63005-tatiana-suarez",
+        "name": "Tatiana Suarez",
+        "classKey": "womens_strawweight",
+        "active": true,
+        "draftedBy": null,
+        "seasonPoints": 0,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/63005-tatiana-suarez",
+        "record": "12-1",
+        "lastFightDate": "2026-11-06",
+        "hasNumericTapology": true
+      },
+      "remove": [
+        {
+          "id": "tatiana-suarez",
+          "name": "Tatiana Suarez",
+          "classKey": "womens_strawweight",
+          "active": false,
+          "draftedBy": null,
+          "seasonPoints": 0,
+          "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/tatiana-suarez",
+          "record": "12-1-0",
+          "lastFightDate": null,
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Not drafted. Prefer the record with a numeric Tapology URL/id.",
+      "copyTapologyUrl": null,
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "11614-valentina-shevchenko",
+        "name": "Valentina Shevchenko",
+        "classKey": "womens_flyweight",
+        "active": true,
+        "draftedBy": null,
+        "seasonPoints": 0,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/11614-valentina-shevchenko",
+        "record": "26-5-1",
+        "lastFightDate": null,
+        "hasNumericTapology": true
+      },
+      "remove": [
+        {
+          "id": "valentina-shevchenko",
+          "name": "Valentina Shevchenko",
+          "classKey": "womens_flyweight",
+          "active": false,
+          "draftedBy": null,
+          "seasonPoints": 0,
+          "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/valentina-shevchenko",
+          "record": "26-5-1",
+          "lastFightDate": null,
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Not drafted. Prefer the record with a numeric Tapology URL/id.",
+      "copyTapologyUrl": null,
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "56622-virna-jandiroba",
+        "name": "Virna Jandiroba",
+        "classKey": "womens_strawweight",
+        "active": true,
+        "draftedBy": null,
+        "seasonPoints": 0,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/56622-virna-jandiroba",
+        "record": "23-5",
+        "lastFightDate": "2026-11-06",
+        "hasNumericTapology": true
+      },
+      "remove": [
+        {
+          "id": "virna-jandiroba",
+          "name": "Virna Jandiroba",
+          "classKey": "womens_strawweight",
+          "active": false,
+          "draftedBy": null,
+          "seasonPoints": 0,
+          "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/virna-jandiroba",
+          "record": "23-4-0",
+          "lastFightDate": null,
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Not drafted. Prefer the record with a numeric Tapology URL/id.",
+      "copyTapologyUrl": null,
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "19820-yana-kunitskaya-foxy",
+        "name": "Yana Santos",
+        "classKey": "womens_bantamweight",
+        "active": true,
+        "draftedBy": null,
+        "seasonPoints": 0,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/19820-yana-kunitskaya-foxy",
+        "record": "17-8",
+        "lastFightDate": "2026-10-30",
+        "hasNumericTapology": true
+      },
+      "remove": [
+        {
+          "id": "yana-santos",
+          "name": "Yana Santos",
+          "classKey": "womens_bantamweight",
+          "active": false,
+          "draftedBy": null,
+          "seasonPoints": 0,
+          "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/yana-santos",
+          "record": "17-8-0",
+          "lastFightDate": null,
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Not drafted. Prefer the record with a numeric Tapology URL/id.",
+      "copyTapologyUrl": null,
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "110826-youssef-zalaal",
+        "name": "Youssef Zalal",
+        "classKey": "mens_featherweight",
+        "active": true,
+        "draftedBy": null,
+        "seasonPoints": 0,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/110826-youssef-zalaal",
+        "record": "18-6-1",
+        "lastFightDate": null,
+        "hasNumericTapology": true
+      },
+      "remove": [
+        {
+          "id": "youssef-zalal",
+          "name": "Youssef Zalal",
+          "classKey": "mens_featherweight",
+          "active": false,
+          "draftedBy": null,
+          "seasonPoints": 0,
+          "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/youssef-zalal",
+          "record": "18-6-1",
+          "lastFightDate": null,
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Not drafted. Prefer the record with a numeric Tapology URL/id.",
+      "copyTapologyUrl": null,
+      "setActive": true
+    },
+    {
+      "keep": {
+        "id": "lee-jeong-yeong",
+        "name": "Lee Jeong-yeong",
+        "classKey": "mens_featherweight",
+        "active": true,
+        "draftedBy": null,
+        "seasonPoints": 0,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/lee-jeong-yeong",
+        "record": "11-2",
+        "lastFightDate": "2026-10-30",
+        "hasNumericTapology": false
+      },
+      "remove": [
+        {
+          "id": "mens_featherweight-jeong-yeong-lee",
+          "name": "Jeong Yeong Lee",
+          "classKey": "mens_featherweight",
+          "active": true,
+          "draftedBy": null,
+          "seasonPoints": 0,
+          "tapologyUrl": null,
+          "record": null,
+          "lastFightDate": null,
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Same fighter; Korean family-name / given-name order variants (Jeong Yeong Lee vs Lee Jeong-yeong). AFR listed both. Not drafted and no numeric URL. Keep the already-active record that has a Tapology URL.",
+      "copyTapologyUrl": null,
+      "setActive": true,
+      "setClassKey": null,
+      "setName": "Lee Jeong-yeong"
+    },
+    {
+      "keep": {
+        "id": "cristian-perez",
+        "name": "Cristian Pérez",
+        "classKey": "mens_featherweight",
+        "active": false,
+        "draftedBy": null,
+        "seasonPoints": 0,
+        "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/cristian-perez",
+        "record": "15-2-0",
+        "lastFightDate": null,
+        "hasNumericTapology": false
+      },
+      "remove": [
+        {
+          "id": "mens_lightweight-cristian-perez-gonzalez",
+          "name": "Cristian Perez Gonzalez",
+          "classKey": "mens_lightweight",
+          "active": true,
+          "draftedBy": null,
+          "seasonPoints": 0,
+          "tapologyUrl": null,
+          "record": null,
+          "lastFightDate": "2026-10-16",
+          "hasNumericTapology": false
+        }
+      ],
+      "reason": "Same fighter (Cristian Pérez 'Puas'). AFR/card created a lightweight class-slug after his Oct 17, 2026 UFC debut vs Kyle Nelson; an older featherweight 'recent signing' row was left behind. Not drafted and no numeric URL. Keep the record that already has a Tapology URL (the other is a class-slug placeholder with url=null).",
+      "copyTapologyUrl": "https://www.tapology.com/fightcenter/fighters/149590-cristian-perez-puas",
+      "setActive": true,
+      "setClassKey": "mens_lightweight",
+      "setName": "Cristian Pérez"
+    }
+  ],
+  "adds": [
+    {
+      "name": "Adama Diop",
+      "weightClass": "Heavyweight",
+      "classKey": "mens_heavyweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/360524-adama-diop",
+      "evidence": "DWCS Season 10 Week 8 (Sep 29, 2026) contract winner; Wikipedia Recent signings (HW, 7-1, nickname Blindé). UFC-signed, not yet debuted."
+    },
+    {
+      "name": "Damian Piwowarczyk",
+      "weightClass": "Light Heavyweight",
+      "classKey": "mens_light_heavyweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/189018-damian-piwowarczyk",
+      "evidence": "DWCS Season 10 Week 7 (Sep 22, 2026) contract winner; Wikipedia Recent signings (LHW, 12-4, nickname Damsyn)."
+    },
+    {
+      "name": "Preston LaGrange",
+      "weightClass": "Light Heavyweight",
+      "classKey": "mens_light_heavyweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/353189-preston-lagrange",
+      "evidence": "DWCS Season 10 Week 9 (Oct 6, 2026) contract winner; Wikipedia Recent signings (LHW, 7-1, nickname One Shot)."
+    },
+    {
+      "name": "Luis Hernandez",
+      "weightClass": "Light Heavyweight",
+      "classKey": "mens_light_heavyweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/189683-luis-hernandez",
+      "evidence": "Distinct from the middleweight DWCS signing already in the pool (id luis-hernandez, 8-0, to be reactivated at MW). This is Luis 'The Stache' Hernandez, 9-0, who won his UFC debut on Sep 26, 2026, submitting Sedriques Dumas in round one. Wikipedia debuted LHW. Tapology: 189683-luis-hernandez. UFC.com athlete/luis-hernandez."
+    },
+    {
+      "name": "Douglas da Lapa",
+      "weightClass": "Middleweight",
+      "classKey": "mens_middleweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/267522-douglas-da-lapa-robozinho",
+      "evidence": "DWCS Season 10 Week 10 (Oct 13, 2026) contract winner; Wikipedia Recent signings (MW, 7-0, nickname Robozinho). Official UFC welcome article names him alongside Sundell, Francischinelli, and Foster."
+    },
+    {
+      "name": "Alvi Dasuyev",
+      "weightClass": "Welterweight",
+      "classKey": "mens_welterweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/304316-alvi-dasuyev",
+      "evidence": "DWCS Season 10 Week 7 contract winner (and Jaden Ortega also signed). Wikipedia Recent signings (WW, 10-0, Spartan). UFC.com lists him Active; Octagon debut listed as Nov 4, 2026."
+    },
+    {
+      "name": "Jaden Ortega",
+      "weightClass": "Welterweight",
+      "classKey": "mens_welterweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/319898-jaden-ortega",
+      "evidence": "Awarded a UFC contract alongside Alvi Dasuyev after their DWCS Week 7 bout (Sep 22, 2026). Wikipedia Recent signings (WW, 6-1)."
+    },
+    {
+      "name": "Luis Francischinelli",
+      "weightClass": "Welterweight",
+      "classKey": "mens_welterweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/392517-luis-francischinelli",
+      "evidence": "DWCS Season 10 Week 10 contract winner; Wikipedia Recent signings (WW, 7-1)."
+    },
+    {
+      "name": "Salhahuddin Everett",
+      "weightClass": "Welterweight",
+      "classKey": "mens_welterweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/salhahuddin-everett",
+      "evidence": "DWCS Season 10 Week 9 contract winner (MMA Fighting: UFC employee Sal Everett earned a contract with a knockout). Wikipedia Recent signings (WW, 5-0, nickname Bundy). Numeric Tapology id not confirmed in this pass; slug URL should be verified before write."
+    },
+    {
+      "name": "Callum Connor",
+      "weightClass": "Lightweight",
+      "classKey": "mens_lightweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/callum-connor",
+      "evidence": "DWCS Season 10 Week 7 contract winner (lost to Piero Guaylupo but Dana White signed both). Wikipedia Recent signings (LW, 8-1, nickname 007). Numeric Tapology id not confirmed in this pass; slug should be verified."
+    },
+    {
+      "name": "George Staines",
+      "weightClass": "Lightweight",
+      "classKey": "mens_lightweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/201223-george-staines",
+      "evidence": "DWCS Season 10 Week 8 contract winner; Wikipedia Recent signings (LW, 9-0, nickname Saint)."
+    },
+    {
+      "name": "Gregory Foster",
+      "weightClass": "Lightweight",
+      "classKey": "mens_lightweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/127906-gregory-foster",
+      "evidence": "DWCS Season 10 Week 10 contract winner (listed by UFC as Greg Foster). Wikipedia Recent signings under Gregory Foster (LW, 9-1, Punch First). UFC.com athlete page: gregory-foster. Add as Gregory Foster so it matches Wikipedia/UFC, or as Greg Foster with Gregory as the legal name."
+    },
+    {
+      "name": "Piero Guaylupo",
+      "weightClass": "Lightweight",
+      "classKey": "mens_lightweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/384019-piero-guaylupo",
+      "evidence": "DWCS Season 10 Week 7 contract winner; Wikipedia Recent signings (LW, 13-0, El Lobo). Booked UFC Fight Night 296 (Dallas) vs Magomed Zaynukov."
+    },
+    {
+      "name": "Ian Escuza",
+      "weightClass": "Featherweight",
+      "classKey": "mens_featherweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/315536-ian-escuza",
+      "evidence": "DWCS Season 10 Week 8 contract winner; Wikipedia Recent signings (FW, 8-0, El Especimen)."
+    },
+    {
+      "name": "Mateus Soares",
+      "weightClass": "Bantamweight",
+      "classKey": "mens_bantamweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/mateus-soares",
+      "evidence": "DWCS Season 10 Week 9 contract winner; Wikipedia Recent signings (BW, 12-2, I'm Ready). Some sources use Matheus Soares. Numeric Tapology id not confirmed in this pass."
+    },
+    {
+      "name": "Yong Hu",
+      "weightClass": "Bantamweight",
+      "classKey": "mens_bantamweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/142975-yong-hu",
+      "evidence": "Chinese bantamweight reported as a September 24, 2026 UFC signing (mwmma.pl; CageGrid 2026 roster moves; UFC.com athlete/hu-yong; Tapology 142975-yong-hu). Not yet on Wikipedia's current list or Recent signings (as of the Nov 13, 2026 01:16 UTC edit). Lower confidence than the DWCS Week 7–10 names; confirm on UFC.com before writing."
+    },
+    {
+      "name": "Smilla Sundell",
+      "weightClass": "Women's Bantamweight",
+      "classKey": "womens_bantamweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/325384-smilla-sundell-the-storm",
+      "evidence": "DWCS Season 10 Week 10 contract winner (decision over Aline Pereira). Official UFC.com welcome article; Wikipedia Recent signings (WBW, 3-0, The Hurricane)."
+    },
+    {
+      "name": "Aieza Ramos Bertolso",
+      "weightClass": "Women's Strawweight",
+      "classKey": "womens_strawweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/242360-aieza-ramos-bertolso",
+      "evidence": "DWCS Season 10 Week 8 contract winner; Wikipedia Recent signings (WSW, 8-0) under Aieza Ramos Bertolso (Olin listed Aieza Bertolso)."
+    },
+    {
+      "name": "George Mangos",
+      "weightClass": "Featherweight",
+      "classKey": "mens_featherweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/195384-george-mangos",
+      "evidence": "ADDITIONAL (not on Olin's list). Wikipedia Recent signings Oct 27, 2026; booked UFC Fight Night 298 (Sydney) vs Dagiisuren Chagnaadorj.",
+      "additional": true
+    },
+    {
+      "name": "Dagiisuren Chagnaadorj",
+      "weightClass": "Featherweight",
+      "classKey": "mens_featherweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/dagiisuren-chagnaadorj",
+      "evidence": "ADDITIONAL (not on Olin's list). Wikipedia Recent signings Oct 27, 2026; booked UFC Fight Night 298 (Sydney) vs George Mangos. Numeric Tapology id not confirmed.",
+      "additional": true
+    },
+    {
+      "name": "Rabindra Dhant",
+      "weightClass": "Bantamweight",
+      "classKey": "mens_bantamweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/306132-rabindra-dhant",
+      "evidence": "ADDITIONAL (not on Olin's list). Wikipedia Recent signings Oct 27, 2026; booked UFC Fight Night 298 (Sydney) vs Ryo Tajima.",
+      "additional": true
+    },
+    {
+      "name": "Ryo Tajima",
+      "weightClass": "Bantamweight",
+      "classKey": "mens_bantamweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/293732-ryo-tajima",
+      "evidence": "ADDITIONAL (not on Olin's list). Wikipedia Recent signings Oct 27, 2026; booked UFC Fight Night 298 (Sydney) vs Rabindra Dhant.",
+      "additional": true
+    },
+    {
+      "name": "Ji Niushiyue",
+      "weightClass": "Flyweight",
+      "classKey": "mens_flyweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/ji-niushiyue",
+      "evidence": "ADDITIONAL (not on Olin's list). Wikipedia Recent signings Oct 27, 2026; booked UFC Fight Night 298 (Sydney) vs Takaya Suzuki. Numeric Tapology id not confirmed.",
+      "additional": true
+    },
+    {
+      "name": "Takaya Suzuki",
+      "weightClass": "Flyweight",
+      "classKey": "mens_flyweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/takaya-suzuki",
+      "evidence": "ADDITIONAL (not on Olin's list). Wikipedia Recent signings Oct 27, 2026; booked UFC Fight Night 298 (Sydney) vs Ji Niushiyue. Numeric Tapology id not confirmed.",
+      "additional": true
+    },
+    {
+      "name": "Park Bo-hyun",
+      "weightClass": "Women's Strawweight",
+      "classKey": "womens_strawweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/171492-bo-hyun-park",
+      "evidence": "ADDITIONAL (not on Olin's list). Wikipedia Recent signings Oct 27, 2026; booked UFC Fight Night 298 (Sydney) vs Meng Bo.",
+      "additional": true
+    },
+    {
+      "name": "Meng Bo",
+      "weightClass": "Women's Strawweight",
+      "classKey": "womens_strawweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/120312-bo-meng",
+      "evidence": "ADDITIONAL (not on Olin's list). Wikipedia Recent signings Oct 27, 2026; booked UFC Fight Night 298 (Sydney) vs Park Bo-hyun.",
+      "additional": true
+    }
+  ],
+  "reactivations": [
+    {
+      "name": "Brady Hiestand",
+      "id": "brady-hiestand",
+      "weightClass": "Bantamweight",
+      "classKey": "mens_bantamweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/brady-hiestand",
+      "previousClassKey": null,
+      "setName": null,
+      "reason": "Listed on Wikipedia 'Debuted fighters' (BW). Still a current UFC fighter. Inactive pool note was not a confirmed cut.",
+      "currentNote": "BigMarcel24: UFC Vegas 121 vs Rinya Nakamura (2026-09-26)"
+    },
+    {
+      "name": "Ilimbek Akylbek Uulu",
+      "id": "ilimbek-akylbek-uulu",
+      "weightClass": "Bantamweight",
+      "classKey": "mens_bantamweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/ilimbek-akylbek-uulu",
+      "previousClassKey": null,
+      "setName": null,
+      "reason": "Listed on Wikipedia 'Debuted fighters' (BW). Still a current UFC fighter. Inactive pool note was not a confirmed cut.",
+      "currentNote": "BigMarcel24: UFC Vegas 121 vs Mehemmedeli Osmanli (2026-09-26)"
+    },
+    {
+      "name": "Louis Lee Scott",
+      "id": "louis-lee-scott",
+      "weightClass": "Bantamweight",
+      "classKey": "mens_bantamweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/louis-lee-scott",
+      "previousClassKey": null,
+      "setName": null,
+      "reason": "Listed on Wikipedia 'Recent signings' (page last edited Nov 13, 2026 01:16 UTC) as a current UFC signing, division Bantamweight, record 9–0. Not a confirmed cut. The inactive flag is leftover from an older import that dropped fighters who had not yet debuted / were only in the signings table.",
+      "currentNote": "Recent UFC signing (not yet debuted)"
+    },
+    {
+      "name": "Ramiro Jimenez",
+      "id": "ramiro-jimenez",
+      "weightClass": "Featherweight",
+      "classKey": "mens_featherweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/ramiro-jimenez",
+      "previousClassKey": null,
+      "setName": null,
+      "reason": "Listed on Wikipedia 'Recent signings' (page last edited Nov 13, 2026 01:16 UTC) as a current UFC signing, division Featherweight, record 11–0. Not a confirmed cut. The inactive flag is leftover from an older import that dropped fighters who had not yet debuted / were only in the signings table.",
+      "currentNote": "(September 4, 2026) – Vera's visa issues – Bout cancelled – UFC Fight Night 288 (Glendale) – Rodrigo Vera"
+    },
+    {
+      "name": "Roman Puga",
+      "id": "roman-puga",
+      "weightClass": "Featherweight",
+      "classKey": "mens_featherweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/roman-puga",
+      "previousClassKey": null,
+      "setName": null,
+      "reason": "Listed on Wikipedia 'Recent signings' (page last edited Nov 13, 2026 01:16 UTC) as a current UFC signing, division Featherweight, record 6–1. Not a confirmed cut. The inactive flag is leftover from an older import that dropped fighters who had not yet debuted / were only in the signings table.",
+      "currentNote": "Recent UFC signing (not yet debuted)"
+    },
+    {
+      "name": "Taner Trembley",
+      "id": "taner-trembley",
+      "weightClass": "Featherweight",
+      "classKey": "mens_featherweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/taner-trembley",
+      "previousClassKey": null,
+      "setName": null,
+      "reason": "Listed on Wikipedia 'Recent signings' (page last edited Nov 13, 2026 01:16 UTC) as a current UFC signing, division Featherweight, record 7–1. Not a confirmed cut. The inactive flag is leftover from an older import that dropped fighters who had not yet debuted / were only in the signings table.",
+      "currentNote": "Recent UFC signing (not yet debuted)"
+    },
+    {
+      "name": "Tom Pagliarulo",
+      "id": "tom-pagliarulo",
+      "weightClass": "Featherweight",
+      "classKey": "mens_featherweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/tom-pagliarulo",
+      "previousClassKey": null,
+      "setName": null,
+      "reason": "Listed on Wikipedia 'Recent signings' (page last edited Nov 13, 2026 01:16 UTC) as a current UFC signing, division Featherweight, record 11–2. Not a confirmed cut. The inactive flag is leftover from an older import that dropped fighters who had not yet debuted / were only in the signings table.",
+      "currentNote": "Recent UFC signing (not yet debuted)"
+    },
+    {
+      "name": "Christian Natividad",
+      "id": "christian-natividad",
+      "weightClass": "Flyweight",
+      "classKey": "mens_flyweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/christian-natividad",
+      "previousClassKey": null,
+      "setName": null,
+      "reason": "Listed on Wikipedia 'Recent signings' (page last edited Nov 13, 2026 01:16 UTC) as a current UFC signing, division Flyweight, record 10–0. Not a confirmed cut. The inactive flag is leftover from an older import that dropped fighters who had not yet debuted / were only in the signings table.",
+      "currentNote": "Recent UFC signing (not yet debuted)"
+    },
+    {
+      "name": "Guilherme Uriel",
+      "id": "guilherme-uriel",
+      "weightClass": "Heavyweight",
+      "classKey": "mens_heavyweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/guilherme-uriel",
+      "previousClassKey": null,
+      "setName": null,
+      "reason": "Listed on Wikipedia 'Recent signings' (page last edited Nov 13, 2026 01:16 UTC) as a current UFC signing, division Heavyweight, record 8–2. Not a confirmed cut. The inactive flag is leftover from an older import that dropped fighters who had not yet debuted / were only in the signings table.",
+      "currentNote": "Recent UFC signing (not yet debuted)"
+    },
+    {
+      "name": "Luis Hernandez",
+      "id": "luis-hernandez",
+      "weightClass": "Middleweight",
+      "classKey": "mens_middleweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/luis-hernandez",
+      "previousClassKey": null,
+      "setName": null,
+      "reason": "This pool row is the middleweight DWCS Season 10 Week 6 signing (8-0, 'Recent UFC signing (not yet debuted)'), also on Wikipedia Recent signings at Middleweight dated Sep 15, 2026. He is a different person from light heavyweight Luis 'The Stache' Hernandez (9-0), who already debuted and should be added as a new LHW. Reactivate this row in Middleweight. Do not move him to LHW.",
+      "currentNote": "Recent UFC signing (not yet debuted)"
+    },
+    {
+      "name": "Sedriques Dumas",
+      "id": "sedriques-dumas",
+      "weightClass": "Light Heavyweight",
+      "classKey": "mens_light_heavyweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/sedriques-dumas",
+      "previousClassKey": "mens_middleweight",
+      "setName": null,
+      "reason": "Listed on Wikipedia 'Debuted fighters' (LHW). Still a current UFC fighter. Inactive pool note was not a confirmed cut.",
+      "currentNote": "BigMarcel24: UFC Vegas 121 vs Mickey Gall (2026-09-26)"
+    },
+    {
+      "name": "Adam Livingston",
+      "id": "adam-livingston",
+      "weightClass": "Lightweight",
+      "classKey": "mens_lightweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/adam-livingston",
+      "previousClassKey": null,
+      "setName": null,
+      "reason": "Listed on Wikipedia 'Recent signings' (page last edited Nov 13, 2026 01:16 UTC) as a current UFC signing, division Lightweight, record 8–1. Not a confirmed cut. The inactive flag is leftover from an older import that dropped fighters who had not yet debuted / were only in the signings table.",
+      "currentNote": "Recent UFC signing (not yet debuted)"
+    },
+    {
+      "name": "Silvestre Sanchez",
+      "id": "silvestre-sanchez",
+      "weightClass": "Lightweight",
+      "classKey": "mens_lightweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/silvestre-sanchez",
+      "previousClassKey": null,
+      "setName": null,
+      "reason": "Listed on Wikipedia 'Recent signings' (page last edited Nov 13, 2026 01:16 UTC) as a current UFC signing, division Lightweight, record 10–1. Not a confirmed cut. The inactive flag is leftover from an older import that dropped fighters who had not yet debuted / were only in the signings table.",
+      "currentNote": "Recent UFC signing (not yet debuted)"
+    },
+    {
+      "name": "Igor Cavalcanti",
+      "id": "igor-cavalcanti",
+      "weightClass": "Middleweight",
+      "classKey": "mens_middleweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/igor-cavalcanti",
+      "previousClassKey": null,
+      "setName": null,
+      "reason": "Listed on Wikipedia 'Recent signings' (page last edited Nov 13, 2026 01:16 UTC) as a current UFC signing, division Middleweight, record 14–2. Not a confirmed cut. The inactive flag is leftover from an older import that dropped fighters who had not yet debuted / were only in the signings table.",
+      "currentNote": "Recent UFC signing (not yet debuted)"
+    },
+    {
+      "name": "Magomedrasul Gasanov",
+      "id": "magomedrasul-gasanov",
+      "weightClass": "Middleweight",
+      "classKey": "mens_middleweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/magomedrasul-gasanov",
+      "previousClassKey": null,
+      "setName": null,
+      "reason": "Listed on Wikipedia 'Recent signings' (page last edited Nov 13, 2026 01:16 UTC) as a current UFC signing, division Middleweight, record 23–2. Not a confirmed cut. The inactive flag is leftover from an older import that dropped fighters who had not yet debuted / were only in the signings table.",
+      "currentNote": "(June 21, 2026) – Unknown reasons – Pulled out of UFC Fight Night 282 (Abu Dhabi) – Abubakar Vagaev"
+    },
+    {
+      "name": "Martin Kozák",
+      "id": "martin-kozak",
+      "weightClass": "Middleweight",
+      "classKey": "mens_middleweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/martin-kozak",
+      "previousClassKey": null,
+      "setName": null,
+      "reason": "Listed on Wikipedia 'Recent signings' (page last edited Nov 13, 2026 01:16 UTC) as a current UFC signing, division Middleweight, record 7–0. Not a confirmed cut. The inactive flag is leftover from an older import that dropped fighters who had not yet debuted / were only in the signings table.",
+      "currentNote": "Recent UFC signing (not yet debuted)"
+    },
+    {
+      "name": "Trent Miller",
+      "id": "trent-miller",
+      "weightClass": "Middleweight",
+      "classKey": "mens_middleweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/trent-miller",
+      "previousClassKey": null,
+      "setName": null,
+      "reason": "Listed on Wikipedia 'Recent signings' (page last edited Nov 13, 2026 01:16 UTC) as a current UFC signing, division Middleweight, record 10–3. Not a confirmed cut. The inactive flag is leftover from an older import that dropped fighters who had not yet debuted / were only in the signings table.",
+      "currentNote": "Recent UFC signing (not yet debuted)"
+    },
+    {
+      "name": "Adam Darby",
+      "id": "adam-darby",
+      "weightClass": "Welterweight",
+      "classKey": "mens_welterweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/adam-darby",
+      "previousClassKey": null,
+      "setName": null,
+      "reason": "Listed on Wikipedia 'Recent signings' (page last edited Nov 13, 2026 01:16 UTC) as a current UFC signing, division Welterweight, record 8–1. Not a confirmed cut. The inactive flag is leftover from an older import that dropped fighters who had not yet debuted / were only in the signings table.",
+      "currentNote": "Recent UFC signing (not yet debuted)"
+    },
+    {
+      "name": "Christopher Alvidrez",
+      "id": "christopher-alvidrez",
+      "weightClass": "Welterweight",
+      "classKey": "mens_welterweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/christopher-alvidrez",
+      "previousClassKey": null,
+      "setName": null,
+      "reason": "Listed on Wikipedia 'Recent signings' (page last edited Nov 13, 2026 01:16 UTC) as a current UFC signing, division Welterweight, record 7–1. Not a confirmed cut. The inactive flag is leftover from an older import that dropped fighters who had not yet debuted / were only in the signings table.",
+      "currentNote": "(March 28, 2026) – Unknown reasons – No longer scheduled for UFC 327 (Miami) – Francisco Prado"
+    },
+    {
+      "name": "Isaac Moreno",
+      "id": "isaac-moreno",
+      "weightClass": "Welterweight",
+      "classKey": "mens_welterweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/isaac-moreno",
+      "previousClassKey": null,
+      "setName": null,
+      "reason": "Listed on Wikipedia 'Recent signings' (page last edited Nov 13, 2026 01:16 UTC) as a current UFC signing, division Welterweight, record 9–0. Not a confirmed cut. The inactive flag is leftover from an older import that dropped fighters who had not yet debuted / were only in the signings table.",
+      "currentNote": "Recent UFC signing (not yet debuted)"
+    },
+    {
+      "name": "Kaik Brito",
+      "id": "kaik-brito",
+      "weightClass": "Welterweight",
+      "classKey": "mens_welterweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/kaik-brito",
+      "previousClassKey": null,
+      "setName": null,
+      "reason": "Listed on Wikipedia 'Recent signings' (page last edited Nov 13, 2026 01:16 UTC) as a current UFC signing, division Welterweight, record 20–6. Not a confirmed cut. The inactive flag is leftover from an older import that dropped fighters who had not yet debuted / were only in the signings table.",
+      "currentNote": "Recent UFC signing (not yet debuted)"
+    },
+    {
+      "name": "Mayton Perea",
+      "id": "mayton-perea",
+      "weightClass": "Welterweight",
+      "classKey": "mens_welterweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/mayton-perea",
+      "previousClassKey": null,
+      "setName": null,
+      "reason": "Listed on Wikipedia 'Recent signings' (page last edited Nov 13, 2026 01:16 UTC) as a current UFC signing, division Welterweight, record 9–3. Not a confirmed cut. The inactive flag is leftover from an older import that dropped fighters who had not yet debuted / were only in the signings table.",
+      "currentNote": "Recent UFC signing (not yet debuted)"
+    },
+    {
+      "name": "Sean Clancy Jr.",
+      "id": "sean-clancy",
+      "weightClass": "Welterweight",
+      "classKey": "mens_welterweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/sean-clancy",
+      "previousClassKey": null,
+      "setName": null,
+      "reason": "Listed on Wikipedia 'Recent signings' (page last edited Nov 13, 2026 01:16 UTC) as a current UFC signing, division Welterweight, record 9–0. Not a confirmed cut. The inactive flag is leftover from an older import that dropped fighters who had not yet debuted / were only in the signings table.",
+      "currentNote": "Recent UFC signing (not yet debuted)"
+    },
+    {
+      "name": "Alex Apodaca",
+      "id": "alex-apodaca",
+      "weightClass": "Women's Bantamweight",
+      "classKey": "womens_bantamweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/alex-apodaca",
+      "previousClassKey": null,
+      "setName": null,
+      "reason": "Listed on Wikipedia 'Recent signings' (page last edited Nov 13, 2026 01:16 UTC) as a current UFC signing, division Women's Bantamweight, record 4–1. Not a confirmed cut. The inactive flag is leftover from an older import that dropped fighters who had not yet debuted / were only in the signings table.",
+      "currentNote": "Recent UFC signing (not yet debuted)"
+    },
+    {
+      "name": "Kennedy Freeman",
+      "id": "kennedy-freeman",
+      "weightClass": "Women's Flyweight",
+      "classKey": "womens_flyweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/kennedy-freeman",
+      "previousClassKey": null,
+      "setName": null,
+      "reason": "Listed on Wikipedia 'Recent signings' (page last edited Nov 13, 2026 01:16 UTC) as a current UFC signing, division Women's Flyweight, record 6–0. Not a confirmed cut. The inactive flag is leftover from an older import that dropped fighters who had not yet debuted / were only in the signings table.",
+      "currentNote": "Recent UFC signing (not yet debuted)"
+    },
+    {
+      "name": "Melissa Amaya",
+      "id": "melissa-amaya",
+      "weightClass": "Women's Strawweight",
+      "classKey": "womens_strawweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/melissa-amaya",
+      "previousClassKey": null,
+      "setName": null,
+      "reason": "Listed on Wikipedia 'Debuted fighters' (WSW). Still a current UFC fighter. Inactive pool note was not a confirmed cut.",
+      "currentNote": "BigMarcel24: UFC Vegas 121 vs Valesca Machado (2026-09-26)"
+    },
+    {
+      "name": "Valesca Machado",
+      "id": "valesca-machado",
+      "weightClass": "Women's Strawweight",
+      "classKey": "womens_strawweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/valesca-machado",
+      "previousClassKey": null,
+      "setName": "Tina Black",
+      "reason": "Current UFC strawweight. Wikipedia debuted table lists Valesca Machado, nickname Tina Black. UFC.com athlete/valesca-machado is titled Tina Black, status Active; she won the TUF 34 strawweight final on Sep 26, 2026 vs Melissa Amaya. The pool row is inactive, and players searching 'Tina Black' cannot find her. Reactivate and rename (keep legal name as an alias if the schema allows).",
+      "currentNote": "BigMarcel24: UFC Vegas 121 vs Melissa Amaya (2026-09-26)",
+      "suggestedDisplayName": "Tina Black (Valesca Machado)",
+      "copyTapologyUrl": "https://www.tapology.com/fightcenter/fighters/124041-valesca-machado"
+    }
+  ],
+  "classChanges": [
+    {
+      "name": "Lucia Szabová",
+      "id": "lucia-szabova",
+      "fromClassKey": "womens_bantamweight",
+      "toClassKey": "womens_flyweight",
+      "toWeightClass": "Women's Flyweight",
+      "reason": "Handled in merges. Last competed UFC class was Women's Flyweight vs Tainara Lisboa at UFC Vegas 123 on Oct 31, 2026. AFR incorrectly upserted a WBW class-slug. The stale 'upcoming vs Lisboa at Fight Night 292' note is leftover."
+    },
+    {
+      "name": "Cristian Pérez",
+      "id": "cristian-perez",
+      "fromClassKey": "mens_featherweight",
+      "toClassKey": "mens_lightweight",
+      "toWeightClass": "Lightweight",
+      "reason": "Handled in merges. DWCS Week 2 signing was at lightweight; UFC debut Oct 17, 2026 vs Kyle Nelson was a lightweight (AFR last_fight_note). The leftover pool row was still labeled Featherweight / not yet debuted."
+    },
+    {
+      "name": "Sedriques Dumas",
+      "id": "sedriques-dumas",
+      "fromClassKey": "mens_middleweight",
+      "toClassKey": "mens_light_heavyweight",
+      "toWeightClass": "Light Heavyweight",
+      "reason": "Last UFC bout was at light heavyweight, a first-round submission loss to Luis 'The Stache' Hernandez on Sep 26, 2026 (UFC Fight Night / Vegas 121). Wikipedia lists him as LHW. Reactivate in LHW (see reactivations)."
+    }
+  ],
+  "classFlagsDoNotChange": [
+    {
+      "name": "Igor Cavalcanti",
+      "olinClass": "Welterweight",
+      "poolAndWikipediaClass": "Middleweight",
+      "action": "none",
+      "reason": "Olin listed him at WW. Pool (inactive) and Wikipedia Recent signings both have Middleweight, record 14-2. DWCS Week 6 award list groups him with Mayton Perea / Akbar / Luis Hernandez; Wikipedia division is Middleweight. Keep MW and reactivate there."
+    },
+    {
+      "name": "Silvestre Sanchez",
+      "olinClass": "Welterweight",
+      "poolAndWikipediaClass": "Lightweight",
+      "action": "none",
+      "reason": "Olin listed him at WW. Pool (inactive) and Wikipedia Recent signings both have Lightweight, record 10-1, nickname Gorilla. Keep LW and reactivate there."
+    }
+  ],
+  "renames": [
+    {
+      "id": "jose-luiz",
+      "from": "José Luiz",
+      "to": "José Luiz Montanha",
+      "classKey": "mens_heavyweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/333135-jose-luiz-montanha",
+      "reason": "Already active in the pool as José Luiz (nickname Montanha on Wikipedia; UFC.com athlete/jose-montanha-da-silva). Players searching Jose Montanha could not find him. Do not add a second heavyweight."
+    },
+    {
+      "id": "osman-diaz",
+      "from": "Osman Diaz",
+      "to": "Osman Diaz",
+      "alsoKnownAs": "Ozzy Diaz",
+      "suggestedDisplayName": "Osman 'Ozzy' Diaz",
+      "classKey": "mens_middleweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/61676-ozzy-diaz",
+      "reason": "Already active in the pool as Osman Diaz. Wikipedia nickname is Ozzy; Tapology page is 61676-ozzy-diaz. Players searching Ozzy Diaz could not find him. Do not add a second middleweight."
+    },
+    {
+      "id": "eduardo-henrique",
+      "from": "Eduardo Henrique",
+      "to": "Eduardo Henrique",
+      "alsoKnownAs": "Eduardo Chapolin",
+      "suggestedDisplayName": "Eduardo Henrique 'Chapolin'",
+      "classKey": "mens_flyweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/eduardo-henrique",
+      "reason": "Already active in the pool as Eduardo Henrique. Wikipedia nickname is Chapolin. Players searching Eduardo Chapolin could not find him."
+    },
+    {
+      "id": "thomas-gantt",
+      "from": "Thomas Gantt",
+      "to": "Thomas Gantt",
+      "alsoKnownAs": "Tommy Gantt",
+      "suggestedDisplayName": "Thomas 'Tommy' Gantt",
+      "classKey": "mens_lightweight",
+      "reason": "Already active in the pool as Thomas Gantt. Two other players could not find Tommy Gantt."
+    },
+    {
+      "id": "beatriz-mesquita",
+      "from": "Beatriz Mesquita",
+      "to": "Beatriz Mesquita",
+      "alsoKnownAs": "Bia Mesquita",
+      "suggestedDisplayName": "Beatriz 'Bia' Mesquita",
+      "classKey": "womens_bantamweight",
+      "reason": "Already active and drafted by Jive Turkey as Beatriz Mesquita. Players searching Bia Mesquita could not find her."
+    },
+    {
+      "id": "liu-ce",
+      "from": "Liu Ce",
+      "to": "Liu Ce",
+      "alsoKnownAs": "Ce Liu",
+      "reason": "Already active in the pool and in AFR as Liu Ce (Chinese family-name-first order). Olin listed Ce Liu; no duplicate exists."
+    }
+  ],
+  "dumont": {
+    "verdict": "confirmed_released",
+    "date": "2026-11-10",
+    "draftedBy": "Drew",
+    "seasonPoints": 35.8,
+    "keepId": "139271-norma-dumont-viana",
+    "removeId": "norma-dumont",
+    "recommendation": "She is confirmed out of the UFC. Merge the leftover slug row into Drew's drafted numeric record and add her to AFR released.json. The current importer never deactivates a rostered fighter (rosteredRetained), so leave her on Drew's Season 5 roster with the 35.8 points already scored. Do not offer her as a new draftable once the season turns over. AFR fighters_by_class.json is dated Nov 8, 2026, two days before the announcement, which is why she is still active in the pool.",
+    "sources": [
+      {
+        "title": "MMA Junkie: UFC women's bantamweight contender released",
+        "url": "https://mmajunkie.usatoday.com/story/sports/ufc/2026/11/10/ufc-releases-norma-dumont-two-fight-skid/92717598007/",
+        "date": "2026-11-10"
+      },
+      {
+        "title": "Cageside Press: Norma Dumont Granted Release From UFC",
+        "url": "https://cagesidepress.com/2026/11/10/norma-dumont-granted-release-from-ufc/",
+        "date": "2026-11-10"
+      },
+      {
+        "title": "MMA Fighting: Norma Dumont parts ways with the UFC",
+        "url": "https://www.mmafighting.com/ufc/520444/norma-dumont-parts-ways-with-the-ufc-teases-potential-move-to-boxing-in-2027",
+        "date": "2026-11-10"
+      },
+      {
+        "title": "Sherdog: Norma Dumont leaves UFC with two fights left on her contract",
+        "url": "https://www.sherdog.com/news/news/Norma-Dumont-leaves-UFC-with-two-fights-left-on-her-contract-203591"
+      },
+      {
+        "title": "Wikipedia List of current UFC fighters — Recent releases and retirements (Nov 10, 2026, Released, Women's Bantamweight)",
+        "url": "https://en.wikipedia.org/wiki/List_of_current_UFC_fighters",
+        "pageLastEdited": "2026-11-13T01:16:00Z"
+      },
+      {
+        "title": "Tapology fighter page (numeric)",
+        "url": "https://www.tapology.com/fightcenter/fighters/139271-norma-dumont-viana",
+        "note": "Page still shows the UFC fight history; it did not by itself prove the release. The news and Wikipedia release table do."
+      }
+    ]
+  },
+  "notInUfc": [
+    {
+      "name": "Michael Page",
+      "olinClass": "Middleweight",
+      "reason": "Dana White confirmed the UFC was done with Michael 'Venom' Page after his contract ended in September 2026. Do not add.",
+      "sources": [
+        "https://mmajunkie.usatoday.com/story/sports/ufc/2026/09/08/ufc-news-michael-page-done-dana-white/91668011007/",
+        "https://www.bbc.com/sport/mixed-martial-arts/articles/c62mn9m37ddo"
+      ]
+    },
+    {
+      "name": "Edson Barboza",
+      "olinClass": "Lightweight",
+      "reason": "Removed from the UFC roster / retired from MMA in 2026 (Sherdog: retired from MMA but not done competing). Not on Wikipedia's current roster. Do not add.",
+      "sources": [
+        "https://www.sherdog.com/news/news/Edson-Barboza-retired-from-MMA-but-hes-not-done-competing-203107"
+      ]
+    },
+    {
+      "name": "Trey Waters",
+      "olinClass": "Welterweight",
+      "reason": "Released by the UFC and signed with PFL in June 2026; fought on the PFL Summer Series. Do not add.",
+      "sources": [
+        "https://www.sherdog.com/news/news/Former-UFC-fighter-Trey-Waters-heads-to-PFL-Summer-Series-201700"
+      ]
+    },
+    {
+      "name": "Daniel Frunza",
+      "olinClass": "Welterweight",
+      "reason": "Released from the UFC around August 8, 2026 and fought at LFA 239 on August 21, 2026. Do not add.",
+      "sources": [
+        "https://agentmma.com/news/88324-daniel-frunza-released-from-ufc-roster",
+        "https://www.lfa.com/lfa-239-official-live-results/"
+      ]
+    },
+    {
+      "name": "Saygid Izagakhmaev",
+      "olinClass": "Welterweight",
+      "reason": "Already in the pool as inactive WW. Confirmed released in September 2026 after back-to-back decision losses. Do not reactivate. Add to released.json so a later card sync cannot turn him back on.",
+      "sources": [
+        "https://agentmma.com/news/90155-ufc-cuts-saygid-izagakhmaev-after-back-to-back-decision-losses",
+        "https://www.mmamania.com/ufc-roster-watch-cuts-tracker-free-agent-aquisitions-mma/472728/ufc-roster-cuts-nine-fighters-contender-series-2026"
+      ],
+      "poolStatus": "inactive",
+      "id": "saygid-izagakhmaev"
+    },
+    {
+      "name": "Allan Nascimento",
+      "olinClass": "Flyweight",
+      "reason": "Do not add. UFC announced his death on August 3, 2026 (apparent heart attack, age 34). Memorial: UFC.com 'Remembering Allan Nascimento (1991-2026)'.",
+      "sources": [
+        "https://www.ufc.com/news/remembering-allan-nascimento-1991-2026"
+      ]
+    },
+    {
+      "name": "Anderson Berinja",
+      "olinClass": "Bantamweight",
+      "reason": "No evidence he is a current 2026 UFC fighter. This appears to be Anderson dos Santos, nickname Berinja, a former UFC featherweight/bantamweight whose UFC debut was in 2018. Not on Wikipedia's current roster or Recent signings. Do not add unless a new contract is confirmed."
+    },
+    {
+      "name": "Henrique da Silva Lopes",
+      "olinClass": "Heavyweight",
+      "reason": "Do not add a second heavyweight. This name almost certainly refers to José Luiz 'Montanha' / José Montanha da Silva, already active in the pool as José Luiz (7-1, UFC debut submission of Louie Sutherland on Aug 8, 2026, 1:50). UFC.com has a thin athlete/henrique-da-silva-lopes page with the same 7-1 record, 240 lb, and 1:50 average fight time, which looks like a duplicate stub, not a separate debuted fighter. Rename José Luiz instead."
+    },
+    {
+      "name": "Norma Dumont",
+      "olinClass": "Women's Bantamweight",
+      "reason": "Confirmed released Nov 10, 2026. Already in the pool (drafted by Drew). See dumont."
+    }
+  ],
+  "unverifiedDoNotAddAutomatically": [
+    {
+      "name": "Aliaskhab Khizriev",
+      "olinClass": "Middleweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/74383-aliaskhab-khizriev",
+      "reason": "UFC.com athlete page still exists and USADA listed 2026 tests, but he is not on Wikipedia's current debuted table or Recent signings and has been inactive as a UFC fighter. No confirmed 2026 release was found. Do not add automatically; only add if Olin wants long-inactive veterans kept in the pool."
+    },
+    {
+      "name": "Li Jingliang",
+      "olinClass": "Welterweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/jing-liang-li-the-leech",
+      "reason": "UFC.com page still exists. Last listed UFC fight is 2024 (UFC 305 vs Carlos Prates). Not on Wikipedia's current list and no confirmed 2026 release was found in this pass. Do not add automatically."
+    },
+    {
+      "name": "Rani Yahya",
+      "olinClass": "Bantamweight",
+      "tapologyUrl": "https://www.tapology.com/fightcenter/fighters/rani-yahya",
+      "reason": "UFC.com page still exists. Last listed UFC fight is 2024. Not on Wikipedia's current list and no confirmed 2026 release was found. Do not add automatically."
+    },
+    {
+      "name": "Marnic Mann",
+      "olinClass": "Women's Strawweight",
+      "tapologyUrl": null,
+      "reason": "UFC.com athlete/marnic-mann still exists and no 2026 removal was found, but she is not on Wikipedia's current list and her last widely listed UFC bout is 2024. Do not add automatically."
+    },
+    {
+      "name": "Alex Reyes",
+      "olinClass": "Lightweight",
+      "tapologyUrl": null,
+      "reason": "UFC.com athlete/alex-reyes still exists. Last widely listed UFC bout is 2024 (loss to Tom Nolan). Not on Wikipedia's current list; no 2026 signing or release was confirmed. Do not add automatically. Not the same person as Javier Reyes or Alexander Hernandez, who are already in the pool."
+    }
+  ],
+  "alreadyInPoolUnderAnotherName": [
+    {
+      "reportedAs": "Jose Montanha",
+      "poolName": "José Luiz",
+      "status": "active",
+      "class": "Heavyweight"
+    },
+    {
+      "reportedAs": "Ozzy Diaz",
+      "poolName": "Osman Diaz",
+      "status": "active",
+      "class": "Middleweight"
+    },
+    {
+      "reportedAs": "Ce Liu",
+      "poolName": "Liu Ce",
+      "status": "active",
+      "class": "Light Heavyweight"
+    },
+    {
+      "reportedAs": "Eduardo Chapolin",
+      "poolName": "Eduardo Henrique",
+      "status": "active",
+      "class": "Flyweight"
+    },
+    {
+      "reportedAs": "Tommy Gantt",
+      "poolName": "Thomas Gantt",
+      "status": "active",
+      "class": "Lightweight"
+    },
+    {
+      "reportedAs": "Bia Mesquita",
+      "poolName": "Beatriz Mesquita",
+      "status": "active, drafted by Jive Turkey",
+      "class": "Women's Bantamweight"
+    },
+    {
+      "reportedAs": "Tina Black",
+      "poolName": "Valesca Machado",
+      "status": "inactive — reactivate and rename",
+      "class": "Women's Strawweight"
+    }
+  ],
+  "counts": {
+    "before": {
+      "byClass": {
+        "mens_bantamweight": 79,
+        "mens_featherweight": 89,
+        "mens_flyweight": 48,
+        "mens_heavyweight": 52,
+        "mens_light_heavyweight": 48,
+        "mens_lightweight": 101,
+        "mens_middleweight": 76,
+        "mens_welterweight": 79,
+        "womens_bantamweight": 27,
+        "womens_flyweight": 32,
+        "womens_strawweight": 44
+      },
+      "totalActive": 675,
+      "totalInactive": 71
+    },
+    "afterPlannedChanges": {
+      "byClass": {
+        "mens_bantamweight": 84,
+        "mens_featherweight": 95,
+        "mens_flyweight": 51,
+        "mens_heavyweight": 54,
+        "mens_light_heavyweight": 50,
+        "mens_lightweight": 105,
+        "mens_middleweight": 81,
+        "mens_welterweight": 88,
+        "womens_bantamweight": 28,
+        "womens_flyweight": 34,
+        "womens_strawweight": 49
+      },
+      "totalActive": 719,
+      "other": 0,
+      "notes": "After all planned merges (including collapsing 9 both-active pairs), reactivations of current UFC fighters who are only inactive, and adds (18 primary + 8 additional Oct 27 Sydney/Road-to-UFC signings). Norma Dumont stays on Drew's roster and remains in the active count. Saygid Izagakhmaev stays inactive. Unverified veterans are not added. The middleweight and light-heavyweight Luis Hernandezes are counted separately."
+    },
+    "deltaByClass": {
+      "mens_bantamweight": 5,
+      "mens_featherweight": 6,
+      "mens_flyweight": 3,
+      "mens_heavyweight": 2,
+      "mens_light_heavyweight": 2,
+      "mens_lightweight": 4,
+      "mens_middleweight": 5,
+      "mens_welterweight": 9,
+      "womens_bantamweight": 1,
+      "womens_flyweight": 2,
+      "womens_strawweight": 5
+    }
+  },
+  "givenVariantsNotCurrentlyDuplicated": [
+    {
+      "pair": [
+        "Adrián Luna Martinetti",
+        "Juan Martinetti"
+      ],
+      "status": "Only Adrián Luna Martinetti is in the pool (active BW) and in AFR. Juan Martinetti is not a second record. Keep Adrián Luna Martinetti; do not create a Juan Martinetti row."
+    },
+    {
+      "pair": [
+        "Choi Dong-hun",
+        "DongHun Choi"
+      ],
+      "status": "Only Choi Dong-hun is in the pool (active FLW). No DongHun Choi row. Choi Doo-ho is a different featherweight."
+    },
+    {
+      "pair": [
+        "Park Jun-yong",
+        "JunYong Park"
+      ],
+      "status": "Only Park Jun-yong is in the pool (active MW) and on the Saudi Arabia card. Park Hyun-sung is a different flyweight."
+    }
+  ]
+}

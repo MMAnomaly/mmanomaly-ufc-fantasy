@@ -103,9 +103,22 @@ model Fighter {
   picks       DraftPick[]
   scores      FantasyScore[]
   statLines   FightStatLine[]
+  aliases     FighterAlias[]
 
   @@index([classKey])
   @@index([name])
+}
+
+/// Alternate names players type. Matching and the Pool search use these. Display name stays on Fighter.name.
+model FighterAlias {
+  id        String @id @default(cuid())
+  fighterId String
+  alias     String
+
+  fighter Fighter @relation(fields: [fighterId], references: [id], onDelete: Cascade)
+
+  @@unique([fighterId, alias])
+  @@index([alias])
 }
 
 model RosterSlot {
