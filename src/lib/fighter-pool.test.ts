@@ -99,6 +99,31 @@ describe("fighter pool rows", () => {
       direction: "asc",
     });
     assert.deepEqual(searched.map((row) => row.name), ["José Aldo"]);
+    const aliased = buildFighterPool({
+      today,
+      cards: [],
+      includeInactive: false,
+      fighters: [
+        fighter({ id: "osman-diaz", name: "Osman 'Ozzy' Diaz", aliases: ["Ozzy Diaz", "Osman Diaz"] }),
+        fighter({ id: "jan", name: "Jan Błachowicz" }),
+      ],
+    });
+    const byAlias = filterPoolRows(aliased.active, {
+      query: "ozzy diaz",
+      classKey: "all",
+      availableOnly: false,
+      sort: "name",
+      direction: "asc",
+    });
+    assert.deepEqual(byAlias.map((row) => row.id), ["osman-diaz"]);
+    const byStem = filterPoolRows(aliased.active, {
+      query: "blachowicz",
+      classKey: "all",
+      availableOnly: false,
+      sort: "name",
+      direction: "asc",
+    });
+    assert.deepEqual(byStem.map((row) => row.id), ["jan"]);
 
     const byDate = filterPoolRows(built.active, {
       query: "",

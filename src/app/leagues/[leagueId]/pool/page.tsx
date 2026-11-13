@@ -39,6 +39,7 @@ export default async function FighterPoolPage({
         tapologyUrl: true,
         active: true,
         activityNotes: true,
+        aliases: { select: { alias: true }, orderBy: { alias: "asc" } },
         picks: {
           where: { leagueId },
           select: { membership: { select: { teamName: true } } },
@@ -66,6 +67,7 @@ export default async function FighterPoolPage({
         active: fighter.active,
         activityNotes: fighter.activityNotes,
         draftedBy: fighter.picks[0]?.membership.teamName ?? null,
+        aliases: fighter.aliases.map((alias) => alias.alias),
       }),
     ),
     cards: cards satisfies PoolCardInput[],

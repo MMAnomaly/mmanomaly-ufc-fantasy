@@ -10,7 +10,10 @@ import {
   classKeyForWeightClass,
   foughtFightersFromEvent,
   importAfrCards,
+  matchFighterByName,
+  slugifyFighterName,
   syncFoughtFighters,
+  syncUpcomingCardFighters,
   upcomingFightersFromCard,
   upsertFighterPool,
 } from "./afr-pool";
@@ -31,6 +34,7 @@ type StoredFighter = {
   activityNotes?: string | null;
   upcomingFightClass?: string | null;
   record?: string | null;
+  aliases?: string[];
 };
 
 type NewFighter = Omit<StoredFighter, "rosterCount"> & { rosterCount?: number };
@@ -770,5 +774,121 @@ describe("upcoming card pool additions", () => {
     assert.equal(rows.get("same-class")?.upcomingFightClass, undefined);
     assert.equal(result.fighters.activeByClass.mens_heavyweight, 3);
     assert.equal(result.fighters.rosteredRetained, 0);
+  });
+
+  it("transliterates ł đ ø æ ß in slug ids", () => {
+    assert.equal(slugifyFighterName("Jan Błachowicz"), "jan-blachowicz");
+    assert.equal(slugifyFighterName("Đặng"), "dang");
+    assert.equal(slugifyFighterName("Søren"), "soren");
+    assert.equal(slugifyFighterName("Ægir"), "aegir");
+    assert.equal(slugifyFighterName("Straße"), "strasse");
+  });
+
+  it("adopts a slug-only row when the file has the numeric Tapology URL", async () => {
+    const slug = fighter({
+      id: "aaron-pico",
+      name: "Aaron Pico",
+      tapologyUrl: "https://www.tapology.com/fightcenter/fighters/aaron-pico",
+      classKey: "mens_featherweight",
+      slotKey: "MEN_FEATHERWEIGHT",
+    });
+    const { db, rows } = memoryDb([slug]);
+    await upsertFighterPool(db, {
+      classes: {
+        mens_featherweight: {
+          fighters: [
+            {
+              name: "Aaron Pico",
+              sex: "men",
+              weight_class: "Featherweight",
+              tapology_url: "https://www.tapology.com/fightcenter/fighters/86018-aaron-pico",
+            },
+          ],
+        },
+      },
+    });
+    assert.equal(rows.size, 1);
+    assert.equal(rows.get("aaron-pico")?.tapologyUrl, "https://www.tapology.com/fightcenter/fighters/86018-aaron-pico");
+    assert.equal(rows.has("86018-aaron-pico"), false);
+  });
+
+  it("collapses reversed names and accent duplicates onto one row", async () => {
+    const lee = fighter({
+      id: "lee-jeong-yeong",
+      name: "Lee Jeong-yeong",
+      tapologyUrl: "https://www.tapology.com/fightcenter/fighters/lee-jeong-yeong",
+      classKey: "mens_featherweight",
+      slotKey: "MEN_FEATHERWEIGHT",
+    });
+    const { db, rows } = memoryDb([lee]);
+    await upsertFighterPool(db, {
+      classes: {
+        mens_featherweight: {
+          fighters: [
+            { name: "Jeong Yeong Lee", sex: "men", weight_class: "Featherweight" },
+            {
+              name: "Juan Diaz",
+              sex: "men",
+              weight_class: "Featherweight",
+            },
+            {
+              name: "Juan Díaz",
+              sex: "men",
+              weight_class: "Featherweight",
+              tapology_url: "https://www.tapology.com/fightcenter/fighters/juan-diaz",
+            },
+          ],
+        },
+      },
+    });
+    assert.equal(rows.size, 2);
+    assert.equal(rows.has("lee-jeong-yeong"), true);
+    const juan = [...rows.values()].filter((row) => /juan/i.test(row.name));
+    assert.equal(juan.length, 1);
+    assert.equal(juan[0]?.tapologyUrl, "https://www.tapology.com/fightcenter/fighters/juan-diaz");
+  });
+
+  it("matches an alias and prefers the rostered copy", () => {
+    const chosen = matchFighterByName(
+      [
+        { id: "old", name: "Osman Diaz", active: false, tapologyUrl: null, aliases: ["Ozzy Diaz"] },
+        { id: "live", name: "Osman Diaz", active: true, rostered: true, tapologyUrl: "https://www.tapology.com/fightcenter/fighters/61676-ozzy-diaz", aliases: ["Ozzy Diaz"] },
+      ],
+      "Ozzy Diaz",
+    );
+    assert.equal(chosen?.id, "live");
+  });
+
+  it("does not reactivate an inactive copy when a live copy already matches", async () => {
+    const inactive = fighter({
+      id: "samuel-sanches",
+      name: "Samuel Sanches",
+      active: false,
+      tapologyUrl: "https://www.tapology.com/fightcenter/fighters/samuel-sanches",
+      classKey: "mens_bantamweight",
+      slotKey: "MEN_BANTAMWEIGHT",
+    });
+    const live = fighter({
+      id: "12345-samuel-sanches",
+      name: "Samuel Sanches",
+      active: true,
+      tapologyUrl: "https://www.tapology.com/fightcenter/fighters/12345-samuel-sanches",
+      classKey: "mens_bantamweight",
+      slotKey: "MEN_BANTAMWEIGHT",
+    });
+    const { db, rows } = memoryDb([inactive, live]);
+    const result = await syncUpcomingCardFighters(db, {
+      bouts: [
+        {
+          fighter_a: "Samuel Sanches",
+          fighter_a_tapology_url: "https://www.tapology.com/fightcenter/fighters/samuel-sanches",
+          fighter_b: "Keeper",
+          weight_class: "Bantamweight",
+        },
+      ],
+    });
+    assert.equal(result.reactivated.includes("Samuel Sanches"), false);
+    assert.equal(rows.get("samuel-sanches")?.active, false);
+    assert.equal(rows.get("12345-samuel-sanches")?.active, true);
   });
 });

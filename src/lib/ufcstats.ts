@@ -46,8 +46,29 @@ export type ParsedEvent = {
 };
 
 export async function matchFighterId(name: string): Promise<string | null> {
-  const fighters = await prisma.fighter.findMany({ select: { id: true, name: true } });
-  return matchFighterByName(fighters, name)?.id ?? null;
+  const fighters = await prisma.fighter.findMany({
+    select: {
+      id: true,
+      name: true,
+      active: true,
+      tapologyUrl: true,
+      aliases: { select: { alias: true } },
+      rosterSlots: { select: { id: true }, take: 1 },
+    },
+  });
+  return (
+    matchFighterByName(
+      fighters.map((fighter) => ({
+        id: fighter.id,
+        name: fighter.name,
+        active: fighter.active,
+        tapologyUrl: fighter.tapologyUrl,
+        rostered: fighter.rosterSlots.length > 0,
+        aliases: fighter.aliases.map((alias) => alias.alias),
+      })),
+      name,
+    )?.id ?? null
+  );
 }
 
 async function fetchHtml(url: string) {

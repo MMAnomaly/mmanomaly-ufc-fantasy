@@ -2,6 +2,7 @@ import { createHash, timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { AfrImportError, parseAfrResults } from "@/lib/afr-results";
 import { activePoolByClass, importAfrCards } from "@/lib/afr-pool";
+import { PoolPlanError, runPoolPlan } from "@/lib/pool-plan-apply";
 import { prisma } from "@/lib/prisma";
 import { persistAndScoreEvent } from "@/lib/ufcstats";
 
@@ -38,20 +39,26 @@ export async function POST(request: NextRequest) {
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
-  if (!isRecord(body) || (body.kind !== "results" && body.kind !== "cards")) {
-    return NextResponse.json({ error: 'Body must be { kind: "results" | "cards", data }' }, { status: 400 });
+  if (!isRecord(body) || (body.kind !== "results" && body.kind !== "cards" && body.kind !== "pool")) {
+    return NextResponse.json({ error: 'Body must be { kind: "results" | "cards" | "pool", data }' }, { status: 400 });
   }
 
   try {
     if (body.kind === "results") return await importResults(body.data);
+    if (body.kind === "pool") return await importPool(body.data, body.dryRun === true);
     return await importCards(body.data);
   } catch (err) {
-    if (err instanceof AfrImportError) {
+    if (err instanceof AfrImportError || err instanceof PoolPlanError) {
       return NextResponse.json({ error: err.message }, { status: 400 });
     }
     const message = err instanceof Error ? err.message : "Import failed.";
     return NextResponse.json({ error: message }, { status: 500 });
   }
+}
+
+async function importPool(data: unknown, dryRun: boolean) {
+  const result = await runPoolPlan(prisma, data, dryRun);
+  return NextResponse.json({ ok: true, ...result });
 }
 
 async function importResults(data: unknown) {
